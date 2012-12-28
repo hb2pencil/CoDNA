@@ -309,7 +309,7 @@ WIKIVIZ.appendCallout = function(parent)
 	
 	// Append to each callout an x-axis label corresponding to its ID.
 	parent.append('text').attr('class', 'xlabel').text(function(d) { return WIKIVIZ.tIndex(d); })
-		.attr('transform', function() { return 'translate(0,' + String(-10) + ')scale(1,-1)rotate(90,0,0)'; });
+		.attr('transform', function() { return 'translate(' + (ox+px/2) + ',' + (oy+py+ch) + ')scale(1,-1)'; });
 }
 
 // Determine the higher-level group that a given article-revision belongs to.
