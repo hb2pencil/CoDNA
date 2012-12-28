@@ -1,0 +1,2 @@
+This script retrieves article revisions via. the wikipedia API and stores them in an sqlite database, the schema for which is in schema.sql
+It was used to create the sqlite articles database available under /dumps.

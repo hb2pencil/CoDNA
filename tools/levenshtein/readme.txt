@@ -1,0 +1,1 @@
+A basic levenshtein distance calculator tool. Used by the manual classification tool.

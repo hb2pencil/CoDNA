@@ -1,0 +1,2 @@
+visualization_database.sql contains the dump of the MySQL database accessed by the visualization application.
+articles_users.zip is an archived copy of an sqlite database containing ~100 wikipedia articles, diffs, and user rights history for all involved users.

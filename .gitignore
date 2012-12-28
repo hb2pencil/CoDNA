@@ -162,6 +162,5 @@ pip-log.txt
 # Mac crap
 .DS_Store
 
-visualization/lib/config.inc.php
 *.komodoproject
 visualization/.komodotools

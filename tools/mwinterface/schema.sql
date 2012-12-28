@@ -1,0 +1,1 @@
+CREATE TABLE articles (title text, pageid int, revid int, parentid int, user text, userid int, timestamp text, comment text, diff text);

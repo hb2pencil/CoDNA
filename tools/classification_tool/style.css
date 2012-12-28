@@ -1,0 +1,60 @@
+body {
+	background-color: #eee;
+}
+
+table.main {
+	float: center;
+	width: 1200px;
+}
+
+table.main > tr > td {
+	text-align: left;
+}
+
+.data {
+	background-color: #ffa;
+}
+
+.label {
+	font-weight: bold;
+	text-align: left;
+	background-color: #ddd;
+}
+
+table.diff {
+	border: 2px solid;
+	background-color: #fff;
+}
+
+td.diff-marker {
+	font-weight: bold;
+	font-size: 110%;
+}
+
+td.diff-context {
+	background-color: #efefef;
+	font-color: #aaa;
+}
+
+td.diff-addedline {
+	background-color: #aaffaa;
+}
+
+td.diff-lineno {
+	font-weight: bold;
+	font-size: 110%;
+}
+
+td.diff-deletedline {
+	background-color: #ffffaa;
+}
+
+span.diffchange {
+	background-color: #ffaaaa;
+}
+
+th {
+	background-color: #cdc;
+	font-weight: bold;
+	font-size: 120%;
+}
