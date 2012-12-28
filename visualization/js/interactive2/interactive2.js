@@ -614,8 +614,8 @@ WIKIVIZ.init = function(art_title) {
 	
 	// Program the 'to adjacent spacing' and 'to time spacing' mode buttons with
 	// appropriate functionality.
-	$('#toAdj').button();
-	$('#toTime').button();
+	$('#toAdj').button().attr('title', 'Adjacent spacing');
+	$('#toTime').button().attr('title', 'Time spacing');
 	
 	$('#toAdj').click(function() {
 		WIKIVIZ.navctl.toAdjacentSpaced();
