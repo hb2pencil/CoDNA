@@ -1286,14 +1286,17 @@ WIKIVIZ.navctl = {
 		$('.chandle').mousedown(function(event) {
 			$(this).addClass('dragging');
 			that.sd.dx = event.pageX - that.sdim.x0;
+			event.preventDefault();
 		});
 		$('.lhandle').mousedown(function(event) {
 			$(this).addClass('dragging');
 			that.sd.dx = event.pageX - that.sdim.x0;
+			event.preventDefault();
 		});
 		$('.rhandle').mousedown(function(event) {
 			$(this).addClass('dragging');
 			that.sd.dx = event.pageX;
+			event.preventDefault();
 		});
 		
 		$(document).mousemove(function(event) {

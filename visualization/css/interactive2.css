@@ -568,16 +568,19 @@ rect.ymask {
 .lhandle {
 	fill: #CC2222;
 	opacity: 0.8;
+	cursor: col-resize;
 }
 
 .rhandle {
 	fill: #CC2222;
 	opacity: 0.8;
+	cursor: col-resize;
 }
 
 .chandle {
 	fill: #2266FF;
 	opacity: 0.2;
+	cursor: move;
 }
 
 .bg line {
