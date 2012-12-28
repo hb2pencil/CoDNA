@@ -1,0 +1,592 @@
+body {
+	background-color: #aaa;
+}
+
+#floater {
+	height: 50%;
+	margin-bottom: -120px;
+	float: left;
+}
+
+header {
+	display: block;
+	background-color: #fff;
+}
+
+header h1 {
+	text-align: center;
+	padding: 10px 0;
+	margin: 0 0;
+}
+
+#page_title {
+	float:right;
+	font-size: 12px;
+	margin-right: 5px;
+}
+
+#maincontainer {
+	position: relative;
+	height: 550px;
+}
+
+#left {
+	position: relative;
+	float: left;
+	height: 100%;
+}
+
+#right {
+	position: relative;
+	float: right;
+	height: 100%;
+}
+
+#content {
+	float: center;
+	margin: 0 auto;
+	width: 1000px;
+	height: 630px;
+	/*border: 1px solid #000;*/
+	box-shadow: 1px 2px 5px #222;
+	background-color: #fff;
+	position: relative;
+}
+
+#everything {
+	display: none;
+}
+
+#toolbar_wrapper {
+	width: 52px;
+	height: 502px;
+	text-align: center;
+	background-color: #777;
+	position: absolute;
+	bottom: 0px;
+	left: 10px;
+}
+
+#toolbar {
+	width: 40px;
+	height: 482px;
+	margin-left: 6px;
+	margin-top: 10px;
+	background-color: #eee;
+	font-size: 65%;
+}
+
+#toolbar hr {
+	border: none;
+	border-top: 1px #BBB solid;
+	border-bottom: 1px #FFF solid;
+	position: relative;
+	clear: both;
+	width: 80%;
+}
+
+#toolbar_top {
+	width: 100%;
+	background: #eeeeee; /* Old browsers */
+background: -moz-linear-gradient(top,  #eeeeee 0%, #cccccc 100%); /* FF3.6+ */
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#eeeeee), color-stop(100%,#cccccc)); /* Chrome,Safari4+ */
+background: -webkit-linear-gradient(top,  #eeeeee 0%,#cccccc 100%); /* Chrome10+,Safari5.1+ */
+background: -o-linear-gradient(top,  #eeeeee 0%,#cccccc 100%); /* Opera 11.10+ */
+background: -ms-linear-gradient(top,  #eeeeee 0%,#cccccc 100%); /* IE10+ */
+background: linear-gradient(top,  #eeeeee 0%,#cccccc 100%); /* W3C */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#cccccc',GradientType=0 ); /* IE6-9 */
+
+	height: 10px;
+}
+
+#toolbar .t_button {
+	margin: 5px auto;
+	width: 30px;
+	height: 30px;
+}
+
+#zoom {
+	font-size: 80%;
+	text-align: center;
+	margin: 0 auto;
+	width: 100%;
+	padding: 0;
+}
+
+#zoom label {
+	margin-right: 0px;
+}
+
+#viewtabs {
+	font-size: 65%;
+	border: 1px #aaa solid;
+	padding: 0;
+	position: absolute;
+	right: 10px;
+	bottom: 0px;
+}
+
+#artview {
+	padding-bottom: 0px;
+}
+
+#talkview {
+	padding-bottom: 0px;
+}
+
+#hybridview {
+	padding-bottom: 0px;
+}
+
+.ui-tabs .ui-tabs-panel {
+	padding: 5px 5px;
+}
+
+.view {
+	float: left;
+	width: 910px;
+	height: 500px;
+	/*border: 1px #aaa solid;*/
+	padding: 0;
+	position: relative;
+}
+
+.z_ctl {
+	width: 10px;
+	height: 10px;
+	padding: 0;
+	margin: 10px 0;
+}
+
+.z_off {
+	background-image: url('../img/z_off.bmp');
+}
+
+.z_on {
+	background-image: url('../img/z_on.bmp');
+}
+
+.z_radio {
+	background-color: blue;
+}
+
+.ui-dialog {
+	font-size: 12px;
+}
+
+.ui-dialog h3 {
+	margin: 0px 0px 5px 0px;
+}
+
+.ui-dialog table {
+	width: 100%;
+}
+
+#navctl {
+	width: 920px;
+	font-size: 80%;
+	position: absolute;
+	bottom: 10px;
+	right: 10px;
+	height: 30px;
+	border: 1px solid #777;
+}
+
+#t_select {
+	background-image: url("../img/icon_users.png");
+	background-repeat: no-repeat;
+	width: 24px;
+	height: 24px;
+}
+
+#t_legend {
+	background-image: url("../img/icon_categories.png");
+	background-repeat: no-repeat;
+	width: 24px;
+	height: 24px;
+}
+
+#t_deselect {
+	background-image: url("../img/icon_deselect.png");
+	background-repeat: no-repeat;
+	width: 24px;
+	height: 24px;
+}
+
+#t_talk {
+	background-image: url("../img/icon_talk.png");
+	background-repeat: no-repeat;
+	width: 24px;
+	height: 24px;
+}
+
+#t_data {
+	background-image: url("../img/icon_table.png");
+	background-repeat: no-repeat;
+	width: 24px;
+	height: 24px;
+}
+
+.ui-state-default .ui-icon {
+	background-image: none;
+}
+
+#hzoom_slider_wrapper {
+	font-size: 80%;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	padding: 10px 10px;
+	width: 150px;
+	background-color: #BBB;
+	opacity: 0.8;
+}
+
+#hzoom_slider .ui-slider-handle {
+	width: 10px;
+}
+
+.spacing_wrapper {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	padding: 10px 10px;
+	width: 60px;
+	height: 10px;
+	opacity: 0.8;
+	background-color: #BBB;
+}
+
+#toAdj {
+	position: absolute;
+	left: 5px;
+	top: 3px;
+	background-image: url("../img/icon_adj.png");
+	background-repeat: no-repeat;
+	width: 24px;
+	height: 24px;
+}
+
+#toTime {
+	position: absolute;
+	right: 5px;
+	top: 3px;
+	background-image: url("../img/icon_time.png");
+	background-repeat: no-repeat;
+	width: 24px;
+	height: 24px;
+}
+
+#select_users {
+	float: right;
+	width: 100%;
+}
+
+#select_checkboxes {
+	float: left;
+	margin-right: 50px;
+}
+
+#userselect {
+	width: 100%;
+}
+
+.select_apply_div {
+	clear: both;
+	float: right;
+	padding: 10px 0px;
+}
+
+#d_info_selection table {
+	border: 1px solid #aaa;
+	width: 100%;
+}
+
+#diag_data {
+	padding: 10px 0px 0px 0px;
+}
+
+#diag_data table {
+	border: 1px solid #aaa;
+	border-collapse: collapse;
+}
+
+#diag_data td {
+	border: 1px solid #aaa;
+	display: table-cell;
+	margin: 0;
+}
+
+#diag_data th {
+	border: 1px solid #aaa;
+}
+
+#users_select {
+	overflow: auto;
+}
+
+#groups_select {
+	overflow: auto;
+}
+
+#select_checkboxes {
+	display: none;
+	visibility: hidden;
+}
+
+.invisible {
+	display: none;
+	visibility: hidden;
+}
+
+#diag_article input {
+	width: 200px;
+	float: left;
+}
+
+#diag_article button {
+	clear: both;
+	float: right;
+	height: 20px;
+	margin-bottom: 0px;
+}
+
+.invisible {
+	display: none;
+	visibility: hidden;
+}
+
+th {
+	background-color: #ccc;
+}
+
+.rowselect {
+	background-color: #B3D4FC;
+}
+
+.leganchor {
+	height: 20px;
+}
+
+.leganchor img {
+	margin-top: -3px;
+}
+
+.l_colour {
+	width: 20px;
+	height: 20px;
+	border: 1px solid #000;
+	float: left;
+}
+
+.leglabel {
+	float: right;
+	font-size: 15px;
+}
+
+.ui-dialog h3 {
+	margin: 0;
+}
+
+.legtable {
+	margin: 0 auto; clear: both; float: center; width: 100%;
+}
+
+.legLabelTCell {
+	border-bottom: 2px #000 solid; width: 30px; padding-left: 7px; padding-bottom: 0px; display: block; height: 21px;
+}
+
+.legLabelBCell {
+	border-top: 2px #000 solid; width: 30px; padding-left: 7px; padding-top: 0px; height: 21px; display: block;
+}
+
+.legLabelBCell .l_colour {
+	margin-top: -1px;
+}
+
+.leganchor {
+	height: 20px;
+}
+
+.leganchor input {
+	float: left;
+	margin-right: 20px;
+}
+
+.l_addremove {
+	/*background-color: #105CB6;*/
+	background-image: url('../img/addrem.bmp');
+}
+
+.l_add {
+	background-color: #3333FF;
+}
+
+.l_rem {
+	background-color: #6699FF;
+}
+
+.l_cite {
+	background-color: #CF99FF;
+}
+
+.l_copyedit {
+	background-color: #6BE5F5;
+}
+
+.l_unsure {
+	background-color: #D09F6E;
+}
+
+.l_vandunvand {
+	/*background-color: #EE2222;*/
+	background-image: url('../img/vand.bmp')
+}
+
+.l_vand {
+	background-color: #FF3B3B;
+}
+
+.l_unvand {
+	background-color: #FEA890;
+}
+
+.l_reorganize {
+	background-color: #FF75DB;
+}
+
+.talkrow {
+	background-color: #DAE7E7;
+}
+
+svg {
+	overflow: hidden;
+}
+
+/* === SVG Styling === */
+.rule line {
+	stroke: #aaa;
+	stroke-width: 1;
+	shape-rendering: crispEdges;
+}
+
+.xaxis line {
+	stroke: #000;
+	stroke-width: 2;
+	shape-rendering: crispEdges;
+}
+
+rect.ymask {
+	fill: #fff;
+}
+
+.ylabel text {
+	text-anchor: middle;
+	font-size: 12px;
+	font-family: sans-serif;
+	text-antialiasing: true;
+}
+
+.ylabel text.yl {
+	text-anchor: end;
+	font-size: 10px;
+}
+
+.add {
+	fill: #3333FF;
+}
+.remove {
+	fill: #6699FF;
+}
+.edit {
+	fill: #6BE5F5;
+}
+.cite {
+	fill: #CF99FF;
+}
+.vand {
+	fill: #FF3B3B;
+}
+.unvand {
+	fill: #FEA890;
+}
+.reorganize {
+	fill: #FF75DB;
+}
+.unsure {
+	fill: #D09F6E;
+}
+
+.datum rect {
+	stroke: #222;
+}
+
+.callout {
+	stroke: #222;
+	fill: #ECF6F8;
+}
+
+.tcircle {
+	stroke: #222;
+	fill: #89AB87;
+}
+
+.tcircle_full {
+	stroke: #7FFF78;
+	fill: #89AB87;
+	stroke-width: 3px;
+}
+
+.xlabel {
+	font-size: 8px;
+	font-family: sans-serif;
+	text-antialising: true;
+	text-anchor: right;
+}
+
+.month {
+	stroke: none;
+	font-size: 10px;
+	font-family: sans-serif;
+	text-antialising: true;
+}
+
+.m_odd {
+	fill: #777;
+	opacity: 0.2;
+}
+
+.m_even {
+	fill: #eee;
+	opacity: 0.2;
+}
+
+.pad {
+	fill: #777;
+}
+
+.lhandle {
+	fill: #CC2222;
+	opacity: 0.8;
+}
+
+.rhandle {
+	fill: #CC2222;
+	opacity: 0.8;
+}
+
+.chandle {
+	fill: #2266FF;
+	opacity: 0.2;
+}
+
+.bg line {
+	stroke: #222;
+	stroke-width: 2px;
+}
+
+rect.sd {
+	/*stroke: #777;
+	stroke-width: 1px;*/
+	fill: #777;
+}

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+
+		<!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
+		Remove this if you use the .htaccess -->
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+		<title>interactive</title>
+		<meta name="description" content="" />
+		<meta name="author" content="Henry Brausen" />
+
+		<meta name="viewport" content="width=device-width; initial-scale=1.0" />
+		<link rel="stylesheet" href="css/jquery-ui-1.8.21.custom.css">
+		<link rel="stylesheet" href="interactive.css">
+	</head>
+
+	<body>
+		<div>
+			<header>
+				<h1>Interactive</h1>
+			</header>
+			<div id="title"><div class="loading">Loading . . .</div></div>
+			<div id="stackview" class="loadingview">
+			</div>
+			
+			<div id="zoomslider">
+				
+			</div>
+			
+			<div id="panslider">
+				
+			</div>
+			
+			<div id="widthslider">
+				
+			</div>
+			
+			<hr>
+			<a id="tableviewdiagspawn">Open Detailed Content</a>
+			<a id="selectspawn">Select Users</a>
+			<a id="clearselection">Clear Selection</a>
+			<a id="legendspawn">Show Edit Categories</a>
+			<div id="tableview">
+				<div class="loading">Loading . . .</div>
+			</div>
+			<div id="legend">
+				<div id="accordion">
+					<h3><a href="#" class="leganchor"><div class="l_copyedit l_colour"></div><span class="leglabel">Copyediting</span></a></h3>
+					<div>
+						<p>
+							Small changes in the text and citations, including both minor additions and deletions.
+						</p>
+					</div>
+					<h3><a href="#" class="leganchor"><div class="l_addremove l_colour"></div><span class="leglabel">Content [Addition or Deletion]</span></a></h3>
+					<div>
+						<p>The textual description of the encyclopedic entry.</p>
+						<table style="">
+							<tr><td class="legLabelTCell"><div class="l_add l_colour"></div></td><td style="text-align: left;">Content Addition</td><td>Addition of substantive new content to the Article</td></tr>
+							<tr><td class="legLabelBCell"><div class="l_rem l_colour"></div></td><td style="text-align: left;">Content Deletion</td><td>Removal of substantive content from the article.</td></tr>
+						</table>
+					</div>
+					<h3><a href="#" class="leganchor"><div class="l_cite l_colour"></div><span class="leglabel">Citation</span></a></h3>
+					<div>
+						<p>
+							Addition of detailed references to external sources that were consulted during the creation of the article.
+						</p>
+					</div>
+					<h3><a href="#" class="leganchor"><div class="l_reorganize l_colour"></div><span class="leglabel">Reorganization</span></a></h3>
+					<div>
+						<p>
+							Restructuring of the article’s contents, namely changing the location of sections and paragraphs.
+						</p>
+					</div>
+					<h3><a href="#" class="leganchor"><div class="l_unsure l_colour"></div><span class="leglabel">Misc.</span></a></h3>
+					<div>
+						<p>
+							Edits that do not clearly fall under any other category.
+						</p>
+					</div>
+					<h3><a href="#" class="leganchor"><div class="l_vandunvand l_colour"></div><span class="leglabel">Vandalism [Addition or Deletion]</span></a></h3>
+					<div>
+						<p>
+							Edits that are irrelevant or inappropriate for a particular article, including the deliberate damaging of others’ edits.
+						</p>
+						<table style="margin: 0 auto; clear: both; float: center; width: 100%;">
+							<tr><td class="legLabelTCell"><div class="l_vand l_colour"></div></td><td style="text-align: left;">Vandalism Addition</td><td>Insertion of inappropriate content.</td></tr>
+							<tr><td class="legLabelBCell"><div class="l_unvand l_colour"></div></td><td style="text-align: left;">Vandalism Deletion</td><td>Quality assurance efforts to remove vandalism.</td></tr>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div id="selectdiag">
+				<div id="select_checkboxes">
+					<h3>Select by Group:</h3>
+					<table>
+						<tr><td><input type="checkbox" name="userclassselect" value="Anon" /></td><td>Anonymous Users</td></tr>
+						<tr><td><input type="checkbox" name="userclassselect" value="User" /></td><td>Registered Users</td></tr>
+						<tr><td><input type="checkbox" name="userclassselect" value="Power User" /></td><td>Power Users</td></tr>
+						<tr><td><input type="checkbox" name="userclassselect" value="Admin" /></td><td>Administrators</td></tr>
+						<tr><td><input type="checkbox" name="userclassselect" value="Bot" /></td><td>Bots</td></tr>
+					</table>
+				</div>
+				<div id="select_users">
+					<h3>Select by User:</h3>
+					<select size="7" name="userselect" id="userselect" multiple="yes">
+						<option>Lorem (22%)</option>
+						<option>Ipsum (16%)</option>
+						<option>Dolor (8%)</option>
+						<option>Sit (4%)</option>
+						<option>Amet (4%)</option>
+						<option>Consectetur (3%)</option>
+						<option>Adipiscing (3%)</option>
+						<option>Elit (1%)</option>
+						<option>Nunc (1%)</option>
+						<option>Pulvinar (1%)</option>
+					</select>
+				</div>
+				<div id="select_apply_div">
+					<a id="select_apply">Apply Selection</a>
+				</div>
+			</div>
+			<hr>
+			<footer>
+				<p>
+					&copy; Copyright  by Henry Brausen
+				</p>
+			</footer>
+		</div>
+		<script src="js/vendor/jquery-1.7.2.min.js"></script>
+		<script src="js/vendor/jquery-ui-1.8.20.custom.min.js"></script>
+		<script src="js/vendor/d3.v2.min.js"></script>
+		<script src="interactive.js"></script>
+	</body>
+</html>

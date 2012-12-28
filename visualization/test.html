@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>SVG Test</title>
+        <meta name="description" content="SVG Experiment." />
+	<meta name="author" content="Henry Brausen" />
+	<link rel="stylesheet" href="css/jquery-ui-1.8.21.custom.css">
+	<link rel="stylesheet" href="css/jquery.svg.css">
+        <style>
+	    .dragable {
+		stroke: #222;
+		stroke-width: 2px;
+		fill: #FF2222;
+	    }
+	    
+	    .dragging {
+		fill: #FFFF22;
+		stroke-width: 2px;
+	    }
+	    
+	    svg {
+		border: 2px dotted #222;
+	    }
+        </style>
+    </head>
+    <body>
+        <svg width="800" height="600">
+            <rect x="0" y="0" width="100" height="60" class="dragable" />
+	    <rect x="200" y="400" width="30" height="50" class="dragable" />
+        </svg>
+        <script src="js/vendor/jquery-1.7.2.min.js"></script>
+        <script src="js/vendor/jquery-ui-1.8.20.custom.min.js"></script>
+	<script src="js/vendor/jquery_svg/jquery.svg.js"></script>
+	<script src="js/vendor/jquery_svg/jquery.svgdom.js"></script>
+        <script src="js/vendor/d3.v2.min.js"></script>
+        <script>
+            // Main Body of Script =======================================
+	    var objs = {};
+            $('.dragable').mousedown(function(event) {
+		$(this).addClass('dragging');
+		objs[this] = {
+		    dx: event.pageX - $(this).attr('x'),
+		    dy: event.pageY - $(this).attr('y')
+		    };
+	    });
+	    $('.dragable').mousemove(function(event) {
+		if ($(this).hasClass('dragging')) {
+		    $(this).attr('x', event.pageX - objs[this].dx).attr('y', event.pageY - objs[this].dy);
+		}
+	    });
+	    $('.dragable').mouseup(function() {
+		$(this).removeClass('dragging');
+	    });
+        </script>
+    </body>
+</html>

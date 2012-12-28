@@ -1,0 +1,364 @@
+html {
+	background-color: #444;
+	margin: 0;
+	padding: 10px;
+}
+
+body {
+	background-color: #EEE;
+	border: #444444;
+	border-radius: 5px;
+	width: 970px;
+	float: center;
+	margin: 0 auto;
+	padding: 0px 10px;
+	box-shadow: 1px 2px 5px #222;
+}
+
+a:link {
+	color: #737373;
+	text-decoration: none;
+}
+
+a:visited {
+	color: #551A8B;
+}
+
+a:hover {
+	color: #105CB6;
+}
+
+.ui-dialog {
+	font-size: 12px;
+}
+
+.ui-button {
+	font-size: 12px;
+}
+
+#stackview {
+	border: 2px #BBBBBB dashed;
+	float: left;
+	width: 950px;
+	height: 600px;
+	background-color: #fff;
+}
+
+#widthslider {
+	font-size: 65%;
+	width: 950px;
+	float: left;
+	margin: 10px auto;
+}
+
+#panslider {
+	width: 950px;
+	font-size: 65%;
+	float: left;
+	clear: both;
+	margin: 10px auto;
+}
+
+#zoomslider {
+	font-size: 65%;
+	float: right;
+}
+
+.loading {
+	border-radius: 5px;
+	background-image: url('img/loadingstripe.png');
+	background-repeat: repeat-x repeat-y;
+	border: 1px #BBBBBB solid;
+	float: center;
+	margin: auto;
+	clear: both;
+	padding: 5px 10px;
+	font-style: bold;
+	width: 200px;
+	text-align: center;
+}
+
+.loadingview {
+	background-image: url('img/loadingstripe.png');
+	background-repeat: repeat-x repeat-y;
+}
+
+hr {
+	border: 1px #BBB solid;
+	position: relative;
+	clear: both;
+}
+
+#tableview {
+	position: relative;
+	clear: both;
+}
+
+#tableview table {
+	border-collapse: collapse;
+	border: 1px solid #444;
+	width: 900px;
+	font-size: 12pt;
+	font-family: "Times New Roman", serif;
+}
+
+#tableview td {
+	border-bottom: 2px solid #222;
+	margin: 0;
+	padding: 2px 5px;
+}
+
+#tableview th {
+	border-bottom: 2px solid #222;
+	margin: 0;
+	padding: 2px 5px;
+	font-size: 120%;
+	font-weight: bold;
+	background-color: #444444;
+	color: #EEE;
+	text-align: center;
+}
+
+#tableview tr:hover {
+	background-color: #B3D4FC;
+}
+
+footer {
+	text-align: right;
+	padding-bottom: 2px;
+	padding-right: 10px;
+}
+
+#title h1 {
+	text-align: center;
+	font-weight: bold;
+	font-size: 150%;
+}
+
+.data rect {
+	stroke: #222;
+}
+
+.rule line {
+	stroke: #bbb;
+}
+
+.xlabel {
+	text-anchor: left;
+	font-size: 6pt;
+}
+
+.placeholder {
+	fill: #105CB6;
+}
+
+.add {
+	fill: #3333FF;
+}
+.remove {
+	fill: #6699FF;
+}
+.edit {
+	fill: #6BE5F5;
+}
+.cite {
+	fill: #CF99FF;
+}
+.vand {
+	fill: #FF3B3B;
+}
+.unvand {
+	fill: #FEA890;
+}
+.reorganize {
+	fill: #FF75DB;
+}
+.unsure {
+	fill: #D09F6E;
+}
+.usertitle {
+	fill: #000;
+	font-size: 20px;
+}
+
+.ytitle {
+	font-size: 16px;
+	font-family: sans-serif;
+	font-weight: bold;
+	text-antialiasing: true;
+}
+
+.ylabel {
+	font-size: 12px;
+}
+
+.t_legend {
+	
+}
+
+.t_legend td {
+	padding: 5px;
+}
+
+.l_colour {
+	width: 20px;
+	height: 20px;
+	border: 1px solid #000;
+	float: left;
+}
+
+.leglabel {
+	float: right;
+	font-size: 15px;
+}
+
+.legtable {
+	margin: 0 auto; clear: both; float: center; width: 100%;
+}
+
+.legLabelTCell {
+	border-bottom: 2px #000 solid; width: 30px; padding-left: 6px; padding-bottom: 0px; display: block; height: 21px;
+}
+
+.legLabelBCell {
+	border-top: 2px #000 solid; width: 30px; padding-left: 6px; padding-top: 0px; height: 21px; display: block;
+}
+
+.legLabelBCell .l_colour {
+	margin-top: -1px;
+}
+
+.leganchor {
+	height: 20px;
+}
+
+.l_addremove {
+	/*background-color: #105CB6;*/
+	background-image: url('img/addrem.bmp');
+}
+
+.l_add {
+	background-color: #3333FF;
+}
+
+.l_rem {
+	background-color: #6699FF;
+}
+
+.l_cite {
+	background-color: #CF99FF;
+}
+
+.l_copyedit {
+	background-color: #6BE5F5;
+}
+
+.l_unsure {
+	background-color: #D09F6E;
+}
+
+.l_vandunvand {
+	/*background-color: #EE2222;*/
+	background-image: url('img/vand.bmp')
+}
+
+.l_vand {
+	background-color: #FF3B3B;
+}
+
+.l_unvand {
+	background-color: #FEA890;
+}
+
+.l_reorganize {
+	background-color: #FF75DB;
+}
+
+.months {
+	opacity: 0.5;
+}
+
+rect.usertitle {
+	fill: #CCC;
+}
+/*
+.Jan {
+	fill: #38FCFC;
+}
+
+.Feb {
+	fill: #38FC9A;
+}
+
+.Mar {
+	fill: #41F500;
+}
+
+.Apr {
+	fill: #BFFF00;
+}
+
+.May {
+	fill: #88C73C;
+}
+
+.Jun {
+	fill: #00800B;
+}
+
+.Jul {
+	fill: #275200;
+}
+
+.Aug {
+	fill: #6B6400;
+}
+
+.Sep {
+	fill: #FFC400;
+}
+
+.Oct {
+	fill: #FF7700;
+}
+
+.Nov {
+	fill: #4738F2;
+}
+
+.Dec {
+	fill: #61B5FF;
+}*/
+			
+.m_odd {
+	fill: #aaa;
+	opacity: 0.6;
+}
+
+.m_even {
+	fill: #eee;
+	opacity: 0.6;
+}
+
+#select_users {
+	float: right;
+	width: 100%;
+}
+
+#select_checkboxes {
+	float: left;
+}
+
+#userselect {
+	width: 180px;
+}
+
+#select_apply_div {
+	clear: both;
+	float: right;
+	padding: 10px;
+}
+
+#selectdiag {
+	padding: 0 10px;
+}
