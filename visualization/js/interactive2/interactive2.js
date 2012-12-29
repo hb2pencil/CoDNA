@@ -1239,13 +1239,13 @@ $(document).ready(function() {
 
 WIKIVIZ.navctl = {
 	init: function(sw, sh) {
-		var handleWidth = 20;
 		this.dim = {w: sw, h: sh};
 		this.sdim = {x0: 0, w: 100};
 		this.svg = d3.select('#navctl').append('svg').attr('width', this.dim.w).attr('height', this.dim.h);
 		this.bg = this.svg.append('g').attr('class', 'bg');
-		this.bg.append('rect').attr('class', 'pad').attr('width', handleWidth).attr('height', this.dim.h).attr('x', 0);
-		this.bg.append('rect').attr('class', 'pad').attr('width', handleWidth).attr('height', this.dim.h).attr('x', this.dim.w-handleWidth);
+		var handleWidth = this.dim.h/2;
+		this.bg.append('path').attr('d','M' + handleWidth + ',0 A' + handleWidth + ',' + handleWidth + ' 0 0,0 ' + handleWidth + ',' + handleWidth * 2 ).attr('class', 'pad').attr('width', handleWidth).attr('height', this.dim.h);
+		this.bg.append('path').attr('d','M0,0 A' + handleWidth + ',' + handleWidth + ' 0 0,1 0,' + handleWidth * 2).attr('class', 'pad').attr('width', handleWidth).attr('height', this.dim.h).attr('transform', 'translate('+ (this.dim.w - handleWidth) + ',0)');
 		this.bg.append('g').attr('class', 'navbars').attr('x', handleWidth).attr('transform', 'translate(' + handleWidth + ',' + this.dim.h / 2 + ')scale(1,-1)');
 		
 		this.bg.select('g.navbars').append('line')
@@ -1253,11 +1253,25 @@ WIKIVIZ.navctl = {
 			.attr('y1', 0)
 			.attr('x2', this.dim.w-2*handleWidth)
 			.attr('y2', 0);
+
+		this.bg.select('g.navbars').append('line')
+			.attr('class','navctlborder')
+			.attr('x1', 0)
+			.attr('y1', handleWidth)
+			.attr('x2', this.dim.w-2*handleWidth)
+			.attr('y2', handleWidth);
+
+		this.bg.select('g.navbars').append('line')
+			.attr('class','navctlborder')
+			.attr('x1', 0)
+			.attr('y1', -handleWidth)
+			.attr('x2', this.dim.w-2*handleWidth)
+			.attr('y2', -handleWidth);
 		
 		this.slider = this.svg.append('g').attr('class', 'slider');
 		this.slider.append('rect').attr('class', 'chandle').attr('width', this.sdim.w-handleWidth).attr('height', this.dim.h).attr('x', this.sdim.x0 + handleWidth);
-		this.slider.append('g').attr('class', 'lhandlegrp').attr('transform', 'translate(' + (this.sdim.x0) + ',0)').append('rect').attr('class', 'lhandle').attr('width', handleWidth).attr('height', this.dim.h);
-		this.slider.append('g').attr('class', 'rhandlegrp').attr('transform', 'translate(' + (this.sdim.x0 + this.sdim.w) + ',0)').append('rect').attr('class', 'rhandle').attr('width', handleWidth).attr('height', this.dim.h);
+		this.slider.append('g').attr('class', 'lhandlegrp').attr('transform', 'translate(' + (this.sdim.x0) + ',0)').append('path').attr('d','M' + handleWidth + ',0 A' + handleWidth + ',' + handleWidth + ' 0 0,0 ' + handleWidth + ',' + handleWidth * 2 ).attr('class', 'lhandle').attr('width', handleWidth).attr('height', this.dim.h);
+		this.slider.append('g').attr('class', 'rhandlegrp').attr('transform', 'translate(' + (this.sdim.x0 + this.sdim.w) + ',0)').append('path').attr('d','M0,0 A' + handleWidth + ',' + handleWidth + ' 0 0,1 0,' + handleWidth * 2).attr('class', 'rhandle').attr('width', handleWidth).attr('height', this.dim.h);
 		
 		this.xscale = d3.scale.linear();
 		this.xscale.domain([0, WIKIVIZ.data.revisions.length-1]);

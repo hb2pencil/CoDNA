@@ -189,7 +189,6 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', end
 	bottom: 10px;
 	right: 10px;
 	height: 30px;
-	border: 1px solid #777;
 }
 
 #t_select {
@@ -563,6 +562,10 @@ rect.ymask {
 
 .pad {
 	fill: #777;
+}
+
+.bg line.navctlborder{
+	stroke: #777;
 }
 
 .lhandle {
