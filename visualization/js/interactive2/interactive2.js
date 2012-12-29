@@ -532,10 +532,10 @@ WIKIVIZ.load = function(art_title) {
 			}
 		}
 		if (i < revs.length) {
-			mdata.concat(revs.slice(i));
+			mdata = mdata.concat(revs.slice(i));
 		}
 		if (j < tlk.length) {
-			mdata.concat(tlk.slice(i));
+			mdata = mdata.concat(tlk.slice(i));
 		}
 		
 		var rows = dtable.append('tbody').selectAll('tr.data').data(mdata).enter().append('tr');
