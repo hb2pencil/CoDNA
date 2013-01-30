@@ -1217,23 +1217,41 @@ WIKIVIZ.bindDialogs = function() {
 $(document).ready(function() {
 	// Quick 'N dirty way to allow user to select which article to view.
 	$('body').append($('<div>').attr('id', 'diag_article'));
-	$('#diag_article').append($('<h3>').text('Enter article title below:'));
-	$('#diag_article').append($('<input>').attr('id', 'd_article_title'));
-	$('#diag_article input').val('Lagrangian_mechanics');
-	$('#diag_article').append($('<button>').attr('id', 'd_article_enter').text('Enter'));
+	$('#diag_article').append($('<h3>').text('Select an article below:'));
+	$('#diag_article').append($('<div>').attr('id', 'd_article_list'));
+	$('#diag_article').append($('<div>').attr('id', 'd_article_list_loading'));
+	$('#d_article_list_loading').append($('<span>').text('Loading . . .'));
 	$('#diag_article').dialog({
 		resizable: false,
 		width: 'auto',
-		height: 'auto',
-		minHeight: 0,
+		height: 300,
 		autoOpen: true,
-		title: 'Enter Article'
+		title: 'Select Article'
 	});
-	$('#d_article_enter').click(function() {
-		$('#page_title').text($('#d_article_title').val());
-		WIKIVIZ.init($('#d_article_title').val());
-		$('#everything').fadeIn("slow");
-		$('#diag_article').dialog('close');
+	$.getJSON('dbquery.php?list', function(data) {
+		for (var i = 0; i < data.length; ++i) {
+			$('#d_article_list').append($('<h3>').append($('<a>').append($('<span>').text(data[i]['title'])).append($('<span>').text('('+data[i]['rev_count']+' Revisions)').attr('style','float:right')).attr('href', '#')));
+			
+			function getClickClosure(in_datum) {
+				this.datum = in_datum;
+				return function() {
+					var title = in_datum['title'];
+					$('#page_title').text(title);
+					WIKIVIZ.init(title);
+					$('#everything').fadeIn("slow");
+					$('#diag_article').dialog('close');
+				}
+			}
+			
+			$('#d_article_list').append($('<div>').append($('<button>').attr('id', 'd_article_enter_'+i).text('Go').click(getClickClosure(data[i]))));
+		}
+		$('#d_article_list').accordion({
+			collapsible: true,
+			active: false,
+			autoHeight: false,
+			clearStyle: true
+		});
+		$('#d_article_list_loading').remove();
 	});
 });
 
