@@ -47,9 +47,8 @@
 		$userdata = array();
 		
 		foreach ($users as $u) {
-			// TODO: When transfering to new data source (JSIST set) use table 'users' rather than 'h_users'!!!
 			$stmt = $mysqli->prepare("SELECT u.userid, u.user, g.timestamp, g.userclass, u.flagged" .
-				" from h_users as u inner join h_users_grouphistory as g on u.g_histid=g.g_histid where u.user=?");
+				" from jmis_users as u inner join jmis_users_grouphistory as g on u.g_histid=g.g_histid where u.user=?");
 			$stmt->bind_param("s", $u);
 			$stmt->execute();
 			$stmt->bind_result($userid, $user, $timestamp, $userclass, $flagged);
