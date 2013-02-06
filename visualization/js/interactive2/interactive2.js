@@ -267,11 +267,11 @@ WIKIVIZ.appendCallout = function(parent)
 	
 	// Max circle radius
 	var maxR = 10;
-	var fact = 30;
+	var fact = 1.2;
 	
 	// Append circle to our element. Cap the circle size and re-style the circle if it has reached the cap.
-	parent.filter(function(d) { return d.lev < fact*maxR; }).append('circle').attr('r', function(d) { return Math.min(d.lev/fact, maxR); }).attr('class', 'tcircle');
-	parent.filter(function(d) { return d.lev >= fact*maxR; }).append('circle').attr('r', function(d) { return Math.min(d.lev/fact, maxR); }).attr('class', 'tcircle_full');
+	parent.filter(function(d) { return Math.log(d.lev+1)*fact <= maxR; }).append('circle').attr('r', function(d) { return Math.log(d.lev+1)*fact; }).attr('class', 'tcircle');
+	parent.filter(function(d) { return Math.log(d.lev+1)*fact > maxR; }).append('circle').attr('r', maxR).attr('class', 'tcircle_full');
 	
 	// Generate the tooltip for this element.
 	parent.append('title').text(function(d) {
