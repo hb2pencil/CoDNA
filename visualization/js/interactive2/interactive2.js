@@ -246,10 +246,10 @@ WIKIVIZ.getCalloutWidth = function(d)
 WIKIVIZ.genCalloutImageSet = function(d)
 {
 	var imgs = [];
-	if (d.att !== 0) { imgs.push('img/att.png'); }
-	if (d.crit !== 0) { imgs.push('img/crit.png'); }
-	if (d.inf !== 0) { imgs.push('img/inf.png'); }
-	if (d.perf !== 0) { imgs.push('img/perf.png'); }
+	if (d.att !== 0) { imgs.push('att'); }
+	if (d.crit !== 0) { imgs.push('crit'); }
+	if (d.inf !== 0) { imgs.push('inf'); }
+	if (d.perf !== 0) { imgs.push('perf'); }
 	return imgs;
 }
 
@@ -303,8 +303,8 @@ WIKIVIZ.appendCallout = function(parent)
 	// Create image groups based on talk-page classifications and append these image groups to their respective callouts.
 	var igroup = parent.append('g').attr('class', 'igroup').attr('transform', 'translate(' + (ox+px) + ',' + (oy+py) +')scale(1,-1)').datum(function(d) { return WIKIVIZ.genCalloutImageSet(d); });
 	igroup.each(function (d) {
-		d3.select(this).selectAll('image').data(d).enter().append('image').attr('xlink:href', function(dm) { return dm; }).attr('x', function(dm, i) { return 29*i; })
-			.attr('width', 24).attr('height', 24).attr('y', -24);
+		d3.select(this).selectAll('image').data(d).enter().append('image').attr('xlink:href', function(dm) { return "img/" + dm + ".png"; }).attr('x', function(dm, i) { return 29*i; })
+			.attr('width', 24).attr('height', 24).attr('y', -24).attr('class', function(dm) { return dm; } );
 	});
 	
 	// Append to each callout an x-axis label corresponding to its ID.
@@ -1082,12 +1082,14 @@ WIKIVIZ.createDialogs = function() {
 		autoHeight: false,
 		clearStyle: true
 	});
+	
 	// Allow checkbox to capture click events (otherwise the accordion will do so)
-	$('#d_legend_accordion h3').each(function (i, el) {
+	$('.d_checkable h3').each(function (i, el) {
 		$(el).find('input').click(function(e) {
 			e.stopPropagation();
 		});
 	});
+
 	
 	// Mapping from checkbox value to visualization rectangle classes
 	var classMap = {
@@ -1113,6 +1115,20 @@ WIKIVIZ.createDialogs = function() {
 			$('#t_deselect').button('enable');
 		});
 	});
+	
+	$('#d_talk_accordion h3').each(function (i, el) {
+		$(el).find('input').change(function(e) {
+			var that = $(this);
+			if ($(this).attr('checked')) {	// If the event is the checking of a checkbox
+				
+				d3.selectAll('.tdatum .'+that.val()).transition().duration(500).attr('opacity', 1);
+			} else {	// Checkbox was unchecked
+				d3.selectAll('.tdatum .'+that.val()).transition().duration(500).attr('opacity', 0.2);
+			}
+			$('#t_deselect').button('enable');
+		});
+	});
+
 	
 	$('#d_select_groups_accordion').accordion({
 		collapsible: true,
