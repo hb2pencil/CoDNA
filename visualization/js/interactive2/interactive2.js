@@ -1112,6 +1112,28 @@ WIKIVIZ.createDialogs = function() {
 					WIKIVIZ.view.data.selectAll('rect.' + classMap[$(this).val()][i]).transition().duration(500).attr('opacity', 0.2);
 				}
 			}
+			
+			var selected = new Array();
+			$('#d_legend_accordion input:checked').each(function(i, v) {
+			    $.merge(selected, classMap[$(v).val()]);
+			});
+			
+			WIKIVIZ.navctl.bg.selectAll('rect').transition().duration(500).attr('opacity',
+				function(d) {
+					var found = 0.2;
+					$(selected).each(
+						function(i, v) {
+							if (d.wclass[v]) {
+								found = 1;
+								return 1;
+							}
+						}
+					);
+					return found;
+				}
+			);
+			
+			
 			$('#t_deselect').button('enable');
 		});
 	});
