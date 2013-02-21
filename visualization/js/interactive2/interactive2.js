@@ -17,7 +17,8 @@ WIKIVIZ = {
 		reorganize: 40,
 		vand: 10,
 		unvand: 10,
-		cite: 20
+		cite: 20,
+		unclassified: 60
 	},
 	view: {	// View object is populated with more rendering-oriented variables.
 		timeX: d3.time.scale(),	// The time scale object for the TS X-axis
@@ -382,7 +383,8 @@ WIKIVIZ.augment = function(data)
 			cite: 0,
 			vand: 0,
 			unvand: 0,
-			unsure: 0
+			unsure: 0,
+			unclassified: 0
 		};
 		
 		// Perform a weighted-separation of our article revision edit distance.
@@ -406,6 +408,9 @@ WIKIVIZ.augment = function(data)
 		}
 		if (strcontains('g', rev['class'])) {
 			wclass.unvand += WIKIVIZ.weights.unvand;
+		}
+		if (strcontains('x', rev['class'])) {
+			wclass.unclassified += WIKIVIZ.weights.unclassified;
 		}
 		
 		var wsum = 0;
@@ -446,7 +451,8 @@ WIKIVIZ.toClassString = function(rc)
 			'd': 'reorganize',
 			'e': 'cite',
 			'f': 'vandalize',
-			'g': 'unvandalize'
+			'g': 'unvandalize',
+			'x': 'unclassified'
 		})[c]; }).join(', ');
 };
 
@@ -828,7 +834,7 @@ WIKIVIZ.tIndex = function(d) { return d.id; }
 // Function to map revision data to rectangle groups that represent the data as a stacked bar graph.
 WIKIVIZ.buildBars = function(barsGroup, barWidth)
 {
-	var posFields = ['add', 'unsure', 'reorganize', 'edit', 'cite', 'vand'];
+	var posFields = ['add', 'unsure', 'reorganize', 'edit', 'cite', 'vand', 'unclassified'];
 	var negFields = ['unvand', 'remove'];
 	
 	// For brevity
