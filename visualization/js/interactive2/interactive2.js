@@ -230,7 +230,7 @@ WIKIVIZ.toAdjacentSpaced = function()
 }
 
 // Calculate the inner width of a callout element based in its contents.
-WIKIVIZ.getCalloutWidth = function(d)
+WIKIVIZ.getCalloutHeight = function(d)
 {
 	var ret = 0;
 	var el_w = 29;	// Width of icon + padding
@@ -257,7 +257,7 @@ WIKIVIZ.genCalloutImageSet = function(d)
 // Note that the argument 'parent' should be a d3 selection.
 WIKIVIZ.appendCallout = function(parent)
 {
-	var ch = 24;
+	var cw = 24;
 	// Padding around content
 	var px = 10;
 	var py = 10;
@@ -282,11 +282,11 @@ WIKIVIZ.appendCallout = function(parent)
 	var callout = parent.append('path');
 	callout.attr('d', function(d) { return "M 0 0 l {0} {1} l 0 {2} a {3} {3} 0 0 0 {3} {3} l {4} 0 a {3} {3} 0 0 0 {3} -{3} l 0 -{5} a {3} {3} 0 0 0 -{3} -{3} l -{6} 0 z".format(
 		ox, oy,	// Coords of left bottom of callout "box" rel. to "origin"
-		ch + 2*py - cr,
+		WIKIVIZ.getCalloutHeight(d) + 2*px - 2*cr,
 		cr,	// Corner radius
-		WIKIVIZ.getCalloutWidth(d) + 2*px - 2*cr,
-		ch + 2*py - 2*cr,
-		WIKIVIZ.getCalloutWidth(d) + 2*px - cr - 10	// Last number here is the width of the wide-end of the callout triangle
+		cw + 2*py - cr,
+		WIKIVIZ.getCalloutHeight(d) + 2*px - cr - 10,
+		cw + 2*py - 2*cr	// Last number here is the width of the wide-end of the callout triangle
 	)});
 	callout.attr('class', 'callout');
 	
@@ -303,13 +303,13 @@ WIKIVIZ.appendCallout = function(parent)
 	// Create image groups based on talk-page classifications and append these image groups to their respective callouts.
 	var igroup = parent.append('g').attr('class', 'igroup').attr('transform', 'translate(' + (ox+px) + ',' + (oy+py) +')scale(1,-1)').datum(function(d) { return WIKIVIZ.genCalloutImageSet(d); });
 	igroup.each(function (d) {
-		d3.select(this).selectAll('image').data(d).enter().append('image').attr('xlink:href', function(dm) { return "img/" + dm + ".png"; }).attr('x', function(dm, i) { return 29*i; })
-			.attr('width', 24).attr('height', 24).attr('y', -24).attr('class', function(dm) { return dm; } );
+		d3.select(this).selectAll('image').data(d).enter().append('image').attr('xlink:href', function(dm) { return "img/" + dm + ".png"; }).attr('y', function(dm, i) { return -29*i-24; })
+			.attr('width', 24).attr('height', 24).attr('x', 3).attr('class', function(dm) { return dm; } );
 	});
 	
 	// Append to each callout an x-axis label corresponding to its ID.
 	parent.append('text').attr('class', 'xlabel').text(function(d) { return WIKIVIZ.tIndex(d); })
-		.attr('transform', function() { return 'translate(' + (ox+px/2) + ',' + (oy+py+ch) + ')scale(1,-1)'; });
+		.attr('transform', function(d) { return 'translate(' + (ox+px/2) + ',' + (oy+py/2) + ')scale(1,-1)'; });
 }
 
 // Determine the higher-level group that a given article-revision belongs to.
