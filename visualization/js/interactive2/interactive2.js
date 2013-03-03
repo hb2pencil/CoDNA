@@ -212,21 +212,24 @@ WIKIVIZ.toAdjacentSpaced = function()
 {
 	WIKIVIZ.isTimeSpaced = false;
 	
-	// Re-position all article and talk-page contributions using adjacent-spacing parameters / axes.
-	d3.selectAll('.datum')
-		.attr('transform', function(d) {return 'translate(' + WIKIVIZ.view.x(WIKIVIZ.index(d)) + ',0)';})
-		.selectAll('.bars rect').attr('width', WIKIVIZ.calcBarWidth());
-	d3.selectAll('.tdatum')
-		.attr('transform', function(d) {return 'translate(' + d.adjx + ',0)';});
-		
-	// Update the month view.
-	WIKIVIZ.buildMonths();
-	
 	// Hide the month view if we are in adjacent spacing talk-page mode.
 	// (The month view does not make any sense in this mode)
 	if (WIKIVIZ.view.mode == "talk") {
 		d3.selectAll('.month').attr('opacity', 0);
+		WIKIVIZ.view.tx.range([0, WIKIVIZ.getAdjacentTalkWidth() ]);
 	}
+
+	// Re-position all article and talk-page contributions using adjacent-spacing parameters / axes.
+	d3.selectAll('.datum')
+		.attr('transform', function(d) {return 'translate(' + WIKIVIZ.view.x(WIKIVIZ.index(d)) + ',0)';})
+		.selectAll('.bars rect').attr('width', WIKIVIZ.calcBarWidth());
+		
+	d3.selectAll('.tdatum')
+		.attr('transform', function(d, i) {return 'translate(' + WIKIVIZ.view.tx(i) + ',0)';});
+		
+	// Update the month view.
+	WIKIVIZ.buildMonths();
+	
 }
 
 // Calculate the inner width of a callout element based in its contents.
@@ -294,11 +297,6 @@ WIKIVIZ.appendCallout = function(parent)
 	// Generate the x-offset for each callout incrementally.
 	// This is ued in adjacent spacing of callouts.
 	var x = 0;
-	
-	callout.each(function(d) {
-		d3.select(this).datum().adjx = x;
-		x += this.getBBox().width + 10;
-	});
 	
 	// Create image groups based on talk-page classifications and append these image groups to their respective callouts.
 	var igroup = parent.append('g').attr('class', 'igroup').attr('transform', 'translate(' + (ox+px) + ',' + (oy+py) +')scale(1,-1)').datum(function(d) { return WIKIVIZ.genCalloutImageSet(d); });
@@ -647,10 +645,15 @@ WIKIVIZ.init = function(art_title) {
 		if (WIKIVIZ.isTimeSpaced === false) {
 			$('#toAdj').button('disable');
 			$('#toTime').button('enable');
+			WIKIVIZ.navctl.toAdjacentSpaced();
 		} else {
 			$('#toAdj').button('enable');
 			$('#toTime').button('disable');
+			WIKIVIZ.navctl.toTimeSpaced();
 		}
+		
+		WIKIVIZ.navctl.onScale();
+		
 		$('.talkrow').addClass('invisible');
 		$('.defaultrow').removeClass('invisible');
 		
@@ -668,16 +671,20 @@ WIKIVIZ.init = function(art_title) {
 		$('#t_legend').button('disable');
 		$('#t_talk').button('enable');
 		
+		WIKIVIZ.view.mode = 'talk';
+		
 		if (WIKIVIZ.isTimeSpaced === false) {
 			d3.selectAll('.month').attr('opacity', 0);
 			$('#toAdj').button('disable');
 			$('#toTime').button('enable');
+			WIKIVIZ.navctl.toAdjacentSpaced();
 		} else {
 			$('#toAdj').button('enable');
 			$('#toTime').button('disable');
+			WIKIVIZ.navctl.toTimeSpaced();
 		}
 		
-		WIKIVIZ.view.mode = 'talk';
+		WIKIVIZ.navctl.onScale();
 		
 		$('.talkrow').removeClass('invisible');
 		$('.defaultrow').addClass('invisible');
@@ -700,11 +707,10 @@ WIKIVIZ.init = function(art_title) {
 		$('#toAdj').button('disable');
 		$('#toTime').button('disable');
 		
-		WIKIVIZ.toTimeSpaced();
+		WIKIVIZ.view.mode = 'hybrid';
+		WIKIVIZ.navctl.toTimeSpaced();
 		
 		d3.selectAll('.month').attr('opacity', 1);
-		
-		WIKIVIZ.view.mode = 'hybrid';
 		
 		$('.talkrow').removeClass('invisible');
 		$('.defaultrow').removeClass('invisible');
@@ -736,6 +742,18 @@ WIKIVIZ.calcBarWidth = function()
 	return w;
 };
 
+// Calculate talk width based on number of talk entries per screen
+WIKIVIZ.calcTalkWidth = function()
+{
+	var w = (WIKIVIZ.width - WIKIVIZ.maskWidth)/(WIKIVIZ.numDots);
+	return w;
+};
+
+WIKIVIZ.getAdjacentTalkWidth = function()
+{
+	return WIKIVIZ.data.talk.length * 70; // width of one callout
+};
+
 // Initialize the visualization. Create SVG and elements correspondng to data.
 WIKIVIZ.initViz = function()
 {
@@ -751,6 +769,10 @@ WIKIVIZ.initViz = function()
 	// Init the x and y scale objects.
 	WIKIVIZ.view.x = d3.scale.linear();
 	WIKIVIZ.view.y = d3.scale.linear();
+	
+	// For adjancent talk pages.
+	WIKIVIZ.view.tx = d3.scale.linear();
+	WIKIVIZ.view.ty = d3.scale.linear();
 	
 	// Must take into account the mask width here!
 	var barWidth = WIKIVIZ.calcBarWidth();
@@ -981,6 +1003,24 @@ WIKIVIZ.setNumBars = function(numBars)
 	WIKIVIZ.buildMonths();
 	
 	// Need to add functionality to update month view once finished!
+};
+
+WIKIVIZ.setNumDots = function(numDots)
+{
+	
+	// Redraw dots here for talk page entries
+	
+	if (numDots <= 0) return;	// Don't act on invalid values!
+	WIKIVIZ.numDots = numDots;
+	
+	WIKIVIZ.view.tx.range([0, WIKIVIZ.calcTalkWidth()]);
+
+	if (!WIKIVIZ.isTimeSpaced)
+		WIKIVIZ.view.tdata.selectAll('.tdatum')
+			.attr('transform', function(d, i) { return 'translate(' + WIKIVIZ.view.tx(i) + ', 0)'; });
+	
+	WIKIVIZ.buildMonths();
+
 };
 
 WIKIVIZ.createToolbar = function() {
@@ -1449,6 +1489,7 @@ WIKIVIZ.navctl = {
 		var minDate = WIKIVIZ.data.revisions[0].date;
 		
 		this.xscale = d3.time.scale();
+		// Todo: domain of talk entries may exceed revisions
 		this.xscale.domain([new Date(minDate.getFullYear(), minDate.getMonth()),
 			WIKIVIZ.data.revisions[WIKIVIZ.data.revisions.length - 1].date]);
 		this.xscale.range([0, this.dim.w - 2*this.handleWidth]);
@@ -1509,7 +1550,8 @@ WIKIVIZ.navctl = {
 	},
 	
 	onScale: function() {
-		if (this.mode == 'adj') { WIKIVIZ.setNumBars(this.getNumBars()); }
+		if (this.mode == 'adj' && WIKIVIZ.view.mode == 'art') { WIKIVIZ.setNumBars(this.getNumBars()); }
+		else if (this.mode == 'adj' && WIKIVIZ.view.mode == 'talk') { WIKIVIZ.setNumDots(this.getNumBars()); }
 		else if (this.mode == 'time') {
 			var df = WIKIVIZ.data.revisions[WIKIVIZ.data.revisions.length - 1].date;
 			var d0 = WIKIVIZ.data.revisions[0].date;
@@ -1524,9 +1566,13 @@ WIKIVIZ.navctl = {
 	},
 	
 	getPanOffset: function() {
-		if (this.mode == 'adj') {
+		if (this.mode == 'adj' && WIKIVIZ.view.mode == 'art') {
 			return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*(WIKIVIZ.data.revisions.length*WIKIVIZ.calcBarWidth());
-		} else if (this.mode == 'time') {
+		}
+		else if (this.mode == 'adj' && WIKIVIZ.view.mode == 'talk') {
+			return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*(WIKIVIZ.data.talk.length*WIKIVIZ.calcTalkWidth());
+		}
+		else if (this.mode == 'time') {
 			return WIKIVIZ.view.timeX(this.xscale.invert(this.sdim.x0));
 		}
 		return 0;
