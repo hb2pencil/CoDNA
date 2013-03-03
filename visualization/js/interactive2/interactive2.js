@@ -631,7 +631,9 @@ WIKIVIZ.init = function(art_title) {
 	$('a[href=#artview]').click(function(event, ui) {
 		$('#view').appendTo('#artview');
 		WIKIVIZ.view.data.selectAll('.datum').attr('opacity', 1);
+		d3.selectAll('.sd').attr('opacity', 1);
 		d3.selectAll('.tdatum').attr('opacity', 0);
+		d3.selectAll('.tcircle').attr('opacity', 0);
 		
 		$('#t_legend').button('enable');
 		$('#t_talk').button('disable');
@@ -659,7 +661,9 @@ WIKIVIZ.init = function(art_title) {
 	$('a[href=#talkview]').click(function(event, ui) {
 		$('#view').appendTo('#talkview');
 		WIKIVIZ.view.data.selectAll('.datum').attr('opacity', 0);
+		d3.selectAll('.sd').attr('opacity', 0);
 		d3.selectAll('.tdatum').attr('opacity', 1);
+		d3.selectAll('.tcircle').attr('opacity', 1);
 		
 		$('#t_legend').button('disable');
 		$('#t_talk').button('enable');
@@ -685,7 +689,10 @@ WIKIVIZ.init = function(art_title) {
 	$('a[href=#hybridview]').click(function(event, ui) {
 		$('#view').appendTo('#hybridview');
 		WIKIVIZ.view.data.selectAll('.datum').attr('opacity', 1);
+		d3.selectAll('.sd').attr('opacity', 1);
 		d3.selectAll('.tdatum').attr('opacity', 1);
+		d3.selectAll('.tcircle').attr('opacity', 1);
+
 		
 		$('#t_legend').button('enable');
 		$('#t_talk').button('enable');
@@ -1348,6 +1355,19 @@ WIKIVIZ.navctl = {
 			.attr('width', function(d,i) { return that.spikewidth; })
 			.attr('height', function(d) { return that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
 			.attr('class', 'sd');
+			
+		// Draw talk page entries, need to manually keep this in sync with appendCallout for now
+		
+		this.dots = this.bg.select('g.navbars').selectAll('circle.td').data(WIKIVIZ.data.talk).enter().append('circle')
+			.attr('class', 'td');
+	
+		// Max circle radius
+		var maxR = 5;
+		var fact = 0.6;
+	
+		// Append circle to our element. Cap the circle size and re-style the circle if it has reached the cap.
+		this.dots.filter(function(d) { return Math.log(d.lev+1)*fact <= maxR; }).attr('r', function(d) { return Math.log(d.lev+1)*fact; }).attr('class', 'tcircle');
+		this.dots.filter(function(d) { return Math.log(d.lev+1)*fact > maxR; }).attr('r', maxR).attr('class', 'tcircle_full');
 		
 		this.mode = 'adj';
 		
@@ -1442,6 +1462,9 @@ WIKIVIZ.navctl = {
 			.attr('height', function(d) { return that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
 			.attr('class', 'sd');
 			
+		this.bg.select('g.navbars').selectAll('circle.tcircle').data(WIKIVIZ.data.talk)
+			.attr('cx', function(d) { return that.xscale(d.date); });
+				
 		this.mode = 'time';
 		
 		WIKIVIZ.toTimeSpaced();
@@ -1453,7 +1476,12 @@ WIKIVIZ.navctl = {
 	toAdjacentSpaced: function() {
 		
 		this.xscale = d3.scale.linear();
-		this.xscale.domain([0, WIKIVIZ.data.revisions.length-1]);
+		
+		if (WIKIVIZ.view.mode == 'talk')
+			this.xscale.domain([0, WIKIVIZ.data.talk.length-1]);
+		else
+			this.xscale.domain([0, WIKIVIZ.data.revisions.length-1]);
+			
 		this.xscale.range([0, this.dim.w - 2*this.handleWidth]);
 		
 		var that = this;
@@ -1464,6 +1492,9 @@ WIKIVIZ.navctl = {
 			.attr('width', function(d,i) { return that.spikewidth; })
 			.attr('height', function(d) { return that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
 			.attr('class', 'sd');
+		
+		this.bg.select('g.navbars').selectAll('circle').data(WIKIVIZ.data.talk)
+			.attr('cx', function(d, i) { return that.xscale(i); });
 		
 		this.mode = 'adj';
 		
