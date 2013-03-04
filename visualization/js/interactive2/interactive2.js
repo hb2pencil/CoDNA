@@ -295,7 +295,7 @@ WIKIVIZ.appendCallout = function(parent)
 	
 	
 	// Generate the x-offset for each callout incrementally.
-	// This is ued in adjacent spacing of callouts.
+	// This is used in adjacent spacing of callouts.
 	var x = 0;
 	
 	// Create image groups based on talk-page classifications and append these image groups to their respective callouts.
@@ -306,7 +306,7 @@ WIKIVIZ.appendCallout = function(parent)
 	});
 	
 	// Append to each callout an x-axis label corresponding to its ID.
-	parent.append('text').attr('class', 'xlabel').text(function(d) { return WIKIVIZ.tIndex(d); })
+	parent.append('text').attr('class', 'xlabel').text(function(d) { return WIKIVIZ.tIndex(d) + 1; })
 		.attr('transform', function(d) { return 'translate(' + (ox+px/2) + ',' + (oy+py/2) + ')scale(1,-1)'; });
 }
 
