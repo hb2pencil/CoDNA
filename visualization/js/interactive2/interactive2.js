@@ -306,7 +306,7 @@ WIKIVIZ.appendCallout = function(parent)
 	});
 	
 	// Append to each callout an x-axis label corresponding to its ID.
-	parent.append('text').attr('class', 'xlabel').text(function(d) { return WIKIVIZ.tIndex(d) + 1; })
+	parent.append('text').attr('class', 'xlabel').text(function(d, i) { return i + 1; })
 		.attr('transform', function(d) { return 'translate(' + (ox+px/2) + ',' + (oy+py/2) + ')scale(1,-1)'; });
 }
 

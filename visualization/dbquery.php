@@ -62,7 +62,7 @@
 		
 		// Fetch talkpage data
 		$talk = array();
-		$stmt = $mysqli->prepare("SELECT id, topic, contributor, timestamp, content, lev, indent, crit, perf, inf, att FROM talkpages_simple WHERE article=?");
+		$stmt = $mysqli->prepare("SELECT id, topic, contributor, timestamp, content, lev, indent, crit, perf, inf, att FROM talkpages_simple WHERE article=? ORDER BY timestamp");
 		$stmt->bind_param("s", $article);
 		$stmt->execute();
 		$stmt->bind_result($id, $topic, $contributor, $timestamp, $content, $lev, $indent, $crit, $perf, $inf, $att);
