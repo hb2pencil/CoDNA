@@ -364,10 +364,10 @@ WIKIVIZ.augment = function(data)
 	$.each(data.talk, function(i, te) {
 		te.date = new Date(te.timestamp);
 		te.loglev = Math.log(te.lev + 1);
-		te.group = 'Unimplemented';
 		te.user = te.contributor;
 		te.type = 'talk';
 		te.id = i;
+		te.group = WIKIVIZ.getRevisionGroup(data, te);
 	});
 	
 	// Loop over each revision, making annotations as necessary.
