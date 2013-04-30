@@ -154,6 +154,8 @@ class WikiRevision {
 			array_push($clist, 'f');
 		if (in_array('j', $classes))
 			array_push($clist, 'g');
+		if (in_array('x', $classes))
+			array_push($clist, 'x');
 		$ret['class'] = implode(';', $clist);
 		return $ret;
 	}

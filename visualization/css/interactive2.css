@@ -514,7 +514,10 @@ rect.ymask {
 }
 .unsure {
 	fill: #D09F6E;
-	/*opacity: 0.5;*/
+}
+.unclassified {
+	fill: #D09F6E;
+	opacity: 0.5;
 }
 
 .datum rect {

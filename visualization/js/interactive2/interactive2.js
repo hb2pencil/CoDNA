@@ -17,7 +17,8 @@ WIKIVIZ = {
 		reorganize: 40,
 		vand: 10,
 		unvand: 10,
-		cite: 20
+		cite: 20,
+		unclassified: 60
 	},
 	view: {	// View object is populated with more rendering-oriented variables.
 		timeX: d3.time.scale(),	// The time scale object for the TS X-axis
@@ -380,7 +381,8 @@ WIKIVIZ.augment = function(data)
 			cite: 0,
 			vand: 0,
 			unvand: 0,
-			unsure: 0
+			unsure: 0,
+			unclassified: 0
 		};
 		
 		// Perform a weighted-separation of our article revision edit distance.
@@ -404,6 +406,9 @@ WIKIVIZ.augment = function(data)
 		}
 		if (strcontains('g', rev['class'])) {
 			wclass.unvand += WIKIVIZ.weights.unvand;
+		}
+		if (strcontains('x', rev['class'])) {
+			wclass.unclassified += WIKIVIZ.weights.unclassified;
 		}
 		
 		var wsum = 0;
@@ -444,7 +449,8 @@ WIKIVIZ.toClassString = function(rc)
 			'd': 'reorganize',
 			'e': 'cite',
 			'f': 'vandalize',
-			'g': 'unvandalize'
+			'g': 'unvandalize',
+			'x': 'unclassified'
 		})[c]; }).join(', ');
 };
 
@@ -857,7 +863,7 @@ WIKIVIZ.tIndex = function(d) { return d.id; }
 // Function to map revision data to rectangle groups that represent the data as a stacked bar graph.
 WIKIVIZ.buildBars = function(barsGroup, barWidth)
 {
-	var posFields = ['add', 'unsure', 'reorganize', 'edit', 'cite', 'vand'];
+	var posFields = ['add', 'unsure', 'reorganize', 'edit', 'cite', 'vand', 'unclassified'];
 	var negFields = ['unvand', 'remove'];
 	
 	// For brevity
@@ -896,6 +902,8 @@ WIKIVIZ.getOffset = function(ind)
 }
 
 // Create or Update month background rects.
+// These are the shaded rectangles in the background of the visualization that indicate periods of 1 month.
+// We need to build these to the correct scale so that they line up with the correct revisions.
 WIKIVIZ.buildMonths = function ()
 {
 	var barWidth = WIKIVIZ.calcBarWidth();
@@ -978,10 +986,12 @@ WIKIVIZ.buildMonths = function ()
 	mts_x.attr('opacity', 0).remove();
 }
 
+// Deletes all of the month rects.
 WIKIVIZ.clearMonths = function() {
 	WIKIVIZ.view.body.select('.bg').selectAll('.month').data([]).exit().remove();
 }
 
+// Rescale x-axis based on the number of bars that should fit into a screen.
 WIKIVIZ.setNumBars = function(numBars)
 {
 	if (numBars <= 0) return;	// Don't act on invalid values!
@@ -1000,9 +1010,8 @@ WIKIVIZ.setNumBars = function(numBars)
 	WIKIVIZ.view.data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width > WIKIVIZ.calcBarWidth(); })
 		.attr('opacity', 0);
 	
+	// Need to update the month rectangles so that they use the new scale!
 	WIKIVIZ.buildMonths();
-	
-	// Need to add functionality to update month view once finished!
 };
 
 WIKIVIZ.setNumDots = function(numDots)
@@ -1022,6 +1031,8 @@ WIKIVIZ.setNumDots = function(numDots)
 	WIKIVIZ.buildMonths();
 
 };
+
+// Init the buttons on the toolbar.
 
 WIKIVIZ.createToolbar = function() {
 	/*$('#t_cursor').button({
@@ -1078,6 +1089,7 @@ WIKIVIZ.createToolbar = function() {
 	});
 };
 
+// Init modal dialogs.
 WIKIVIZ.createDialogs = function() {
 	$('#diag_cursor').dialog({
 		autoOpen: false,
@@ -1148,6 +1160,7 @@ WIKIVIZ.createDialogs = function() {
 		vandunvand: ['vand', 'unvand']
 	};
 	
+	// Legend selection functionality (by varyng opacity)
 	$('#d_legend_accordion h3').each(function (i, el) {
 		$(el).find('input').change(function(e) {
 			if ($(this).attr('checked')) {	// If the event is the checking of a checkbox
@@ -1185,6 +1198,8 @@ WIKIVIZ.createDialogs = function() {
 		});
 	});
 	
+	// Talk page revision selection functionality.
+	// TODO: Make the "callouts" fade out if all of the contained elements are faded out.
 	$('#d_talk_accordion h3').each(function (i, el) {
 		$(el).find('input').change(function(e) {
 			var that = $(this);
@@ -1198,7 +1213,6 @@ WIKIVIZ.createDialogs = function() {
 		});
 	});
 
-	
 	$('#d_select_groups_accordion').accordion({
 		collapsible: true,
 		active: false,
@@ -1213,6 +1227,7 @@ WIKIVIZ.createDialogs = function() {
 		});
 	});
 	
+	// User group selection functionality.
 	$('#d_select_groups_accordion h3').each(function (i, el) {
 		$(el).find('input').change(function(e) {
 			var that = $(this);
@@ -1241,6 +1256,7 @@ WIKIVIZ.createDialogs = function() {
 	});
 };
 
+// Bind the buttons to their respective actions.
 WIKIVIZ.bindToolbar = function() {
 	$('#t_cursor').click(function() {
 		$('#diag_cursor').dialog('open');
@@ -1301,6 +1317,7 @@ WIKIVIZ.bindDialogs = function() {
 
 $(document).ready(function() {
 	// Quick 'N dirty way to allow user to select which article to view.
+	// This is the modal dialog that appears on page load.
 	$('body').append($('<div>').attr('id', 'diag_article'));
 	$('#diag_article').append($('<h3>').text('Select an article below:'));
 	$('#diag_article').append($('<div>').attr('id', 'd_article_list'));
@@ -1313,16 +1330,18 @@ $(document).ready(function() {
 		autoOpen: true,
 		title: 'Select Article'
 	});
+	// Query the DB to get a listing of the available articles.
 	$.getJSON('dbquery.php?list', function(data) {
 		for (var i = 0; i < data.length; ++i) {
 			$('#d_article_list').append($('<h3>').append($('<a>').append($('<span>').text(data[i]['title'])).append($('<span>').text('('+data[i]['rev_count']+' Revisions)').attr('style','float:right')).attr('href', '#')));
 			
+			// Function which is called when we select an article to view.
 			function getClickClosure(in_datum) {
 				this.datum = in_datum;
 				return function() {
 					var title = in_datum['title'];
 					$('#page_title').text(title);
-					WIKIVIZ.init(title);
+					WIKIVIZ.init(title);	// Init the visualization with this article.
 					$('#everything').fadeIn("slow");
 					$('#diag_article').dialog('close');
 				}
@@ -1340,15 +1359,23 @@ $(document).ready(function() {
 	});
 });
 
+// This is the code that handles the fancy draggable SVG scrollbar at the bottom of the page.
 WIKIVIZ.navctl = {
+	// Start up the control.
 	init: function(sw, sh) {
+		// Scrollbar dimensions
 		this.dim = {w: sw, h: sh};
+		
 		this.sdim = {x0: 0, w: 100};
+		
+		// Create the SVG element for the scrollbar
 		this.svg = d3.select('#navctl').append('svg').attr('width', this.dim.w).attr('height', this.dim.h);
-		this.bg = this.svg.append('g').attr('class', 'bg');
+		this.bg = this.svg.append('g').attr('class', 'bg');	// Make a background layer
 		var handleWidth = this.dim.h/2;
+		// Create handles (semi-circles)
 		this.bg.append('path').attr('d','M' + handleWidth + ',0 A' + handleWidth + ',' + handleWidth + ' 0 0,0 ' + handleWidth + ',' + handleWidth * 2 ).attr('class', 'pad').attr('width', handleWidth).attr('height', this.dim.h);
 		this.bg.append('path').attr('d','M0,0 A' + handleWidth + ',' + handleWidth + ' 0 0,1 0,' + handleWidth * 2).attr('class', 'pad').attr('width', handleWidth).attr('height', this.dim.h).attr('transform', 'translate('+ (this.dim.w - handleWidth) + ',0)');
+		
 		this.bg.append('g').attr('class', 'navbars').attr('x', handleWidth).attr('transform', 'translate(' + handleWidth + ',' + this.dim.h / 2 + ')scale(1,-1)');
 		
 		this.bg.select('g.navbars').append('line')
@@ -1371,6 +1398,7 @@ WIKIVIZ.navctl = {
 			.attr('x2', this.dim.w-2*handleWidth)
 			.attr('y2', -handleWidth);
 		
+		// Slider group
 		this.slider = this.svg.append('g').attr('class', 'slider');
 		this.slider.append('rect').attr('class', 'chandle').attr('width', this.sdim.w-handleWidth).attr('height', this.dim.h).attr('x', this.sdim.x0 + handleWidth);
 		this.slider.append('g').attr('class', 'lhandlegrp').attr('transform', 'translate(' + (this.sdim.x0) + ',0)').append('path').attr('d','M' + handleWidth + ',0 A' + handleWidth + ',' + handleWidth + ' 0 0,0 ' + handleWidth + ',' + handleWidth * 2 ).attr('class', 'lhandle').attr('width', handleWidth).attr('height', this.dim.h);
@@ -1413,6 +1441,8 @@ WIKIVIZ.navctl = {
 		
 		this.sd = { dx: 0 };
 		
+		// Event handlers for the slider
+		// The slider "dragging" state is stored as a CSS class.
 		$('.chandle').mousedown(function(event) {
 			$(this).addClass('dragging');
 			that.sd.dx = event.pageX - that.sdim.x0;
@@ -1429,6 +1459,7 @@ WIKIVIZ.navctl = {
 			event.preventDefault();
 		});
 		
+		// More event handlers. These deal with dragging the slider.
 		$(document).mousemove(function(event) {
 			if ($('.rhandle').hasClass('dragging')) {
 				var dw = (event.pageX - that.sd.dx);
@@ -1472,6 +1503,7 @@ WIKIVIZ.navctl = {
 				that.onSlide();
 			}
 		});
+		// Once the mouse is released, reset the slider "dragging" state.
 		$(document).mouseup(function() {
 			$('.chandle').removeClass('dragging');
 			$('.lhandle').removeClass('dragging');
@@ -1480,10 +1512,13 @@ WIKIVIZ.navctl = {
 		
 		this.handleWidth = handleWidth;
 		
+		// Call these to update the slider for the first time.
 		this.onSlide();
 		this.onScale();
 	},
 	
+	// Adjust the slider when we switch to time-spaced mode.
+	// Use a new time-spaced scale for display.
 	toTimeSpaced: function() {
 		
 		var minDate = WIKIVIZ.data.revisions[0].date;
@@ -1514,6 +1549,7 @@ WIKIVIZ.navctl = {
 		this.onScale();
 	},
 	
+	// When we switch to adjacent-spaced mode, switch back to using a linear scale for display.
 	toAdjacentSpaced: function() {
 		
 		this.xscale = d3.scale.linear();
@@ -1545,6 +1581,7 @@ WIKIVIZ.navctl = {
 		this.onScale();
 	},
 	
+	// Slide the view when we slide the slider.
 	onSlide: function() {
 		d3.select('g.body').attr('transform', 'translate(' + -this.getPanOffset() + ',0)')
 	},
@@ -1565,6 +1602,7 @@ WIKIVIZ.navctl = {
 		
 	},
 	
+	// Map slider motion to an offset by which to pan the main view. Behaves differently for time and adjacent spaced modes.
 	getPanOffset: function() {
 		if (this.mode == 'adj' && WIKIVIZ.view.mode == 'art') {
 			return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*(WIKIVIZ.data.revisions.length*WIKIVIZ.calcBarWidth());
