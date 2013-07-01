@@ -525,10 +525,19 @@ WIKIVIZ.load = function(art_title) {
 		var j=0;
 		var revs = WIKIVIZ.data.revisions;
 		var tlk = WIKIVIZ.data.talk;
+		tlk = tlk.sort(function (l,r) {
+			if (l.date == r.date) return 0;
+			return (l.date > r.date)? 1:-1;
+		});
+		revs = revs.sort(function (l,r) {
+			if (l.date == r.date) return 0;
+			return (l.date > r.date)? 1:-1;
+		});
 		var mdata = [];
 		while (i < revs.length && j < tlk.length) {
 			if (revs[i].date < tlk[j].date) {
 				mdata.push(revs[i]);
+				
 				++i;
 			} else {
 				mdata.push(tlk[j]);
@@ -539,7 +548,7 @@ WIKIVIZ.load = function(art_title) {
 			mdata = mdata.concat(revs.slice(i));
 		}
 		if (j < tlk.length) {
-			mdata = mdata.concat(tlk.slice(i));
+			mdata = mdata.concat(tlk.slice(j));
 		}
 		
 		var rows = dtable.append('tbody').selectAll('tr.data').data(mdata).enter().append('tr');
