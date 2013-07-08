@@ -1613,505 +1613,6 @@ User names are stored in the &quot;value&quot; property of the options in the se
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-70">&#182;</a>
               </div>
-              <p>This is the code that handles the fancy draggable SVG scrollbar at the bottom of the page.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>WIKIVIZ.navctl = {</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-71">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-71">&#182;</a>
-              </div>
-              <p>Start up the control.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>	init: <span class="keyword">function</span>(sw, sh) {</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-72">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-72">&#182;</a>
-              </div>
-              <p>Scrollbar dimensions</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.dim = {w: sw, h: sh};
-		
-		<span class="keyword">this</span>.sdim = {x0: <span class="number">0</span>, w: <span class="number">100</span>};</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-73">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-73">&#182;</a>
-              </div>
-              <p>Create the SVG element for the scrollbar</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.svg = d3.select(<span class="string">'#navctl'</span>).append(<span class="string">'svg'</span>).attr(<span class="string">'width'</span>, <span class="keyword">this</span>.dim.w).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h);
-		<span class="keyword">this</span>.bg = <span class="keyword">this</span>.svg.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'bg'</span>);	<span class="comment">// Make a background layer</span>
-		<span class="keyword">var</span> handleWidth = <span class="keyword">this</span>.dim.h/<span class="number">2</span>;</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-74">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-74">&#182;</a>
-              </div>
-              <p>Create handles (semi-circles)</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.bg.append(<span class="string">'path'</span>).attr(<span class="string">'d'</span>,<span class="string">'M'</span> + handleWidth + <span class="string">',0 A'</span> + handleWidth + <span class="string">','</span> + handleWidth + <span class="string">' 0 0,0 '</span> + handleWidth + <span class="string">','</span> + handleWidth * <span class="number">2</span> ).attr(<span class="string">'class'</span>, <span class="string">'pad'</span>).attr(<span class="string">'width'</span>, handleWidth).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h);
-		<span class="keyword">this</span>.bg.append(<span class="string">'path'</span>).attr(<span class="string">'d'</span>,<span class="string">'M0,0 A'</span> + handleWidth + <span class="string">','</span> + handleWidth + <span class="string">' 0 0,1 0,'</span> + handleWidth * <span class="number">2</span>).attr(<span class="string">'class'</span>, <span class="string">'pad'</span>).attr(<span class="string">'width'</span>, handleWidth).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span>+ (<span class="keyword">this</span>.dim.w - handleWidth) + <span class="string">',0)'</span>);
-		
-		<span class="keyword">this</span>.bg.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'navbars'</span>).attr(<span class="string">'x'</span>, handleWidth).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + handleWidth + <span class="string">','</span> + <span class="keyword">this</span>.dim.h / <span class="number">2</span> + <span class="string">')scale(1,-1)'</span>);
-		
-		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).append(<span class="string">'line'</span>)
-			.attr(<span class="string">'x1'</span>, <span class="number">0</span>)
-			.attr(<span class="string">'y1'</span>, <span class="number">0</span>)
-			.attr(<span class="string">'x2'</span>, <span class="keyword">this</span>.dim.w-<span class="number">2</span>*handleWidth)
-			.attr(<span class="string">'y2'</span>, <span class="number">0</span>);
-
-		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).append(<span class="string">'line'</span>)
-			.attr(<span class="string">'class'</span>,<span class="string">'navctlborder'</span>)
-			.attr(<span class="string">'x1'</span>, <span class="number">0</span>)
-			.attr(<span class="string">'y1'</span>, handleWidth)
-			.attr(<span class="string">'x2'</span>, <span class="keyword">this</span>.dim.w-<span class="number">2</span>*handleWidth)
-			.attr(<span class="string">'y2'</span>, handleWidth);
-
-		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).append(<span class="string">'line'</span>)
-			.attr(<span class="string">'class'</span>,<span class="string">'navctlborder'</span>)
-			.attr(<span class="string">'x1'</span>, <span class="number">0</span>)
-			.attr(<span class="string">'y1'</span>, -handleWidth)
-			.attr(<span class="string">'x2'</span>, <span class="keyword">this</span>.dim.w-<span class="number">2</span>*handleWidth)
-			.attr(<span class="string">'y2'</span>, -handleWidth);</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-75">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-75">&#182;</a>
-              </div>
-              <p>Slider group</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.slider = <span class="keyword">this</span>.svg.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'slider'</span>);
-		<span class="keyword">this</span>.slider.append(<span class="string">'rect'</span>).attr(<span class="string">'class'</span>, <span class="string">'chandle'</span>).attr(<span class="string">'width'</span>, <span class="keyword">this</span>.sdim.w-handleWidth).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h).attr(<span class="string">'x'</span>, <span class="keyword">this</span>.sdim.x0 + handleWidth);
-		<span class="keyword">this</span>.slider.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'lhandlegrp'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (<span class="keyword">this</span>.sdim.x0) + <span class="string">',0)'</span>).append(<span class="string">'path'</span>).attr(<span class="string">'d'</span>,<span class="string">'M'</span> + handleWidth + <span class="string">',0 A'</span> + handleWidth + <span class="string">','</span> + handleWidth + <span class="string">' 0 0,0 '</span> + handleWidth + <span class="string">','</span> + handleWidth * <span class="number">2</span> ).attr(<span class="string">'class'</span>, <span class="string">'lhandle'</span>).attr(<span class="string">'width'</span>, handleWidth).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h);
-		<span class="keyword">this</span>.slider.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'rhandlegrp'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (<span class="keyword">this</span>.sdim.x0 + <span class="keyword">this</span>.sdim.w) + <span class="string">',0)'</span>).append(<span class="string">'path'</span>).attr(<span class="string">'d'</span>,<span class="string">'M0,0 A'</span> + handleWidth + <span class="string">','</span> + handleWidth + <span class="string">' 0 0,1 0,'</span> + handleWidth * <span class="number">2</span>).attr(<span class="string">'class'</span>, <span class="string">'rhandle'</span>).attr(<span class="string">'width'</span>, handleWidth).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h);
-		
-		<span class="keyword">this</span>.xscale = d3.scale.linear();
-		<span class="keyword">this</span>.xscale.domain([<span class="number">0</span>, WIKIVIZ.data.revisions.length-<span class="number">1</span>]);
-		<span class="keyword">this</span>.xscale.range([<span class="number">0</span>, <span class="keyword">this</span>.dim.w - <span class="number">2</span>*handleWidth]);
-		
-		<span class="keyword">this</span>.yscale = d3.scale.linear();
-		<span class="keyword">this</span>.yscale.domain(WIKIVIZ.view.y.domain());
-		<span class="keyword">this</span>.yscale.range([<span class="number">0</span>, <span class="keyword">this</span>.dim.h/<span class="number">2</span>]);
-		
-		<span class="keyword">var</span> that = <span class="keyword">this</span>;
-		
-		<span class="keyword">this</span>.spikewidth = (<span class="keyword">this</span>.dim.w-<span class="number">2</span>*handleWidth) / WIKIVIZ.data.revisions.length;
-		
-		<span class="keyword">this</span>.spikes = <span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'rect.sd'</span>).data(WIKIVIZ.data.revisions);
-		<span class="keyword">this</span>.spikes.enter().append(<span class="string">'rect'</span>)
-			.attr(<span class="string">'x'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.xscale(i); })
-			.attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> -that.yscale(d.wclass.remove + d.wclass.vand); })
-			.attr(<span class="string">'width'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.spikewidth; })
-			.attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
-			.attr(<span class="string">'class'</span>, <span class="string">'sd'</span>);</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-76">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-76">&#182;</a>
-              </div>
-              <p>Draw talk page entries, need to manually keep this in sync with appendCallout for now</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		
-		<span class="keyword">this</span>.dots = <span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'circle.td'</span>).data(WIKIVIZ.data.talk).enter().append(<span class="string">'circle'</span>)
-			.attr(<span class="string">'class'</span>, <span class="string">'td'</span>);</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-77">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-77">&#182;</a>
-              </div>
-              <p>Max circle radius</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		<span class="keyword">var</span> maxR = <span class="number">5</span>;
-		<span class="keyword">var</span> fact = <span class="number">0.6</span>;</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-78">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-78">&#182;</a>
-              </div>
-              <p>Append circle to our element. Cap the circle size and re-style the circle if it has reached the cap.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.dots.filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> Math.log(d.lev+<span class="number">1</span>)*fact &lt;= maxR; }).attr(<span class="string">'r'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> Math.log(d.lev+<span class="number">1</span>)*fact; }).attr(<span class="string">'class'</span>, <span class="string">'tcircle'</span>);
-		<span class="keyword">this</span>.dots.filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> Math.log(d.lev+<span class="number">1</span>)*fact &gt; maxR; }).attr(<span class="string">'r'</span>, maxR).attr(<span class="string">'class'</span>, <span class="string">'tcircle_full'</span>);
-		
-		<span class="keyword">this</span>.mode = <span class="string">'adj'</span>;
-		
-		<span class="keyword">this</span>.sd = { dx: <span class="number">0</span> };</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-79">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-79">&#182;</a>
-              </div>
-              <p>Event handlers for the slider
-The slider &quot;dragging&quot; state is stored as a CSS class.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		$(<span class="string">'.chandle'</span>).mousedown(<span class="keyword">function</span>(event) {
-			$(<span class="keyword">this</span>).addClass(<span class="string">'dragging'</span>);
-			that.sd.dx = event.pageX - that.sdim.x0;
-			event.preventDefault();
-		});
-		$(<span class="string">'.lhandle'</span>).mousedown(<span class="keyword">function</span>(event) {
-			$(<span class="keyword">this</span>).addClass(<span class="string">'dragging'</span>);
-			that.sd.dx = event.pageX - that.sdim.x0;
-			event.preventDefault();
-		});
-		$(<span class="string">'.rhandle'</span>).mousedown(<span class="keyword">function</span>(event) {
-			$(<span class="keyword">this</span>).addClass(<span class="string">'dragging'</span>);
-			that.sd.dx = event.pageX;
-			event.preventDefault();
-		});</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-80">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-80">&#182;</a>
-              </div>
-              <p>More event handlers. These deal with dragging the slider.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		$(document).mousemove(<span class="keyword">function</span>(event) {
-			<span class="keyword">if</span> ($(<span class="string">'.rhandle'</span>).hasClass(<span class="string">'dragging'</span>)) {
-				<span class="keyword">var</span> dw = (event.pageX - that.sd.dx);
-				that.sd.dx = event.pageX;
-				<span class="keyword">var</span> newW = +that.sdim.w +dw;
-				
-				<span class="keyword">if</span> (newW &lt; handleWidth) newW = handleWidth;
-				<span class="keyword">if</span> (newW + that.sdim.x0 + handleWidth &gt; that.dim.w) newW = that.dim.w-that.sdim.x0-handleWidth;
-				that.sdim.w = newW;
-				
-				$(<span class="string">'.chandle'</span>).attr(<span class="string">'width'</span>, that.sdim.w - handleWidth);
-				$(<span class="string">'.rhandlegrp'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (+that.sdim.w) + <span class="string">',0)'</span>)
-				that.onScale();
-				that.onSlide();
-			}
-			<span class="keyword">if</span> ($(<span class="string">'.lhandle'</span>).hasClass(<span class="string">'dragging'</span>)) {
-				<span class="keyword">var</span> newX0 = (event.pageX - that.sd.dx);
-				<span class="keyword">if</span> (newX0 &lt; <span class="number">0</span>) newX0 = <span class="number">0</span>;
-				<span class="keyword">if</span> (newX0 &gt; that.sdim.x0 + that.sdim.w - handleWidth) newX0 = that.sdim.x0 + that.sdim.w - handleWidth;
-				
-				<span class="keyword">var</span> newW = +that.sdim.w - (+newX0 - +that.sdim.x0);
-				<span class="keyword">if</span> (newW &lt; handleWidth) {
-					newW = handleWidth;
-				}
-				
-				that.sdim.x0 = newX0;
-				that.sdim.w = newW;
-				
-				$(<span class="string">'.slider'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (that.sdim.x0) + <span class="string">',0)'</span>);
-				$(<span class="string">'.chandle'</span>).attr(<span class="string">'width'</span>, that.sdim.w - handleWidth);
-				$(<span class="string">'.rhandlegrp'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (+that.sdim.w) + <span class="string">',0)'</span>)
-				that.onScale();
-				that.onSlide();
-			}
-			<span class="keyword">if</span> ($(<span class="string">'.chandle'</span>).hasClass(<span class="string">'dragging'</span>)) {
-				that.sdim.x0 = (event.pageX - that.sd.dx);
-				
-				<span class="keyword">if</span> (that.sdim.x0 &lt; <span class="number">0</span>) that.sdim.x0 = <span class="number">0</span>;
-				<span class="keyword">if</span> (that.sdim.x0 &gt; that.dim.w - ((handleWidth) + that.sdim.w)) that.sdim.x0 = that.dim.w - ((handleWidth) + that.sdim.w);
-				$(<span class="string">'.slider'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (that.sdim.x0) + <span class="string">',0)'</span>);
-				that.onSlide();
-			}
-		});</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-81">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-81">&#182;</a>
-              </div>
-              <p>Once the mouse is released, reset the slider &quot;dragging&quot; state.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		$(document).mouseup(<span class="keyword">function</span>() {
-			$(<span class="string">'.chandle'</span>).removeClass(<span class="string">'dragging'</span>);
-			$(<span class="string">'.lhandle'</span>).removeClass(<span class="string">'dragging'</span>);
-			$(<span class="string">'.rhandle'</span>).removeClass(<span class="string">'dragging'</span>);
-		})
-		
-		<span class="keyword">this</span>.handleWidth = handleWidth;</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-82">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-82">&#182;</a>
-              </div>
-              <p>Call these to update the slider for the first time.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.onSlide();
-		<span class="keyword">this</span>.onScale();
-	},</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-83">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-83">&#182;</a>
-              </div>
-              <p>Adjust the slider when we switch to time-spaced mode.
-Use a new time-spaced scale for display.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>	toTimeSpaced: <span class="keyword">function</span>() {
-		
-		<span class="keyword">var</span> minDate = WIKIVIZ.data.revisions[<span class="number">0</span>].date;
-		
-		<span class="keyword">this</span>.xscale = d3.time.scale();</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-84">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-84">&#182;</a>
-              </div>
-              <p>Todo: domain of talk entries may exceed revisions</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.xscale.domain([<span class="keyword">new</span> Date(minDate.getFullYear(), minDate.getMonth()),
-			WIKIVIZ.data.revisions[WIKIVIZ.data.revisions.length - <span class="number">1</span>].date]);
-		<span class="keyword">this</span>.xscale.range([<span class="number">0</span>, <span class="keyword">this</span>.dim.w - <span class="number">2</span>*<span class="keyword">this</span>.handleWidth]);
-		
-		<span class="keyword">var</span> that = <span class="keyword">this</span>;
-		
-		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'rect.sd'</span>).data(WIKIVIZ.data.revisions)
-			.attr(<span class="string">'x'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.xscale(d.date); })
-			.attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> -that.yscale(d.wclass.remove + d.wclass.vand); })
-			.attr(<span class="string">'width'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.spikewidth; })
-			.attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
-			.attr(<span class="string">'class'</span>, <span class="string">'sd'</span>);
-			
-		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'circle.tcircle'</span>).data(WIKIVIZ.data.talk)
-			.attr(<span class="string">'cx'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> that.xscale(d.date); });
-				
-		<span class="keyword">this</span>.mode = <span class="string">'time'</span>;
-		
-		WIKIVIZ.toTimeSpaced();
-		
-		<span class="keyword">this</span>.onSlide();
-		<span class="keyword">this</span>.onScale();
-	},</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-85">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-85">&#182;</a>
-              </div>
-              <p>When we switch to adjacent-spaced mode, switch back to using a linear scale for display.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>	toAdjacentSpaced: <span class="keyword">function</span>() {
-		
-		<span class="keyword">this</span>.xscale = d3.scale.linear();
-		
-		<span class="keyword">if</span> (WIKIVIZ.view.mode == <span class="string">'talk'</span>)
-			<span class="keyword">this</span>.xscale.domain([<span class="number">0</span>, WIKIVIZ.data.talk.length-<span class="number">1</span>]);
-		<span class="keyword">else</span>
-			<span class="keyword">this</span>.xscale.domain([<span class="number">0</span>, WIKIVIZ.data.revisions.length-<span class="number">1</span>]);
-			
-		<span class="keyword">this</span>.xscale.range([<span class="number">0</span>, <span class="keyword">this</span>.dim.w - <span class="number">2</span>*<span class="keyword">this</span>.handleWidth]);
-		
-		<span class="keyword">var</span> that = <span class="keyword">this</span>;
-		
-		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'rect.sd'</span>).data(WIKIVIZ.data.revisions)
-			.attr(<span class="string">'x'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.xscale(i); })
-			.attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> -that.yscale(d.wclass.remove + d.wclass.vand); })
-			.attr(<span class="string">'width'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.spikewidth; })
-			.attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
-			.attr(<span class="string">'class'</span>, <span class="string">'sd'</span>);
-		
-		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'circle'</span>).data(WIKIVIZ.data.talk)
-			.attr(<span class="string">'cx'</span>, <span class="keyword">function</span>(d, i) { <span class="keyword">return</span> that.xscale(i); });
-		
-		<span class="keyword">this</span>.mode = <span class="string">'adj'</span>;
-		
-		WIKIVIZ.toAdjacentSpaced();
-		
-		<span class="keyword">this</span>.onSlide();
-		<span class="keyword">this</span>.onScale();
-	},</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-86">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-86">&#182;</a>
-              </div>
-              <p>Slide the view when we slide the slider.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>	onSlide: <span class="keyword">function</span>() {
-		d3.select(<span class="string">'g.body'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + -<span class="keyword">this</span>.getPanOffset() + <span class="string">',0)'</span>)
-	},
-	
-	onScale: <span class="keyword">function</span>() {
-		<span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'adj'</span> &amp;&amp; WIKIVIZ.view.mode == <span class="string">'art'</span>) { WIKIVIZ.setNumBars(<span class="keyword">this</span>.getNumBars()); }
-		<span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'adj'</span> &amp;&amp; WIKIVIZ.view.mode == <span class="string">'talk'</span>) { WIKIVIZ.setNumDots(<span class="keyword">this</span>.getNumBars()); }
-		<span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'time'</span>) {
-			<span class="keyword">var</span> df = WIKIVIZ.data.revisions[WIKIVIZ.data.revisions.length - <span class="number">1</span>].date;
-			<span class="keyword">var</span> d0 = WIKIVIZ.data.revisions[<span class="number">0</span>].date;
-			<span class="keyword">var</span> d1 = <span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0);
-			<span class="keyword">var</span> d2 = <span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0+<span class="keyword">this</span>.sdim.w-<span class="keyword">this</span>.handleWidth);</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-87">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-87">&#182;</a>
-              </div>
-              <p>The multiplier 0.9 is a quick fix for getting the rightmost bars in TS mode visible.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>			WIKIVIZ.view.timeX.range([<span class="number">0</span>, <span class="number">0.9</span>*WIKIVIZ.width * (df-d0) / (d2 - d1)]);
-			WIKIVIZ.toTimeSpaced();
-		}
-		
-	},</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-88">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-88">&#182;</a>
-              </div>
-              <p>Map slider motion to an offset by which to pan the main view. Behaves differently for time and adjacent spaced modes.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>	getPanOffset: <span class="keyword">function</span>() {
-		<span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'adj'</span> &amp;&amp; WIKIVIZ.view.mode == <span class="string">'art'</span>) {
-			<span class="keyword">return</span> ((<span class="keyword">this</span>.sdim.x0) / (<span class="keyword">this</span>.dim.w - <span class="number">2</span>*<span class="keyword">this</span>.handleWidth))*(WIKIVIZ.data.revisions.length*WIKIVIZ.calcBarWidth());
-		}
-		<span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'adj'</span> &amp;&amp; WIKIVIZ.view.mode == <span class="string">'talk'</span>) {
-			<span class="keyword">return</span> ((<span class="keyword">this</span>.sdim.x0) / (<span class="keyword">this</span>.dim.w - <span class="number">2</span>*<span class="keyword">this</span>.handleWidth))*(WIKIVIZ.data.talk.length*WIKIVIZ.calcTalkWidth());
-		}
-		<span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'time'</span>) {
-			<span class="keyword">return</span> WIKIVIZ.view.timeX(<span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0));
-		}
-		<span class="keyword">return</span> <span class="number">0</span>;
-	},
-	
-	getNumBars: <span class="keyword">function</span>() {
-		<span class="keyword">return</span> <span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0+<span class="keyword">this</span>.sdim.w-<span class="keyword">this</span>.handleWidth) - <span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0);
-	},
-	
-	getTimeRange: <span class="keyword">function</span>() {
-		
-	}
-}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-89">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-89">&#182;</a>
-              </div>
               <p>Init visualization with a given article.</p>
 
             </div>
@@ -2121,11 +1622,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-90">
+        <li id="section-71">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-90">&#182;</a>
+                <a class="pilcrow" href="#section-71">&#182;</a>
               </div>
               <p>Create UI components</p>
 
@@ -2145,11 +1646,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-91">
+        <li id="section-72">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-91">&#182;</a>
+                <a class="pilcrow" href="#section-72">&#182;</a>
               </div>
               <p>Bind UI components to functionality</p>
 
@@ -2161,11 +1662,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-92">
+        <li id="section-73">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-92">&#182;</a>
+                <a class="pilcrow" href="#section-73">&#182;</a>
               </div>
               <p>Load visualization data from DB</p>
 
@@ -2178,11 +1679,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-93">
+        <li id="section-74">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-93">&#182;</a>
+                <a class="pilcrow" href="#section-74">&#182;</a>
               </div>
               <p>TODO: Move this code to a more appropriate place?</p>
 
@@ -2191,11 +1692,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-94">
+        <li id="section-75">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-94">&#182;</a>
+                <a class="pilcrow" href="#section-75">&#182;</a>
               </div>
               <p>Program the &#39;to adjacent spacing&#39; and &#39;to time spacing&#39; mode buttons with
 appropriate functionality.</p>
@@ -2312,11 +1813,11 @@ appropriate functionality.</p>
         </li>
         
         
-        <li id="section-95">
+        <li id="section-76">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-95">&#182;</a>
+                <a class="pilcrow" href="#section-76">&#182;</a>
               </div>
               <p>In the default configuration, we are already in adjacent spacing mode, so we can disable the adjacent spacing button.</p>
 
@@ -2328,11 +1829,11 @@ appropriate functionality.</p>
         </li>
         
         
-        <li id="section-96">
+        <li id="section-77">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-96">&#182;</a>
+                <a class="pilcrow" href="#section-77">&#182;</a>
               </div>
               <p>Initialize the visualization. Create SVG and elements correspondng to data.</p>
 
@@ -2344,11 +1845,11 @@ appropriate functionality.</p>
         </li>
         
         
-        <li id="section-97">
+        <li id="section-78">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-97">&#182;</a>
+                <a class="pilcrow" href="#section-78">&#182;</a>
               </div>
               <p>For brevity</p>
 
@@ -2361,11 +1862,11 @@ appropriate functionality.</p>
         </li>
         
         
-        <li id="section-98">
+        <li id="section-79">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-98">&#182;</a>
+                <a class="pilcrow" href="#section-79">&#182;</a>
               </div>
               <p>Re-arrange coordinate system by setting x=0 to the center of the SVG and flipping the y-axis values.
 Also, set y=0 offset by maskWidth to the left to simplify math regarding the position of the y-axis title and masking rect.</p>
@@ -2377,11 +1878,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-99">
+        <li id="section-80">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-99">&#182;</a>
+                <a class="pilcrow" href="#section-80">&#182;</a>
               </div>
               <p>Init the x and y scale objects.</p>
 
@@ -2393,11 +1894,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-100">
+        <li id="section-81">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-100">&#182;</a>
+                <a class="pilcrow" href="#section-81">&#182;</a>
               </div>
               <p>For adjancent talk pages.</p>
 
@@ -2409,11 +1910,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-101">
+        <li id="section-82">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-101">&#182;</a>
+                <a class="pilcrow" href="#section-82">&#182;</a>
               </div>
               <p>Must take into account the mask width here!</p>
 
@@ -2426,11 +1927,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-102">
+        <li id="section-83">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-102">&#182;</a>
+                <a class="pilcrow" href="#section-83">&#182;</a>
               </div>
               <p>Set up x and y ranges for the visualization. The x-range is designed so that x(n) gives the x-position of the nth bar&#39;s left edge.</p>
 
@@ -2443,11 +1944,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-103">
+        <li id="section-84">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-103">&#182;</a>
+                <a class="pilcrow" href="#section-84">&#182;</a>
               </div>
               <p>Group to contain horizontal rules for the visualization</p>
 
@@ -2458,11 +1959,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-104">
+        <li id="section-85">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-104">&#182;</a>
+                <a class="pilcrow" href="#section-85">&#182;</a>
               </div>
               <p>Positive and negative horizontal rules groups.</p>
 
@@ -2474,11 +1975,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-105">
+        <li id="section-86">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-105">&#182;</a>
+                <a class="pilcrow" href="#section-86">&#182;</a>
               </div>
               <p>Generate actual rules</p>
 
@@ -2490,11 +1991,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-106">
+        <li id="section-87">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-106">&#182;</a>
+                <a class="pilcrow" href="#section-87">&#182;</a>
               </div>
               <p>Append lines to rules (i.e. visual representation of rules)</p>
 
@@ -2505,11 +2006,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-107">
+        <li id="section-88">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-107">&#182;</a>
+                <a class="pilcrow" href="#section-88">&#182;</a>
               </div>
               <p>Append visualization body group. This group contains the actual visualization. By transforming this group, we transform all the bars and annotations of the visualization.</p>
 
@@ -2522,11 +2023,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-108">
+        <li id="section-89">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-108">&#182;</a>
+                <a class="pilcrow" href="#section-89">&#182;</a>
               </div>
               <p>Append x-axis</p>
 
@@ -2537,11 +2038,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-109">
+        <li id="section-90">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-109">&#182;</a>
+                <a class="pilcrow" href="#section-90">&#182;</a>
               </div>
               <p>Y-label and mask group</p>
 
@@ -2552,11 +2053,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-110">
+        <li id="section-91">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-110">&#182;</a>
+                <a class="pilcrow" href="#section-91">&#182;</a>
               </div>
               <p>Append mask for y-label</p>
 
@@ -2567,11 +2068,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-111">
+        <li id="section-92">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-111">&#182;</a>
+                <a class="pilcrow" href="#section-92">&#182;</a>
               </div>
               <p>Append y-label string</p>
 
@@ -2588,11 +2089,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-112">
+        <li id="section-93">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-112">&#182;</a>
+                <a class="pilcrow" href="#section-93">&#182;</a>
               </div>
               <p>Set up layers for the body</p>
 
@@ -2605,11 +2106,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-113">
+        <li id="section-94">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-113">&#182;</a>
+                <a class="pilcrow" href="#section-94">&#182;</a>
               </div>
               <p>Create a group for the article revision datum elements.</p>
 
@@ -2640,11 +2141,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-114">
+        <li id="section-95">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-114">&#182;</a>
+                <a class="pilcrow" href="#section-95">&#182;</a>
               </div>
               <p>This is the action that is taken when the user clicks on the &quot;reset selections&quot; button in the toolbar.
 It should reset all selection tools to their default states, and enable previously disabled selection tools as necessary.</p>
@@ -2656,11 +2157,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-115">
+        <li id="section-96">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-115">&#182;</a>
+                <a class="pilcrow" href="#section-96">&#182;</a>
               </div>
               <p>Disable the deselect button</p>
 
@@ -2671,11 +2172,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-116">
+        <li id="section-97">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-116">&#182;</a>
+                <a class="pilcrow" href="#section-97">&#182;</a>
               </div>
               <p>Update the info box (UNUSED)</p>
 
@@ -2686,11 +2187,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-117">
+        <li id="section-98">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-117">&#182;</a>
+                <a class="pilcrow" href="#section-98">&#182;</a>
               </div>
               <p>Clear all selections made in the table view.</p>
 
@@ -2701,11 +2202,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-118">
+        <li id="section-99">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-118">&#182;</a>
+                <a class="pilcrow" href="#section-99">&#182;</a>
               </div>
               <p>Pre-check all edit category and user group selection boxes.</p>
 
@@ -2717,11 +2218,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-119">
+        <li id="section-100">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-119">&#182;</a>
+                <a class="pilcrow" href="#section-100">&#182;</a>
               </div>
               <p>Update the various views to reflect reset of all selections.</p>
 
@@ -2733,11 +2234,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-120">
+        <li id="section-101">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-120">&#182;</a>
+                <a class="pilcrow" href="#section-101">&#182;</a>
               </div>
               <p>Update nav control spikes</p>
 
@@ -2748,11 +2249,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-121">
+        <li id="section-102">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-121">&#182;</a>
+                <a class="pilcrow" href="#section-102">&#182;</a>
               </div>
               <p>Re-enable any previously disabled selection controls</p>
 
@@ -2765,11 +2266,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-122">
+        <li id="section-103">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-122">&#182;</a>
+                <a class="pilcrow" href="#section-103">&#182;</a>
               </div>
               <p>Switch visualization to time-spaced mode, or update time-spaced visualization
 This is currently called by the slider element on a switch mode event.</p>
@@ -2783,11 +2284,11 @@ This is currently called by the slider element on a switch mode event.</p>
         </li>
         
         
-        <li id="section-123">
+        <li id="section-104">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-123">&#182;</a>
+                <a class="pilcrow" href="#section-104">&#182;</a>
               </div>
               <p>Re-position all article revision elements using the x axis time scale.</p>
 
@@ -2800,11 +2301,11 @@ This is currently called by the slider element on a switch mode event.</p>
         </li>
         
         
-        <li id="section-124">
+        <li id="section-105">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-124">&#182;</a>
+                <a class="pilcrow" href="#section-105">&#182;</a>
               </div>
               <p>Re-position talk page entry callouts using the x-axis time scale.</p>
 
@@ -2816,11 +2317,11 @@ This is currently called by the slider element on a switch mode event.</p>
         </li>
         
         
-        <li id="section-125">
+        <li id="section-106">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-125">&#182;</a>
+                <a class="pilcrow" href="#section-106">&#182;</a>
               </div>
               <p>Update the month view.</p>
 
@@ -2831,11 +2332,11 @@ This is currently called by the slider element on a switch mode event.</p>
         </li>
         
         
-        <li id="section-126">
+        <li id="section-107">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-126">&#182;</a>
+                <a class="pilcrow" href="#section-107">&#182;</a>
               </div>
               <p>Show the month view if we are in TS talk page mode.
 This is because the month view is hidden in adj-talk page mode, but we want it for TS anyway.</p>
@@ -2850,11 +2351,11 @@ This is because the month view is hidden in adj-talk page mode, but we want it f
         </li>
         
         
-        <li id="section-127">
+        <li id="section-108">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-127">&#182;</a>
+                <a class="pilcrow" href="#section-108">&#182;</a>
               </div>
               <p>Switch visualization to adacent-spacing mode
 Currently called by the slider element when a mode change event occurs.</p>
@@ -2868,11 +2369,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-128">
+        <li id="section-109">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-128">&#182;</a>
+                <a class="pilcrow" href="#section-109">&#182;</a>
               </div>
               <p>Hide the month view if we are in adjacent spacing talk-page mode.
 (The month view does not make any sense in this mode)</p>
@@ -2887,11 +2388,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-129">
+        <li id="section-110">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-129">&#182;</a>
+                <a class="pilcrow" href="#section-110">&#182;</a>
               </div>
               <p>Re-position all article and talk-page contributions using adjacent-spacing parameters / axes.</p>
 
@@ -2907,11 +2408,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-130">
+        <li id="section-111">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-130">&#182;</a>
+                <a class="pilcrow" href="#section-111">&#182;</a>
               </div>
               <p>Update the month view.</p>
 
@@ -2923,11 +2424,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-131">
+        <li id="section-112">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-131">&#182;</a>
+                <a class="pilcrow" href="#section-112">&#182;</a>
               </div>
               <p>Calculate the inner width of a callout element based in its contents.</p>
 
@@ -2947,11 +2448,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-132">
+        <li id="section-113">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-132">&#182;</a>
+                <a class="pilcrow" href="#section-113">&#182;</a>
               </div>
               <p>Generate an array of callout classification images based on the talk-page
 entry that is represented by that callout.</p>
@@ -2971,11 +2472,11 @@ entry that is represented by that callout.</p>
         </li>
         
         
-        <li id="section-133">
+        <li id="section-114">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-133">&#182;</a>
+                <a class="pilcrow" href="#section-114">&#182;</a>
               </div>
               <p>Append the callouts that correspond to the talk-page entries for our article to the given element.
 Note that the argument &#39;parent&#39; should be a d3 selection.</p>
@@ -2989,11 +2490,11 @@ Note that the argument &#39;parent&#39; should be a d3 selection.</p>
         </li>
         
         
-        <li id="section-134">
+        <li id="section-115">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-134">&#182;</a>
+                <a class="pilcrow" href="#section-115">&#182;</a>
               </div>
               <p>Padding around content</p>
 
@@ -3008,11 +2509,11 @@ Note that the argument &#39;parent&#39; should be a d3 selection.</p>
         </li>
         
         
-        <li id="section-135">
+        <li id="section-116">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-135">&#182;</a>
+                <a class="pilcrow" href="#section-116">&#182;</a>
               </div>
               <p>Max circle radius</p>
 
@@ -3024,11 +2525,11 @@ Note that the argument &#39;parent&#39; should be a d3 selection.</p>
         </li>
         
         
-        <li id="section-136">
+        <li id="section-117">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-136">&#182;</a>
+                <a class="pilcrow" href="#section-117">&#182;</a>
               </div>
               <p>Append circle to our element. Cap the circle size and re-style the circle if it has reached the cap.</p>
 
@@ -3040,11 +2541,11 @@ Note that the argument &#39;parent&#39; should be a d3 selection.</p>
         </li>
         
         
-        <li id="section-137">
+        <li id="section-118">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-137">&#182;</a>
+                <a class="pilcrow" href="#section-118">&#182;</a>
               </div>
               <p>Generate the tooltip for this element.</p>
 
@@ -3057,11 +2558,11 @@ Note that the argument &#39;parent&#39; should be a d3 selection.</p>
         </li>
         
         
-        <li id="section-138">
+        <li id="section-119">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-138">&#182;</a>
+                <a class="pilcrow" href="#section-119">&#182;</a>
               </div>
               <p>Generate the path that defines the shape of the callout.</p>
 
@@ -3081,11 +2582,11 @@ Note that the argument &#39;parent&#39; should be a d3 selection.</p>
         </li>
         
         
-        <li id="section-139">
+        <li id="section-120">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-139">&#182;</a>
+                <a class="pilcrow" href="#section-120">&#182;</a>
               </div>
               <p>Generate the x-offset for each callout incrementally.
 This is used in adjacent spacing of callouts.</p>
@@ -3097,11 +2598,11 @@ This is used in adjacent spacing of callouts.</p>
         </li>
         
         
-        <li id="section-140">
+        <li id="section-121">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-140">&#182;</a>
+                <a class="pilcrow" href="#section-121">&#182;</a>
               </div>
               <p>Create image groups based on talk-page classifications and append these image groups to their respective callouts.</p>
 
@@ -3116,11 +2617,11 @@ This is used in adjacent spacing of callouts.</p>
         </li>
         
         
-        <li id="section-141">
+        <li id="section-122">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-141">&#182;</a>
+                <a class="pilcrow" href="#section-122">&#182;</a>
               </div>
               <p>Append to each callout an x-axis label corresponding to its ID.</p>
 
@@ -3133,11 +2634,11 @@ This is used in adjacent spacing of callouts.</p>
         </li>
         
         
-        <li id="section-142">
+        <li id="section-123">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-142">&#182;</a>
+                <a class="pilcrow" href="#section-123">&#182;</a>
               </div>
               <p>Calculate bar width based on number of bars per screen</p>
 
@@ -3153,11 +2654,11 @@ This is used in adjacent spacing of callouts.</p>
         </li>
         
         
-        <li id="section-143">
+        <li id="section-124">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-143">&#182;</a>
+                <a class="pilcrow" href="#section-124">&#182;</a>
               </div>
               <p>Calculate talk width based on number of talk entries per screen</p>
 
@@ -3177,11 +2678,11 @@ WIKIVIZ.getAdjacentTalkWidth = <span class="keyword">function</span>()
         </li>
         
         
-        <li id="section-144">
+        <li id="section-125">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-144">&#182;</a>
+                <a class="pilcrow" href="#section-125">&#182;</a>
               </div>
               <p>Function to map revision data to rectangle groups that represent the data as a stacked bar graph.</p>
 
@@ -3195,11 +2696,11 @@ WIKIVIZ.getAdjacentTalkWidth = <span class="keyword">function</span>()
         </li>
         
         
-        <li id="section-145">
+        <li id="section-126">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-145">&#182;</a>
+                <a class="pilcrow" href="#section-126">&#182;</a>
               </div>
               <p>For brevity</p>
 
@@ -3211,11 +2712,11 @@ WIKIVIZ.getAdjacentTalkWidth = <span class="keyword">function</span>()
         </li>
         
         
-        <li id="section-146">
+        <li id="section-127">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-146">&#182;</a>
+                <a class="pilcrow" href="#section-127">&#182;</a>
               </div>
               <p>Make array to store partial sums of weighted attributes for each data element</p>
 
@@ -3231,11 +2732,11 @@ WIKIVIZ.getAdjacentTalkWidth = <span class="keyword">function</span>()
         </li>
         
         
-        <li id="section-147">
+        <li id="section-128">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-147">&#182;</a>
+                <a class="pilcrow" href="#section-128">&#182;</a>
               </div>
               <p>Collect the sums of what we&#39;ve seen so far so as to stack the bars properly</p>
 
@@ -3247,11 +2748,11 @@ WIKIVIZ.getAdjacentTalkWidth = <span class="keyword">function</span>()
         </li>
         
         
-        <li id="section-148">
+        <li id="section-129">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-148">&#182;</a>
+                <a class="pilcrow" href="#section-129">&#182;</a>
               </div>
               <p>The negatives are done the same way, but we have to change the role of the &#39;y&#39; attribute.</p>
 
@@ -3265,11 +2766,11 @@ WIKIVIZ.getAdjacentTalkWidth = <span class="keyword">function</span>()
         </li>
         
         
-        <li id="section-149">
+        <li id="section-130">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-149">&#182;</a>
+                <a class="pilcrow" href="#section-130">&#182;</a>
               </div>
               <p>Collect the sums of what we&#39;ve seen so far so as to stack the bars properly</p>
 
@@ -3282,11 +2783,11 @@ WIKIVIZ.getAdjacentTalkWidth = <span class="keyword">function</span>()
         </li>
         
         
-        <li id="section-150">
+        <li id="section-131">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-150">&#182;</a>
+                <a class="pilcrow" href="#section-131">&#182;</a>
               </div>
               <p>Get left edge of a given bar on the visualization</p>
 
@@ -3304,11 +2805,11 @@ WIKIVIZ.getAdjacentTalkWidth = <span class="keyword">function</span>()
         </li>
         
         
-        <li id="section-151">
+        <li id="section-132">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-151">&#182;</a>
+                <a class="pilcrow" href="#section-132">&#182;</a>
               </div>
               <p>Create or Update month background rects.
 These are the shaded rectangles in the background of the visualization that indicate periods of 1 month.
@@ -3325,11 +2826,11 @@ We need to build these to the correct scale so that they line up with the correc
         </li>
         
         
-        <li id="section-152">
+        <li id="section-133">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-152">&#182;</a>
+                <a class="pilcrow" href="#section-133">&#182;</a>
               </div>
               <p>WIKIVIZ.view.body.select(&#39;.bg&#39;).selectAll(&#39;.month&#39;).data([]).exit().remove();</p>
 
@@ -3341,11 +2842,11 @@ We need to build these to the correct scale so that they line up with the correc
         </li>
         
         
-        <li id="section-153">
+        <li id="section-134">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-153">&#182;</a>
+                <a class="pilcrow" href="#section-134">&#182;</a>
               </div>
               <p>If the visualization is not time spaced, we need to go through our data, find month boundaries, and
 build a list of the left and right offsets of the month rects on the visualization</p>
@@ -3362,11 +2863,11 @@ build a list of the left and right offsets of the month rects on the visualizati
         </li>
         
         
-        <li id="section-154">
+        <li id="section-135">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-154">&#182;</a>
+                <a class="pilcrow" href="#section-135">&#182;</a>
               </div>
               <p>We need to build width and offset positions for the various month groups
 We do this by scanning through our bar graph data and appending to the month data as we go.</p>
@@ -3379,11 +2880,11 @@ We do this by scanning through our bar graph data and appending to the month dat
         </li>
         
         
-        <li id="section-155">
+        <li id="section-136">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-155">&#182;</a>
+                <a class="pilcrow" href="#section-136">&#182;</a>
               </div>
               <p>var left = lastIndex <em> barWidth;
 var right = (i-1) </em> barWidth;</p>
@@ -3407,11 +2908,11 @@ var right = (i-1) </em> barWidth;</p>
         </li>
         
         
-        <li id="section-156">
+        <li id="section-137">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-156">&#182;</a>
+                <a class="pilcrow" href="#section-137">&#182;</a>
               </div>
               <p>and add them all.
 We use the timeX scale to find the left and right boundaries.</p>
@@ -3465,11 +2966,11 @@ We use the timeX scale to find the left and right boundaries.</p>
         </li>
         
         
-        <li id="section-157">
+        <li id="section-138">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-157">&#182;</a>
+                <a class="pilcrow" href="#section-138">&#182;</a>
               </div>
               <p>Deletes all of the month rects.</p>
 
@@ -3482,11 +2983,11 @@ We use the timeX scale to find the left and right boundaries.</p>
         </li>
         
         
-        <li id="section-158">
+        <li id="section-139">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-158">&#182;</a>
+                <a class="pilcrow" href="#section-139">&#182;</a>
               </div>
               <p>Rescale x-axis based on the number of bars that should fit into a screen.</p>
 
@@ -3508,11 +3009,11 @@ We use the timeX scale to find the left and right boundaries.</p>
         </li>
         
         
-        <li id="section-159">
+        <li id="section-140">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-159">&#182;</a>
+                <a class="pilcrow" href="#section-140">&#182;</a>
               </div>
               <p>Hide x labels that would overlap!</p>
 
@@ -3526,11 +3027,11 @@ We use the timeX scale to find the left and right boundaries.</p>
         </li>
         
         
-        <li id="section-160">
+        <li id="section-141">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-160">&#182;</a>
+                <a class="pilcrow" href="#section-141">&#182;</a>
               </div>
               <p>Need to update the month rectangles so that they use the new scale!</p>
 
@@ -3545,11 +3046,11 @@ WIKIVIZ.setNumDots = <span class="keyword">function</span>(numDots)
         </li>
         
         
-        <li id="section-161">
+        <li id="section-142">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-161">&#182;</a>
+                <a class="pilcrow" href="#section-142">&#182;</a>
               </div>
               <p>Redraw dots here for talk page entries</p>
 
@@ -3567,7 +3068,506 @@ WIKIVIZ.setNumDots = <span class="keyword">function</span>(numDots)
 	
 	WIKIVIZ.buildMonths();
 
-};
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-143">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-143">&#182;</a>
+              </div>
+              <p>This is the code that handles the fancy draggable SVG scrollbar at the bottom of the page.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.navctl = {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-144">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-144">&#182;</a>
+              </div>
+              <p>Start up the control.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	init: <span class="keyword">function</span>(sw, sh) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-145">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-145">&#182;</a>
+              </div>
+              <p>Scrollbar dimensions</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.dim = {w: sw, h: sh};
+		
+		<span class="keyword">this</span>.sdim = {x0: <span class="number">0</span>, w: <span class="number">100</span>};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-146">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-146">&#182;</a>
+              </div>
+              <p>Create the SVG element for the scrollbar</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.svg = d3.select(<span class="string">'#navctl'</span>).append(<span class="string">'svg'</span>).attr(<span class="string">'width'</span>, <span class="keyword">this</span>.dim.w).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h);
+		<span class="keyword">this</span>.bg = <span class="keyword">this</span>.svg.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'bg'</span>);	<span class="comment">// Make a background layer</span>
+		<span class="keyword">var</span> handleWidth = <span class="keyword">this</span>.dim.h/<span class="number">2</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-147">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-147">&#182;</a>
+              </div>
+              <p>Create handles (semi-circles)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.bg.append(<span class="string">'path'</span>).attr(<span class="string">'d'</span>,<span class="string">'M'</span> + handleWidth + <span class="string">',0 A'</span> + handleWidth + <span class="string">','</span> + handleWidth + <span class="string">' 0 0,0 '</span> + handleWidth + <span class="string">','</span> + handleWidth * <span class="number">2</span> ).attr(<span class="string">'class'</span>, <span class="string">'pad'</span>).attr(<span class="string">'width'</span>, handleWidth).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h);
+		<span class="keyword">this</span>.bg.append(<span class="string">'path'</span>).attr(<span class="string">'d'</span>,<span class="string">'M0,0 A'</span> + handleWidth + <span class="string">','</span> + handleWidth + <span class="string">' 0 0,1 0,'</span> + handleWidth * <span class="number">2</span>).attr(<span class="string">'class'</span>, <span class="string">'pad'</span>).attr(<span class="string">'width'</span>, handleWidth).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span>+ (<span class="keyword">this</span>.dim.w - handleWidth) + <span class="string">',0)'</span>);
+		
+		<span class="keyword">this</span>.bg.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'navbars'</span>).attr(<span class="string">'x'</span>, handleWidth).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + handleWidth + <span class="string">','</span> + <span class="keyword">this</span>.dim.h / <span class="number">2</span> + <span class="string">')scale(1,-1)'</span>);
+		
+		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).append(<span class="string">'line'</span>)
+			.attr(<span class="string">'x1'</span>, <span class="number">0</span>)
+			.attr(<span class="string">'y1'</span>, <span class="number">0</span>)
+			.attr(<span class="string">'x2'</span>, <span class="keyword">this</span>.dim.w-<span class="number">2</span>*handleWidth)
+			.attr(<span class="string">'y2'</span>, <span class="number">0</span>);
+
+		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).append(<span class="string">'line'</span>)
+			.attr(<span class="string">'class'</span>,<span class="string">'navctlborder'</span>)
+			.attr(<span class="string">'x1'</span>, <span class="number">0</span>)
+			.attr(<span class="string">'y1'</span>, handleWidth)
+			.attr(<span class="string">'x2'</span>, <span class="keyword">this</span>.dim.w-<span class="number">2</span>*handleWidth)
+			.attr(<span class="string">'y2'</span>, handleWidth);
+
+		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).append(<span class="string">'line'</span>)
+			.attr(<span class="string">'class'</span>,<span class="string">'navctlborder'</span>)
+			.attr(<span class="string">'x1'</span>, <span class="number">0</span>)
+			.attr(<span class="string">'y1'</span>, -handleWidth)
+			.attr(<span class="string">'x2'</span>, <span class="keyword">this</span>.dim.w-<span class="number">2</span>*handleWidth)
+			.attr(<span class="string">'y2'</span>, -handleWidth);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-148">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-148">&#182;</a>
+              </div>
+              <p>Slider group</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.slider = <span class="keyword">this</span>.svg.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'slider'</span>);
+		<span class="keyword">this</span>.slider.append(<span class="string">'rect'</span>).attr(<span class="string">'class'</span>, <span class="string">'chandle'</span>).attr(<span class="string">'width'</span>, <span class="keyword">this</span>.sdim.w-handleWidth).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h).attr(<span class="string">'x'</span>, <span class="keyword">this</span>.sdim.x0 + handleWidth);
+		<span class="keyword">this</span>.slider.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'lhandlegrp'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (<span class="keyword">this</span>.sdim.x0) + <span class="string">',0)'</span>).append(<span class="string">'path'</span>).attr(<span class="string">'d'</span>,<span class="string">'M'</span> + handleWidth + <span class="string">',0 A'</span> + handleWidth + <span class="string">','</span> + handleWidth + <span class="string">' 0 0,0 '</span> + handleWidth + <span class="string">','</span> + handleWidth * <span class="number">2</span> ).attr(<span class="string">'class'</span>, <span class="string">'lhandle'</span>).attr(<span class="string">'width'</span>, handleWidth).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h);
+		<span class="keyword">this</span>.slider.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'rhandlegrp'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (<span class="keyword">this</span>.sdim.x0 + <span class="keyword">this</span>.sdim.w) + <span class="string">',0)'</span>).append(<span class="string">'path'</span>).attr(<span class="string">'d'</span>,<span class="string">'M0,0 A'</span> + handleWidth + <span class="string">','</span> + handleWidth + <span class="string">' 0 0,1 0,'</span> + handleWidth * <span class="number">2</span>).attr(<span class="string">'class'</span>, <span class="string">'rhandle'</span>).attr(<span class="string">'width'</span>, handleWidth).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h);
+		
+		<span class="keyword">this</span>.xscale = d3.scale.linear();
+		<span class="keyword">this</span>.xscale.domain([<span class="number">0</span>, WIKIVIZ.data.revisions.length-<span class="number">1</span>]);
+		<span class="keyword">this</span>.xscale.range([<span class="number">0</span>, <span class="keyword">this</span>.dim.w - <span class="number">2</span>*handleWidth]);
+		
+		<span class="keyword">this</span>.yscale = d3.scale.linear();
+		<span class="keyword">this</span>.yscale.domain(WIKIVIZ.view.y.domain());
+		<span class="keyword">this</span>.yscale.range([<span class="number">0</span>, <span class="keyword">this</span>.dim.h/<span class="number">2</span>]);
+		
+		<span class="keyword">var</span> that = <span class="keyword">this</span>;
+		
+		<span class="keyword">this</span>.spikewidth = (<span class="keyword">this</span>.dim.w-<span class="number">2</span>*handleWidth) / WIKIVIZ.data.revisions.length;
+		
+		<span class="keyword">this</span>.spikes = <span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'rect.sd'</span>).data(WIKIVIZ.data.revisions);
+		<span class="keyword">this</span>.spikes.enter().append(<span class="string">'rect'</span>)
+			.attr(<span class="string">'x'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.xscale(i); })
+			.attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> -that.yscale(d.wclass.remove + d.wclass.vand); })
+			.attr(<span class="string">'width'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.spikewidth; })
+			.attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
+			.attr(<span class="string">'class'</span>, <span class="string">'sd'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-149">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-149">&#182;</a>
+              </div>
+              <p>Draw talk page entries, need to manually keep this in sync with appendCallout for now</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		
+		<span class="keyword">this</span>.dots = <span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'circle.td'</span>).data(WIKIVIZ.data.talk).enter().append(<span class="string">'circle'</span>)
+			.attr(<span class="string">'class'</span>, <span class="string">'td'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-150">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-150">&#182;</a>
+              </div>
+              <p>Max circle radius</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">var</span> maxR = <span class="number">5</span>;
+		<span class="keyword">var</span> fact = <span class="number">0.6</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-151">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-151">&#182;</a>
+              </div>
+              <p>Append circle to our element. Cap the circle size and re-style the circle if it has reached the cap.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.dots.filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> Math.log(d.lev+<span class="number">1</span>)*fact &lt;= maxR; }).attr(<span class="string">'r'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> Math.log(d.lev+<span class="number">1</span>)*fact; }).attr(<span class="string">'class'</span>, <span class="string">'tcircle'</span>);
+		<span class="keyword">this</span>.dots.filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> Math.log(d.lev+<span class="number">1</span>)*fact &gt; maxR; }).attr(<span class="string">'r'</span>, maxR).attr(<span class="string">'class'</span>, <span class="string">'tcircle_full'</span>);
+		
+		<span class="keyword">this</span>.mode = <span class="string">'adj'</span>;
+		
+		<span class="keyword">this</span>.sd = { dx: <span class="number">0</span> };</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-152">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-152">&#182;</a>
+              </div>
+              <p>Event handlers for the slider
+The slider &quot;dragging&quot; state is stored as a CSS class.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		$(<span class="string">'.chandle'</span>).mousedown(<span class="keyword">function</span>(event) {
+			$(<span class="keyword">this</span>).addClass(<span class="string">'dragging'</span>);
+			that.sd.dx = event.pageX - that.sdim.x0;
+			event.preventDefault();
+		});
+		$(<span class="string">'.lhandle'</span>).mousedown(<span class="keyword">function</span>(event) {
+			$(<span class="keyword">this</span>).addClass(<span class="string">'dragging'</span>);
+			that.sd.dx = event.pageX - that.sdim.x0;
+			event.preventDefault();
+		});
+		$(<span class="string">'.rhandle'</span>).mousedown(<span class="keyword">function</span>(event) {
+			$(<span class="keyword">this</span>).addClass(<span class="string">'dragging'</span>);
+			that.sd.dx = event.pageX;
+			event.preventDefault();
+		});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-153">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-153">&#182;</a>
+              </div>
+              <p>More event handlers. These deal with dragging the slider.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		$(document).mousemove(<span class="keyword">function</span>(event) {
+			<span class="keyword">if</span> ($(<span class="string">'.rhandle'</span>).hasClass(<span class="string">'dragging'</span>)) {
+				<span class="keyword">var</span> dw = (event.pageX - that.sd.dx);
+				that.sd.dx = event.pageX;
+				<span class="keyword">var</span> newW = +that.sdim.w +dw;
+				
+				<span class="keyword">if</span> (newW &lt; handleWidth) newW = handleWidth;
+				<span class="keyword">if</span> (newW + that.sdim.x0 + handleWidth &gt; that.dim.w) newW = that.dim.w-that.sdim.x0-handleWidth;
+				that.sdim.w = newW;
+				
+				$(<span class="string">'.chandle'</span>).attr(<span class="string">'width'</span>, that.sdim.w - handleWidth);
+				$(<span class="string">'.rhandlegrp'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (+that.sdim.w) + <span class="string">',0)'</span>)
+				that.onScale();
+				that.onSlide();
+			}
+			<span class="keyword">if</span> ($(<span class="string">'.lhandle'</span>).hasClass(<span class="string">'dragging'</span>)) {
+				<span class="keyword">var</span> newX0 = (event.pageX - that.sd.dx);
+				<span class="keyword">if</span> (newX0 &lt; <span class="number">0</span>) newX0 = <span class="number">0</span>;
+				<span class="keyword">if</span> (newX0 &gt; that.sdim.x0 + that.sdim.w - handleWidth) newX0 = that.sdim.x0 + that.sdim.w - handleWidth;
+				
+				<span class="keyword">var</span> newW = +that.sdim.w - (+newX0 - +that.sdim.x0);
+				<span class="keyword">if</span> (newW &lt; handleWidth) {
+					newW = handleWidth;
+				}
+				
+				that.sdim.x0 = newX0;
+				that.sdim.w = newW;
+				
+				$(<span class="string">'.slider'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (that.sdim.x0) + <span class="string">',0)'</span>);
+				$(<span class="string">'.chandle'</span>).attr(<span class="string">'width'</span>, that.sdim.w - handleWidth);
+				$(<span class="string">'.rhandlegrp'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (+that.sdim.w) + <span class="string">',0)'</span>)
+				that.onScale();
+				that.onSlide();
+			}
+			<span class="keyword">if</span> ($(<span class="string">'.chandle'</span>).hasClass(<span class="string">'dragging'</span>)) {
+				that.sdim.x0 = (event.pageX - that.sd.dx);
+				
+				<span class="keyword">if</span> (that.sdim.x0 &lt; <span class="number">0</span>) that.sdim.x0 = <span class="number">0</span>;
+				<span class="keyword">if</span> (that.sdim.x0 &gt; that.dim.w - ((handleWidth) + that.sdim.w)) that.sdim.x0 = that.dim.w - ((handleWidth) + that.sdim.w);
+				$(<span class="string">'.slider'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (that.sdim.x0) + <span class="string">',0)'</span>);
+				that.onSlide();
+			}
+		});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-154">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-154">&#182;</a>
+              </div>
+              <p>Once the mouse is released, reset the slider &quot;dragging&quot; state.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		$(document).mouseup(<span class="keyword">function</span>() {
+			$(<span class="string">'.chandle'</span>).removeClass(<span class="string">'dragging'</span>);
+			$(<span class="string">'.lhandle'</span>).removeClass(<span class="string">'dragging'</span>);
+			$(<span class="string">'.rhandle'</span>).removeClass(<span class="string">'dragging'</span>);
+		})
+		
+		<span class="keyword">this</span>.handleWidth = handleWidth;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-155">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-155">&#182;</a>
+              </div>
+              <p>Call these to update the slider for the first time.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.onSlide();
+		<span class="keyword">this</span>.onScale();
+	},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-156">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-156">&#182;</a>
+              </div>
+              <p>Adjust the slider when we switch to time-spaced mode.
+Use a new time-spaced scale for display.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	toTimeSpaced: <span class="keyword">function</span>() {
+		
+		<span class="keyword">var</span> minDate = WIKIVIZ.data.revisions[<span class="number">0</span>].date;
+		
+		<span class="keyword">this</span>.xscale = d3.time.scale();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-157">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-157">&#182;</a>
+              </div>
+              <p>Todo: domain of talk entries may exceed revisions</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.xscale.domain([<span class="keyword">new</span> Date(minDate.getFullYear(), minDate.getMonth()),
+			WIKIVIZ.data.revisions[WIKIVIZ.data.revisions.length - <span class="number">1</span>].date]);
+		<span class="keyword">this</span>.xscale.range([<span class="number">0</span>, <span class="keyword">this</span>.dim.w - <span class="number">2</span>*<span class="keyword">this</span>.handleWidth]);
+		
+		<span class="keyword">var</span> that = <span class="keyword">this</span>;
+		
+		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'rect.sd'</span>).data(WIKIVIZ.data.revisions)
+			.attr(<span class="string">'x'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.xscale(d.date); })
+			.attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> -that.yscale(d.wclass.remove + d.wclass.vand); })
+			.attr(<span class="string">'width'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.spikewidth; })
+			.attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
+			.attr(<span class="string">'class'</span>, <span class="string">'sd'</span>);
+			
+		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'circle.tcircle'</span>).data(WIKIVIZ.data.talk)
+			.attr(<span class="string">'cx'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> that.xscale(d.date); });
+				
+		<span class="keyword">this</span>.mode = <span class="string">'time'</span>;
+		
+		WIKIVIZ.toTimeSpaced();
+		
+		<span class="keyword">this</span>.onSlide();
+		<span class="keyword">this</span>.onScale();
+	},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-158">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-158">&#182;</a>
+              </div>
+              <p>When we switch to adjacent-spaced mode, switch back to using a linear scale for display.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	toAdjacentSpaced: <span class="keyword">function</span>() {
+		
+		<span class="keyword">this</span>.xscale = d3.scale.linear();
+		
+		<span class="keyword">if</span> (WIKIVIZ.view.mode == <span class="string">'talk'</span>)
+			<span class="keyword">this</span>.xscale.domain([<span class="number">0</span>, WIKIVIZ.data.talk.length-<span class="number">1</span>]);
+		<span class="keyword">else</span>
+			<span class="keyword">this</span>.xscale.domain([<span class="number">0</span>, WIKIVIZ.data.revisions.length-<span class="number">1</span>]);
+			
+		<span class="keyword">this</span>.xscale.range([<span class="number">0</span>, <span class="keyword">this</span>.dim.w - <span class="number">2</span>*<span class="keyword">this</span>.handleWidth]);
+		
+		<span class="keyword">var</span> that = <span class="keyword">this</span>;
+		
+		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'rect.sd'</span>).data(WIKIVIZ.data.revisions)
+			.attr(<span class="string">'x'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.xscale(i); })
+			.attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> -that.yscale(d.wclass.remove + d.wclass.vand); })
+			.attr(<span class="string">'width'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.spikewidth; })
+			.attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
+			.attr(<span class="string">'class'</span>, <span class="string">'sd'</span>);
+		
+		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'circle'</span>).data(WIKIVIZ.data.talk)
+			.attr(<span class="string">'cx'</span>, <span class="keyword">function</span>(d, i) { <span class="keyword">return</span> that.xscale(i); });
+		
+		<span class="keyword">this</span>.mode = <span class="string">'adj'</span>;
+		
+		WIKIVIZ.toAdjacentSpaced();
+		
+		<span class="keyword">this</span>.onSlide();
+		<span class="keyword">this</span>.onScale();
+	},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-159">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-159">&#182;</a>
+              </div>
+              <p>Slide the view when we slide the slider.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	onSlide: <span class="keyword">function</span>() {
+		d3.select(<span class="string">'g.body'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + -<span class="keyword">this</span>.getPanOffset() + <span class="string">',0)'</span>)
+	},
+	
+	onScale: <span class="keyword">function</span>() {
+		<span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'adj'</span> &amp;&amp; WIKIVIZ.view.mode == <span class="string">'art'</span>) { WIKIVIZ.setNumBars(<span class="keyword">this</span>.getNumBars()); }
+		<span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'adj'</span> &amp;&amp; WIKIVIZ.view.mode == <span class="string">'talk'</span>) { WIKIVIZ.setNumDots(<span class="keyword">this</span>.getNumBars()); }
+		<span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'time'</span>) {
+			<span class="keyword">var</span> df = WIKIVIZ.data.revisions[WIKIVIZ.data.revisions.length - <span class="number">1</span>].date;
+			<span class="keyword">var</span> d0 = WIKIVIZ.data.revisions[<span class="number">0</span>].date;
+			<span class="keyword">var</span> d1 = <span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0);
+			<span class="keyword">var</span> d2 = <span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0+<span class="keyword">this</span>.sdim.w-<span class="keyword">this</span>.handleWidth);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-160">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-160">&#182;</a>
+              </div>
+              <p>The multiplier 0.9 is a quick fix for getting the rightmost bars in TS mode visible.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			WIKIVIZ.view.timeX.range([<span class="number">0</span>, <span class="number">0.9</span>*WIKIVIZ.width * (df-d0) / (d2 - d1)]);
+			WIKIVIZ.toTimeSpaced();
+		}
+		
+	},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-161">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-161">&#182;</a>
+              </div>
+              <p>Map slider motion to an offset by which to pan the main view. Behaves differently for time and adjacent spaced modes.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	getPanOffset: <span class="keyword">function</span>() {
+		<span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'adj'</span> &amp;&amp; WIKIVIZ.view.mode == <span class="string">'art'</span>) {
+			<span class="keyword">return</span> ((<span class="keyword">this</span>.sdim.x0) / (<span class="keyword">this</span>.dim.w - <span class="number">2</span>*<span class="keyword">this</span>.handleWidth))*(WIKIVIZ.data.revisions.length*WIKIVIZ.calcBarWidth());
+		}
+		<span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'adj'</span> &amp;&amp; WIKIVIZ.view.mode == <span class="string">'talk'</span>) {
+			<span class="keyword">return</span> ((<span class="keyword">this</span>.sdim.x0) / (<span class="keyword">this</span>.dim.w - <span class="number">2</span>*<span class="keyword">this</span>.handleWidth))*(WIKIVIZ.data.talk.length*WIKIVIZ.calcTalkWidth());
+		}
+		<span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'time'</span>) {
+			<span class="keyword">return</span> WIKIVIZ.view.timeX(<span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0));
+		}
+		<span class="keyword">return</span> <span class="number">0</span>;
+	},
+	
+	getNumBars: <span class="keyword">function</span>() {
+		<span class="keyword">return</span> <span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0+<span class="keyword">this</span>.sdim.w-<span class="keyword">this</span>.handleWidth) - <span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0);
+	},
+	
+	getTimeRange: <span class="keyword">function</span>() {
+		
+	}
+}
 
 $(document).ready(<span class="keyword">function</span>() {</pre></div></div>
             
