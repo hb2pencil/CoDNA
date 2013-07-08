@@ -264,6 +264,8 @@
 		<script type="text/javascript" src="js/sorttable.js"></script>
 		<script type="text/javascript" src="js/vendor/jquery_svg/jquery.svg.js"></script>
 		<script type="text/javascript" src="js/vendor/jquery_svg/jquery.svgdom.js"></script>
+		<script type="text/javascript" src="js/vendor/underscore/underscore.min.js"></script>
+		<script type="text/javascript" src="js/vendor/backbone/backbone.min.js"></script>
 		<?php if($environment == "prod"){ ?>
 	        <script type="text/javascript" src="js/build/codna.min.js"></script>
 		<?php } else if($environment == "dev"){ ?>

@@ -892,7 +892,7 @@ WIKIVIZ.initViz = function()
 	
 	// Re-arrange coordinate system by setting x=0 to the center of the SVG and flipping the y-axis values.
 	// Also, set y=0 offset by maskWidth to the left to simplify math regarding the position of the y-axis title and masking rect.
-	WIKIVIZ.view.sview = WIKIVIZ.view.svg.append('g').attr('width', WIKIVIZ.width).attr('transform', 'translate(' + (maskWidth) + ',' + (WIKIVIZ.height/2 - 0.5) + ')scale(1,-1)');
+	WIKIVIZ.view.sview = WIKIVIZ.view.svg.append('g').attr('width', WIKIVIZ.width).attr('transform', 'translate(' + (maskWidth) + ',' + (WIKIVIZ.height/2) + ')scale(1,-1)');
 	
 	// Init the x and y scale objects.
 	WIKIVIZ.view.x = d3.scale.linear();
