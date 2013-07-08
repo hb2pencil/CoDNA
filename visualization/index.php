@@ -1,3 +1,6 @@
+<?php 
+    require_once("lib/config.inc.php");
+?>
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -254,13 +257,21 @@
 				</div>
 			</div>
 		</div>
-		<script src="js/vendor/jquery-1.7.2.min.js"></script>
-		<script src="js/vendor/jquery-ui-1.8.20.custom.min.js"></script>
-		<script src="js/buttonsetv.js"></script>
-		<script src="js/vendor/d3.v2.min.js"></script>
-		<script src="js/sorttable.js"></script>
-		<script src="js/vendor/jquery_svg/jquery.svg.js"></script>
-		<script src="js/vendor/jquery_svg/jquery.svgdom.js"></script>
-		<script src="js/interactive2/interactive2.js"></script>
+		<script type="text/javascript" src="js/vendor/jquery-1.7.2.min.js"></script>
+		<script type="text/javascript" src="js/vendor/jquery-ui-1.8.20.custom.min.js"></script>
+		<script type="text/javascript" src="js/buttonsetv.js"></script>
+		<script type="text/javascript" src="js/vendor/d3.v2.min.js"></script>
+		<script type="text/javascript" src="js/sorttable.js"></script>
+		<script type="text/javascript" src="js/vendor/jquery_svg/jquery.svg.js"></script>
+		<script type="text/javascript" src="js/vendor/jquery_svg/jquery.svgdom.js"></script>
+		<?php if($environment == "prod"){ ?>
+	        <script type="text/javascript" src="js/build/codna.min.js"></script>
+		<?php } else if($environment == "dev"){ ?>
+	        <script type="text/javascript" src="js/src/state.js"></script>
+	        <script type="text/javascript" src="js/src/helpers.js"></script>
+	        <script type="text/javascript" src="js/src/ui.js"></script>
+	        <script type="text/javascript" src="js/src/visualization.js"></script>
+	        <script type="text/javascript" src="js/src/main.js"></script>
+		<?php } ?>
 	</body>
 </html>

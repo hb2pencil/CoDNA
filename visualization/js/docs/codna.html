@@ -1,0 +1,3661 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>codna.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>codna.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <pre><code>CoDNA 0.1.0
+(c) 2013 Henry Brausen, David Turner
+https://github.com/hb2pencil/CoDNA
+Released under GPLv2 License</code></pre>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>(<span class="keyword">function</span>(window, document, <span class="literal">undefined</span>){</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>WIKIVIZ main object
+Here we define some useful constants that are used throughout the application.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ = {
+	width: <span class="number">910</span>,	<span class="comment">// Width and height of view area</span>
+	height: <span class="number">500</span>,
+	numBars: <span class="number">60</span>,	<span class="comment">// Default number of bars / screen to display in adjacent spacing mode</span>
+	maskWidth: <span class="number">50</span>,	<span class="comment">// Width of the mask for the y-axis labels</span>
+	timeMultiplier: <span class="number">1</span>,	<span class="comment">// UNUSED: Used to be used for generating "time offset" calues in data annotation.</span>
+	weights: {	<span class="comment">// The weights for computing the weighted-splitting of visualization bars.</span>
+		add: <span class="number">60</span>,
+		remove: <span class="number">60</span>,
+		edit: <span class="number">20</span>,
+		reorganize: <span class="number">40</span>,
+		vand: <span class="number">10</span>,
+		unvand: <span class="number">10</span>,
+		cite: <span class="number">20</span>,
+		unclassified: <span class="number">60</span>
+	},
+	view: {	<span class="comment">// View object is populated with more rendering-oriented variables.</span>
+		timeX: d3.time.scale(),	<span class="comment">// The time scale object for the TS X-axis</span>
+		mode: <span class="string">'art'</span>	<span class="comment">// Current viewing mode (article revision view by default)</span>
+	}
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Get a list of the user&#39;s groups (&#39;higher-level groups&#39;) at the present time.
+So far, this will always return one group, but we can expand on this later.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.getGroupsByName = <span class="keyword">function</span>(username) {
+	<span class="keyword">if</span> (!WIKIVIZ.data.users.hasOwnProperty(username)) <span class="keyword">return</span> [<span class="string">'None'</span>];	<span class="comment">// If we don't have data for this user (for whatever reason), assume no groups.</span>
+	<span class="keyword">if</span> (!WIKIVIZ.data.users[username].history[WIKIVIZ.data.users[username].history.length-<span class="number">1</span>]) <span class="keyword">return</span> [<span class="string">'None'</span>];
+	<span class="keyword">return</span> WIKIVIZ.data.users[username].history[WIKIVIZ.data.users[username].history.length-<span class="number">1</span>].userclass;
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Get index of element in revision data, or -1 if it doesn&#39;t exist</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.index = <span class="keyword">function</span>(d) { <span class="keyword">return</span> d.id; }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Get index of element in talk page data, or -1 if it doesn&#39;t exist</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.tIndex = <span class="keyword">function</span>(d) { <span class="keyword">return</span> d.id; }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Determine the higher-level group that a given article-revision belongs to.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.getRevisionGroup = <span class="keyword">function</span>(data, rev)
+{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>First, grab a list of our users.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> users = data.users;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>If the user is unknown, assume that the user is annonymous.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">if</span> (!rev.user <span class="keyword">in</span> users) <span class="keyword">return</span> <span class="string">'Anon'</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>Otherwise, we look up out user.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> user = users[rev.user];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>If we encountered an error reading the user, assume anon.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">if</span> (!user) <span class="keyword">return</span> <span class="string">'Anon'</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>If the user is flagged, use result of most recent permission query throughout!</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">if</span> (user.flagged) {
+		<span class="keyword">return</span> user.history[user.history.length-<span class="number">1</span>].userclass;
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>If user has empty history array, assume anon.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">if</span> (user.history.length &lt; <span class="number">1</span>) { <span class="keyword">return</span> <span class="string">'Anon'</span>; }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>Find closest user permissions entry without going over the revision date</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> revDate = <span class="keyword">new</span> Date(rev.timestamp);
+	
+	<span class="keyword">var</span> i = <span class="number">1</span>;
+	
+	<span class="keyword">var</span> lastEntry = user.history[<span class="number">0</span>];
+	
+	<span class="keyword">while</span> (i &lt; user.history.length) {
+		<span class="keyword">if</span> (<span class="keyword">new</span> Date(user.history[i].timestamp) &gt; revDate) <span class="keyword">break</span>;
+		lastEntry = user.history[i];
+		++i; 
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>lastEntry now contains the relevant permission entry.
+Return the userclass and we are done.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">return</span> lastEntry.userclass;
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>Augment (or annotate) data with useful log(lev) and weighted classification data.
+In short, this function generates and attaches additional descriptive data to the data downloaded from the DB.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.augment = <span class="keyword">function</span>(data)
+{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>Useful function to check if a string contain a substring.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="function"><span class="keyword">function</span> <span class="title">strcontains</span><span class="params">(needle, haystack)</span> {</span>
+		<span class="keyword">return</span> haystack.indexOf(needle) != -<span class="number">1</span>;
+	}
+	
+	$.each(data.talk, <span class="keyword">function</span>(i, te) {
+		te.date = <span class="keyword">new</span> Date(te.timestamp);
+		te.loglev = Math.log(te.lev + <span class="number">1</span>);
+		te.user = te.contributor;
+		te.type = <span class="string">'talk'</span>;
+		te.id = i;
+		te.group = WIKIVIZ.getRevisionGroup(data, te);
+	});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>Loop over each revision, making annotations as necessary.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$.each(data[<span class="string">'revisions'</span>], <span class="keyword">function</span>(i, rev) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>Split up the edit by its classification and the classification weights</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">var</span> wclass = {	<span class="comment">// Will eventually hold the formatted info for drawing.</span>
+			add: <span class="number">0</span>,
+			remove: <span class="number">0</span>,
+			edit: <span class="number">0</span>,
+			reorganize: <span class="number">0</span>,
+			cite: <span class="number">0</span>,
+			vand: <span class="number">0</span>,
+			unvand: <span class="number">0</span>,
+			unsure: <span class="number">0</span>,
+			unclassified: <span class="number">0</span>
+		};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>Perform a weighted-separation of our article revision edit distance.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">if</span> (strcontains(<span class="string">'a'</span>, rev[<span class="string">'class'</span>])) {
+			wclass.edit += WIKIVIZ.weights.edit;
+		}
+		<span class="keyword">if</span> (strcontains(<span class="string">'b'</span>, rev[<span class="string">'class'</span>])) {
+			wclass.add += WIKIVIZ.weights.add;
+		}
+		<span class="keyword">if</span> (strcontains(<span class="string">'c'</span>, rev[<span class="string">'class'</span>])) {
+			wclass.remove += WIKIVIZ.weights.remove;
+		}
+		<span class="keyword">if</span> (strcontains(<span class="string">'d'</span>, rev[<span class="string">'class'</span>])) {
+			wclass.reorganize += WIKIVIZ.weights.reorganize;
+		}
+		<span class="keyword">if</span> (strcontains(<span class="string">'e'</span>, rev[<span class="string">'class'</span>])) {
+			wclass.cite += WIKIVIZ.weights.cite;
+		}
+		<span class="keyword">if</span> (strcontains(<span class="string">'f'</span>, rev[<span class="string">'class'</span>])) {
+			wclass.vand += WIKIVIZ.weights.vand;
+		}
+		<span class="keyword">if</span> (strcontains(<span class="string">'g'</span>, rev[<span class="string">'class'</span>])) {
+			wclass.unvand += WIKIVIZ.weights.unvand;
+		}
+		<span class="keyword">if</span> (strcontains(<span class="string">'x'</span>, rev[<span class="string">'class'</span>])) {
+			wclass.unclassified += WIKIVIZ.weights.unclassified;
+		}
+		
+		<span class="keyword">var</span> wsum = <span class="number">0</span>;
+		<span class="keyword">for</span> (c <span class="keyword">in</span> wclass) {
+			wsum += wclass[c];
+		}
+		<span class="keyword">if</span> (wsum != <span class="number">0</span>) {
+			<span class="keyword">for</span> (c <span class="keyword">in</span> wclass) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>NOTE: We NEED the &#39;+&#39; before rev.lev to convert it into a number (from a string!)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				wclass[c] = wclass[c] * Math.log(+rev.lev+<span class="number">1</span>) / wsum;
+			}
+		}
+		
+		<span class="keyword">if</span> (wsum === <span class="number">0</span>) {
+			wclass.unsure = Math.log(rev.lev + <span class="number">1</span>);
+		}
+		
+		rev.wclass = wclass;
+		rev.loglev = Math.log(+rev.lev + <span class="number">1</span>);
+		rev.date = <span class="keyword">new</span> Date(rev.timestamp);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>Add the time-dependent user-class classification</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		rev.group = WIKIVIZ.getRevisionGroup(data, rev);
+		
+		rev.type=<span class="string">'art'</span>;
+		
+		rev.id = i;
+	});
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>Load data corresponding to the article art_title via. JSON
+Data is pulled from a DB (from dbquery.php)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.load = <span class="keyword">function</span>(art_title) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>Download revision and user data</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$.getJSON(<span class="string">"dbquery.php?"</span>, {
+		lower: <span class="number">0</span>,
+		upper: <span class="number">10000</span>,
+		article: art_title
+	}, <span class="keyword">function</span>(data) {	<span class="comment">// Function which updates the UI when async. response is received.</span>
+		WIKIVIZ.augment(data);	<span class="comment">// Augment data with log of lev. distance and weighted classification for display purposes.</span>
+		WIKIVIZ.data = data;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>Populate user list in the &#39;select users&#39; dialog.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">var</span> userMap = {};
+		<span class="keyword">var</span> revdata = data[<span class="string">'revisions'</span>];
+		<span class="keyword">var</span> totalLev = <span class="number">0</span>;
+		<span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; revdata.length; ++i) {
+			<span class="keyword">if</span> (!userMap.hasOwnProperty(revdata[i].user)) userMap[revdata[i].user] = <span class="number">0</span>;
+			userMap[revdata[i].user] += parseInt(revdata[i].lev);
+			totalLev += parseInt(revdata[i].lev);
+		}
+		<span class="keyword">var</span> users = Array();
+		<span class="keyword">for</span> (u <span class="keyword">in</span> userMap) {
+			<span class="keyword">if</span> (!userMap.hasOwnProperty(u)) <span class="keyword">continue</span>;
+			users.push([u, userMap[u] / totalLev]);
+		}
+		
+		users.sort(<span class="keyword">function</span>(a, b) {
+			<span class="keyword">return</span> b[<span class="number">1</span>]-a[<span class="number">1</span>]; <span class="comment">// Sort by contribution magnitude, descending</span>
+		});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>Use d3 to populate the select element in the select users dialog with option elements</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		d3.select(<span class="string">'#userselect'</span>).selectAll(<span class="string">'option'</span>).data(users).enter().append(<span class="string">'option'</span>).attr(<span class="string">'value'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> d[<span class="number">0</span>]; }).text(<span class="keyword">function</span>(d) {
+			<span class="keyword">var</span> percent = d[<span class="number">1</span>]*<span class="number">100</span>;
+			<span class="keyword">return</span> d[<span class="number">0</span>] + <span class="string">" ("</span> + percent.toFixed(<span class="number">2</span>).toString() + <span class="string">"%)"</span>;
+		});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>Clicking on one of the option elements should deselect all checkboxes</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		$(<span class="string">'#userselect option'</span>).click(<span class="keyword">function</span>() {
+			$(<span class="string">'input[name=userclassselect]'</span>).each(<span class="keyword">function</span>() {
+				$(<span class="keyword">this</span>).attr(<span class="string">'checked'</span>, <span class="literal">false</span>);
+			});
+		});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <p>Use d3 to populate the &quot;Content Details&quot; dialog</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">var</span> dtable = d3.select(<span class="string">'#diag_data'</span>).append(<span class="string">'table'</span>).attr(<span class="string">'class'</span>, <span class="string">'sortable'</span>);
+		dtable.append(<span class="string">'thead'</span>).append(<span class="string">'tr'</span>).selectAll(<span class="string">'th'</span>).data([	<span class="comment">// Need to specify CSS classes for sorttable</span>
+			[<span class="string">'Rev. Type'</span>, <span class="string">'sorttable_alpha'</span>],
+			[<span class="string">'ID'</span>, <span class="string">'sorttable_numeric'</span>],
+			[<span class="string">'User'</span>, <span class="string">'sorttable_alpha'</span>],
+			[<span class="string">'User Group'</span>, <span class="string">'sorttable_alpha'</span>],
+			[<span class="string">'Revision Date'</span>, <span class="string">'sorttable_alpha'</span>],
+			[<span class="string">'Revision Size'</span>, <span class="string">'sorttable_numeric'</span>],
+			[<span class="string">'Revision Categories'</span>, <span class="string">'sorttable_alpha'</span>],
+			])
+			.enter().append(<span class="string">'th'</span>).text(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d[<span class="number">0</span>]; }).attr(<span class="string">'class'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d[<span class="number">1</span>]; });</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>Merge article and talk page revision data for the table.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">var</span> i=<span class="number">0</span>;
+		<span class="keyword">var</span> j=<span class="number">0</span>;
+		<span class="keyword">var</span> revs = WIKIVIZ.data.revisions;
+		<span class="keyword">var</span> tlk = WIKIVIZ.data.talk;
+		tlk = tlk.sort(<span class="function"><span class="keyword">function</span> <span class="params">(l,r)</span> {</span>
+			<span class="keyword">if</span> (l.date == r.date) <span class="keyword">return</span> <span class="number">0</span>;
+			<span class="keyword">return</span> (l.date &gt; r.date)? <span class="number">1</span>:-<span class="number">1</span>;
+		});
+		revs = revs.sort(<span class="function"><span class="keyword">function</span> <span class="params">(l,r)</span> {</span>
+			<span class="keyword">if</span> (l.date == r.date) <span class="keyword">return</span> <span class="number">0</span>;
+			<span class="keyword">return</span> (l.date &gt; r.date)? <span class="number">1</span>:-<span class="number">1</span>;
+		});
+		<span class="keyword">var</span> mdata = [];
+		<span class="keyword">while</span> (i &lt; revs.length &amp;&amp; j &lt; tlk.length) {
+			<span class="keyword">if</span> (revs[i].date &lt; tlk[j].date) {
+				mdata.push(revs[i]);
+				
+				++i;
+			} <span class="keyword">else</span> {
+				mdata.push(tlk[j]);
+				++j;
+			}
+		}
+		<span class="keyword">if</span> (i &lt; revs.length) {
+			mdata = mdata.concat(revs.slice(i));
+		}
+		<span class="keyword">if</span> (j &lt; tlk.length) {
+			mdata = mdata.concat(tlk.slice(j));
+		}
+		
+		<span class="keyword">var</span> rows = dtable.append(<span class="string">'tbody'</span>).selectAll(<span class="string">'tr.data'</span>).data(mdata).enter().append(<span class="string">'tr'</span>);
+		rows.append(<span class="string">'td'</span>).text(<span class="keyword">function</span>(d) {
+			<span class="keyword">return</span> (d.type === <span class="string">'art'</span>)?(<span class="string">'A'</span>):(<span class="string">'TP'</span>);
+		});
+		rows.append(<span class="string">'td'</span>).text(<span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="number">1</span>+d.id; });
+		rows.append(<span class="string">'td'</span>).text(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d.user; });
+		rows.append(<span class="string">'td'</span>).text(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d.group; });
+		rows.append(<span class="string">'td'</span>).text(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> WIKIVIZ.formatDate(d.date); })
+			.attr(<span class="string">'sorttable_customkey'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> WIKIVIZ.getDateSortKey(d.date); });
+		rows.append(<span class="string">'td'</span>).text(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d.lev; });
+		rows.append(<span class="string">'td'</span>).text(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span>
+			<span class="keyword">if</span> (d.type === <span class="string">'art'</span>) {
+				<span class="keyword">return</span> WIKIVIZ.toClassString(d.class);
+			} <span class="keyword">else</span> <span class="keyword">if</span> (d.type === <span class="string">'talk'</span>) {
+				<span class="keyword">return</span> WIKIVIZ.toTalkClassString(d);
+			} <span class="keyword">else</span> {
+				<span class="keyword">return</span> <span class="string">'Undefined'</span>;
+			}
+		});
+		rows.attr(<span class="string">'class'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span>
+			<span class="keyword">if</span> (d.type === <span class="string">'talk'</span>) <span class="keyword">return</span> <span class="string">'data talkrow'</span>;
+			<span class="keyword">else</span> <span class="keyword">return</span> <span class="string">'data defaultrow'</span>;
+		});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <p>Get the sorttable library to make this table sortable!</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		sorttable.makeSortable($(<span class="string">'#diag_data table.sortable'</span>).get(<span class="number">0</span>));</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-30">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <p>In our default mode hide the talk page entries</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		$(<span class="string">'.talkrow'</span>).addClass(<span class="string">'invisible'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p>Init the visualization</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		WIKIVIZ.initViz();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-32">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-32">&#182;</a>
+              </div>
+              <p>Init the timeX scale with the min and max dates</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">var</span> minDate = WIKIVIZ.data.revisions[<span class="number">0</span>].date;
+		WIKIVIZ.view.timeX.domain([<span class="keyword">new</span> Date(minDate.getFullYear(), minDate.getMonth()),
+					   WIKIVIZ.data.revisions[WIKIVIZ.data.revisions.length - <span class="number">1</span>].date]);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-33">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <p>Apply default range to scale</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		WIKIVIZ.view.timeX.range([<span class="number">0</span>, <span class="number">5000</span>]);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-34">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-34">&#182;</a>
+              </div>
+              <p>Remove &quot;loading&quot; message</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		$(<span class="string">'#view #view_loading'</span>).remove();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-35">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-35">&#182;</a>
+              </div>
+              <p>Init the navigation control</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		WIKIVIZ.navctl.init(<span class="number">920</span>, <span class="number">30</span>);
+	});
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-36">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-36">&#182;</a>
+              </div>
+              <p>From <a href="http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format">http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format</a>
+Sort of like Python&#39;s new string formatting method. Handy when one wants to do some large string substitutions.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>String.prototype.format = <span class="keyword">function</span>() {
+  <span class="keyword">var</span> args = arguments;
+  <span class="keyword">return</span> <span class="keyword">this</span>.replace(<span class="regexp">/{(\d+)}/g</span>, <span class="keyword">function</span>(match, number) { 
+    <span class="keyword">return</span> <span class="keyword">typeof</span> args[number] != <span class="string">'undefined'</span>
+      ? args[number]
+      : match
+    ;
+  });
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-37">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              <p>Takes in a javascript date object and pretty-prints it to a string which is returned.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.formatDate = <span class="keyword">function</span>(dt) {
+	<span class="keyword">return</span> [<span class="string">'January'</span>, <span class="string">'February'</span>, <span class="string">'March'</span>,
+		<span class="string">'April'</span>, <span class="string">'May'</span>, <span class="string">'June'</span>,
+		<span class="string">'July'</span>, <span class="string">'August'</span>, <span class="string">'September'</span>,
+		<span class="string">'October'</span>, <span class="string">'November'</span>, <span class="string">'December'</span>][dt.getMonth()] +
+		<span class="string">' '</span> + dt.getDate() + <span class="string">', '</span> + dt.getFullYear() + <span class="string">'   '</span> +
+		(<span class="string">'0'</span>+dt.getHours()).substr(-<span class="number">2</span>,<span class="number">2</span>) + <span class="string">':'</span> +
+		(<span class="string">'0'</span>+dt.getMinutes()).substr(-<span class="number">2</span>,<span class="number">2</span>);	<span class="comment">// Thanks to http://stackoverflow.com/questions/5250244/jquery-date-formatting</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-38">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-38">&#182;</a>
+              </div>
+              <p>for the quick fix for hours, minutes and seconds!</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-39">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-39">&#182;</a>
+              </div>
+              <p>Build a sorting key for the sorttable library to sort the date field used in the table view.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.getDateSortKey = <span class="keyword">function</span>(dt) {
+	<span class="keyword">return</span> String(dt.getFullYear()) + (<span class="string">'0'</span>+dt.getMonth()).substr(-<span class="number">2</span>, <span class="number">2</span>) +
+		(<span class="string">'0'</span>+dt.getDate()).substr(-<span class="number">2</span>, <span class="number">2</span>) + (<span class="string">'0'</span>+dt.getHours()).substr(-<span class="number">2</span>,<span class="number">2</span>) +
+		(<span class="string">'0'</span>+dt.getMinutes()).substr(-<span class="number">2</span>,<span class="number">2</span>)+(<span class="string">'0'</span>+dt.getSeconds()).substr(-<span class="number">2</span>,<span class="number">2</span>);
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-40">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-40">&#182;</a>
+              </div>
+              <p>Take two lists, interpret as sets, and return true if subset_l is a subset of superset_l</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.isSubset = <span class="keyword">function</span>(subset_l, superset_l) {
+	<span class="keyword">var</span> superset = {};
+	<span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; superset_l.length; ++i) {
+		superset[superset_l[i]] = <span class="literal">true</span>;
+	}
+	<span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; subset_l.length; ++i) {
+		<span class="keyword">if</span> (!superset.hasOwnProperty(subset_l[i])) {
+			<span class="keyword">return</span> <span class="literal">false</span>;
+		}
+	}
+	<span class="keyword">return</span> <span class="literal">true</span>;
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-41">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-41">&#182;</a>
+              </div>
+              <p>Generate a string describing a given article revisions&#39; edit categories</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.toClassString = <span class="keyword">function</span>(rc)
+{
+	<span class="keyword">return</span> rc.split(<span class="string">';'</span>).map(<span class="keyword">function</span>(c) { <span class="keyword">return</span> ({
+			<span class="string">'a'</span>: <span class="string">'edit'</span>,
+			<span class="string">'b'</span>: <span class="string">'add'</span>,
+			<span class="string">'c'</span>: <span class="string">'remove'</span>,
+			<span class="string">'d'</span>: <span class="string">'reorganize'</span>,
+			<span class="string">'e'</span>: <span class="string">'cite'</span>,
+			<span class="string">'f'</span>: <span class="string">'vandalize'</span>,
+			<span class="string">'g'</span>: <span class="string">'unvandalize'</span>,
+			<span class="string">'x'</span>: <span class="string">'unclassified'</span>
+		})[c]; }).join(<span class="string">', '</span>);
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-42">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-42">&#182;</a>
+              </div>
+              <p>Generate a string describing a given talk page revision entry&#39;s revision categories.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.toTalkClassString = <span class="keyword">function</span>(d) {
+	<span class="keyword">var</span> ret = <span class="string">""</span>;
+	<span class="keyword">if</span> (d.att) ret += <span class="string">"attitude, "</span>;
+	<span class="keyword">if</span> (d.crit) ret += <span class="string">"criticism, "</span>;
+	<span class="keyword">if</span> (d.inf) ret += <span class="string">"informative, "</span>;
+	<span class="keyword">if</span> (d.perf) ret += <span class="string">"performative, "</span>;
+	<span class="keyword">return</span> ret.substring(<span class="number">0</span>,ret.length-<span class="number">2</span>);
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-43">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-43">&#182;</a>
+              </div>
+              <p>Return absolute max (disregarding sign) of func(arr[i])</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.absMax = <span class="keyword">function</span>(arr, func)
+{
+	<span class="keyword">if</span> (!(arr <span class="keyword">instanceof</span> Array) || (arr.length &lt; <span class="number">1</span>)) <span class="keyword">return</span> <span class="literal">undefined</span>;
+	<span class="keyword">var</span> max = func(arr[<span class="number">0</span>]);
+	<span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">1</span>; i &lt; arr.length; ++i) {
+		max = Math.max(max, Math.abs(func(arr[i])));
+	}
+	<span class="keyword">return</span> max;
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-44">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-44">&#182;</a>
+              </div>
+              <p>Highlight those entries that were made by users in userlist.
+TODO: Apply selections to the scroll bar area and to the talk page contributions!</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.applyUserSelection = <span class="keyword">function</span>(userlist) {
+	WIKIVIZ.clearAllSelections();	<span class="comment">// Clean up any previous selections!</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-45">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-45">&#182;</a>
+              </div>
+              <p>Enable the deselect button if there is an active selection</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">if</span> (userlist.length &gt; <span class="number">0</span>) {
+		$(<span class="string">'#t_deselect'</span>).button(<span class="string">'enable'</span>);
+	} <span class="keyword">else</span> {
+		WIKIVIZ.clearAllSelections();
+		<span class="keyword">return</span>;
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-46">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-46">&#182;</a>
+              </div>
+              <p>Disable the legend selection mechanism</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'#diag_legend input'</span>).attr(<span class="string">'disabled'</span>, <span class="string">'disabled'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-47">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-47">&#182;</a>
+              </div>
+              <p>Disable groups selection</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'#d_select_groups_accordion input'</span>).attr(<span class="string">'disabled'</span>, <span class="string">'disabled'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-48">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-48">&#182;</a>
+              </div>
+              <p>Update info box.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> info = {};
+	
+	info[<span class="string">'Number of Selected Users'</span>] = userlist.length;
+	info[<span class="string">'User Groups'</span>] = [];
+	<span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span> ; i &lt; userlist.length; ++i) {
+		<span class="keyword">if</span> (jQuery.inArray(WIKIVIZ.getGroupsByName(userlist[i]), info[<span class="string">'User Groups'</span>]) == -<span class="number">1</span>) {
+			info[<span class="string">'User Groups'</span>].push(WIKIVIZ.getGroupsByName(userlist[i]));
+		}
+	}
+	WIKIVIZ.updateInfo(info);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-49">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-49">&#182;</a>
+              </div>
+              <p>Apply selection to &#39;Content Details&#39; table.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'#diag_data table tbody'</span>).children(<span class="string">'tr'</span>).each(<span class="function"><span class="keyword">function</span> <span class="params">(i, elem)</span> {</span>
+		$(elem).removeClass(<span class="string">'rowselect'</span>);
+		<span class="keyword">if</span> (jQuery.inArray($(elem).children(<span class="string">':eq(2)'</span>).text(), userlist) != -<span class="number">1</span>) {
+			$(elem).addClass(<span class="string">'rowselect'</span>);
+		}
+	});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-50">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-50">&#182;</a>
+              </div>
+              <p>Apply selection to the main article contribution view</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.view.data.selectAll(<span class="string">'.datum'</span>).filter(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> jQuery.inArray(d.user, userlist) === -<span class="number">1</span>; }).selectAll(<span class="string">'.bars rect'</span>).transition().duration(<span class="number">500</span>).attr(<span class="string">'opacity'</span>, <span class="number">0.2</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-51">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-51">&#182;</a>
+              </div>
+              <p>Apply selection to nav &quot;spikes&quot;</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.navctl.spikes.filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> jQuery.inArray(d.user, userlist) === -<span class="number">1</span>; }).transition().duration(<span class="number">500</span>).attr(<span class="string">'opacity'</span>, <span class="number">0.4</span>);
+	
+	<span class="keyword">return</span>;
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-52">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-52">&#182;</a>
+              </div>
+              <p>Update the info box using an object composed of prop=&gt;val pairs.
+UNUSED for now, but may be able to be adapted into something later.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.updateInfo = <span class="keyword">function</span>(properties) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-53">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-53">&#182;</a>
+              </div>
+              <p>Update the content of the info box.
+First, hide the default &#39;no selection&#39; message.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'#d_info_noselection'</span>).addClass(<span class="string">'invisible'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-54">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-54">&#182;</a>
+              </div>
+              <p>Clear any data inside the info div.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'#d_info_selection'</span>).empty();
+	
+	<span class="keyword">var</span> numProps = <span class="number">0</span>;
+	
+	$(<span class="string">'#d_info_selection'</span>).append($(<span class="string">'&lt;table&gt;'</span>));
+	
+	<span class="keyword">for</span> (p <span class="keyword">in</span> properties) {
+		<span class="keyword">if</span> (!properties.hasOwnProperty(p)) <span class="keyword">continue</span>;
+		++numProps;
+		$(<span class="string">'#d_info_selection table'</span>).append($(<span class="string">'&lt;tr&gt;'</span>).append($(<span class="string">'&lt;td&gt;'</span>).text(p)).append($(<span class="string">'&lt;td&gt;'</span>).text(properties[p].toString())));
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-55">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-55">&#182;</a>
+              </div>
+              <p>If there is no data, display &#39;no selection&#39; message.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">if</span> (numProps == <span class="number">0</span>) {
+		$(<span class="string">'#d_info_selection'</span>).empty();
+		$(<span class="string">'#d_info_noselection'</span>).removeClass(<span class="string">'invisible'</span>);
+	}
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-56">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-56">&#182;</a>
+              </div>
+              <p>Init the buttons on the toolbar.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.createToolbar = <span class="keyword">function</span>() {
+	<span class="comment">/*$('#t_cursor').button({
+		icons: {
+			primary: 'ui-icon-arrow-1-ne'
+		},
+		text: false
+	});
+	$('#t_options').button({
+		icons: {
+			primary: 'ui-icon-gear'
+		},
+		text: false
+	});*/</span>
+	$(<span class="string">'#t_select'</span>).button({
+		icons: {
+			primary: <span class="string">'icon-users'</span>
+		},
+		text: <span class="literal">false</span>
+	});
+	<span class="comment">/*$('#t_info').button({
+		icons: {
+			primary: 'ui-icon-info'
+		},
+		text: false
+	});*/</span>
+	$(<span class="string">'#t_data'</span>).button({
+		icons: {
+			primary: <span class="string">'icon-table'</span>
+		},
+		text: <span class="literal">false</span>
+	});
+	$(<span class="string">'#t_legend'</span>).button({
+		icons: {
+			primary: <span class="string">'icon-categories'</span>
+		},
+		text: <span class="literal">false</span>
+	});
+	$(<span class="string">'#t_deselect'</span>).button({
+		icons: {
+			primary: <span class="string">'icon-deselect'</span>
+		},
+		text: <span class="literal">false</span>,
+		disabled: <span class="literal">true</span>
+	});
+	$(<span class="string">'#t_deselect'</span>).click(<span class="keyword">function</span>() { WIKIVIZ.clearAllSelections(<span class="literal">true</span>); });
+	
+	$(<span class="string">'#t_talk'</span>).button({
+		icons: {
+			primary: <span class="string">'icon-talk'</span>
+		},
+		text: <span class="literal">false</span>,
+		disabled: <span class="literal">true</span>
+	});
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-57">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-57">&#182;</a>
+              </div>
+              <p>Init modal dialogs.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.createDialogs = <span class="keyword">function</span>() {
+	$(<span class="string">'#diag_cursor'</span>).dialog({
+		autoOpen: <span class="literal">false</span>,
+		title: <span class="string">'Cursor Type'</span>,
+		width: <span class="string">'auto'</span>,
+		resizable: <span class="literal">false</span>
+	});
+	
+	$(<span class="string">'#diag_options'</span>).dialog({
+		autoOpen: <span class="literal">false</span>,
+		title: <span class="string">'Options'</span>,
+		resizable: <span class="literal">false</span>
+	});
+	
+	$(<span class="string">'#diag_select'</span>).dialog({
+		autoOpen: <span class="literal">false</span>,
+		title: <span class="string">'Contributors'</span>,
+		width: <span class="number">400</span>,
+		resizable: <span class="literal">false</span>
+	});
+	$(<span class="string">'#select_apply'</span>).button();
+	$(<span class="string">'#d_select_tabs'</span>).tabs();
+	
+	$(<span class="string">'#diag_info'</span>).dialog({
+		autoOpen: <span class="literal">false</span>,
+		title: <span class="string">'Selection Information'</span>,
+		resizable: <span class="literal">false</span>,
+		width: <span class="number">400</span>
+	});
+	
+	$(<span class="string">'#diag_data'</span>).dialog({
+		autoOpen: <span class="literal">false</span>,
+		title: <span class="string">'Article Revision Details'</span>,
+		resizable: <span class="literal">true</span>,
+		width: <span class="number">800</span>,
+		height: <span class="number">600</span>
+	});
+	
+	$(<span class="string">'#diag_legend'</span>).dialog({
+		autoOpen: <span class="literal">false</span>,
+		title: <span class="string">'Article Revision Categories'</span>,
+		resizable: <span class="literal">false</span>,
+		height: <span class="string">'auto'</span>,
+		width: <span class="number">400</span>
+	});
+	$(<span class="string">'#d_legend_accordion'</span>).accordion({
+		collapsible: <span class="literal">true</span>,
+		active: <span class="literal">false</span>,
+		autoHeight: <span class="literal">false</span>,
+		clearStyle: <span class="literal">true</span>
+	});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-58">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-58">&#182;</a>
+              </div>
+              <p>Allow checkbox to capture click events (otherwise the accordion will do so)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'.d_checkable h3'</span>).each(<span class="function"><span class="keyword">function</span> <span class="params">(i, el)</span> {</span>
+		$(el).find(<span class="string">'input'</span>).click(<span class="keyword">function</span>(e) {
+			e.stopPropagation();
+		});
+	});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-59">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-59">&#182;</a>
+              </div>
+              <p>Mapping from checkbox value to visualization rectangle classes</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> classMap = {
+		addrem: [<span class="string">'add'</span>, <span class="string">'remove'</span>],
+		edit: [<span class="string">'edit'</span>],
+		reorganize: [<span class="string">'reorganize'</span>],
+		cite: [<span class="string">'cite'</span>],
+		unsure: [<span class="string">'unsure'</span>],
+		vandunvand: [<span class="string">'vand'</span>, <span class="string">'unvand'</span>]
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-60">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-60">&#182;</a>
+              </div>
+              <p>Legend selection functionality (by varyng opacity)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'#d_legend_accordion h3'</span>).each(<span class="function"><span class="keyword">function</span> <span class="params">(i, el)</span> {</span>
+		$(el).find(<span class="string">'input'</span>).change(<span class="keyword">function</span>(e) {
+			<span class="keyword">if</span> ($(<span class="keyword">this</span>).attr(<span class="string">'checked'</span>)) {	<span class="comment">// If the event is the checking of a checkbox</span>
+				<span class="keyword">for</span> (<span class="keyword">var</span> i <span class="keyword">in</span> classMap[$(<span class="keyword">this</span>).val()]) {
+					WIKIVIZ.view.data.selectAll(<span class="string">'rect.'</span> + classMap[$(<span class="keyword">this</span>).val()][i]).transition().duration(<span class="number">500</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+				}
+			} <span class="keyword">else</span> {	<span class="comment">// Checkbox was unchecked</span>
+				<span class="keyword">for</span> (<span class="keyword">var</span> i <span class="keyword">in</span> classMap[$(<span class="keyword">this</span>).val()]) {
+					WIKIVIZ.view.data.selectAll(<span class="string">'rect.'</span> + classMap[$(<span class="keyword">this</span>).val()][i]).transition().duration(<span class="number">500</span>).attr(<span class="string">'opacity'</span>, <span class="number">0.2</span>);
+				}
+			}
+			
+			<span class="keyword">var</span> selected = <span class="keyword">new</span> Array();
+			$(<span class="string">'#d_legend_accordion input:checked'</span>).each(<span class="keyword">function</span>(i, v) {
+			    $.merge(selected, classMap[$(v).val()]);
+			});
+			
+			WIKIVIZ.navctl.bg.selectAll(<span class="string">'rect'</span>).transition().duration(<span class="number">500</span>).attr(<span class="string">'opacity'</span>,
+				<span class="keyword">function</span>(d) {
+					<span class="keyword">var</span> found = <span class="number">0.2</span>;
+					$(selected).each(
+						<span class="keyword">function</span>(i, v) {
+							<span class="keyword">if</span> (d.wclass[v]) {
+								found = <span class="number">1</span>;
+								<span class="keyword">return</span> <span class="number">1</span>;
+							}
+						}
+					);
+					<span class="keyword">return</span> found;
+				}
+			);
+			
+			
+			$(<span class="string">'#t_deselect'</span>).button(<span class="string">'enable'</span>);
+		});
+	});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-61">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-61">&#182;</a>
+              </div>
+              <p>Talk page revision selection functionality.
+TODO: Make the &quot;callouts&quot; fade out if all of the contained elements are faded out.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'#d_talk_accordion h3'</span>).each(<span class="function"><span class="keyword">function</span> <span class="params">(i, el)</span> {</span>
+		$(el).find(<span class="string">'input'</span>).change(<span class="keyword">function</span>(e) {
+			<span class="keyword">var</span> that = $(<span class="keyword">this</span>);
+			<span class="keyword">if</span> ($(<span class="keyword">this</span>).attr(<span class="string">'checked'</span>)) {	<span class="comment">// If the event is the checking of a checkbox</span>
+				
+				d3.selectAll(<span class="string">'.tdatum .'</span>+that.val()).transition().duration(<span class="number">500</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+			} <span class="keyword">else</span> {	<span class="comment">// Checkbox was unchecked</span>
+				d3.selectAll(<span class="string">'.tdatum .'</span>+that.val()).transition().duration(<span class="number">500</span>).attr(<span class="string">'opacity'</span>, <span class="number">0.2</span>);
+			}
+			$(<span class="string">'#t_deselect'</span>).button(<span class="string">'enable'</span>);
+		});
+	});
+
+	$(<span class="string">'#d_select_groups_accordion'</span>).accordion({
+		collapsible: <span class="literal">true</span>,
+		active: <span class="literal">false</span>,
+		autoHeight: <span class="literal">false</span>,
+		clearStyle: <span class="literal">true</span>
+	});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-62">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-62">&#182;</a>
+              </div>
+              <p>Allow checkbox to capture click events (otherwise the accordion will do so)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'#d_select_groups_accordion h3'</span>).each(<span class="function"><span class="keyword">function</span> <span class="params">(i, el)</span> {</span>
+		$(el).find(<span class="string">'input'</span>).click(<span class="keyword">function</span>(e) {
+			e.stopPropagation();
+		});
+	});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-63">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-63">&#182;</a>
+              </div>
+              <p>User group selection functionality.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'#d_select_groups_accordion h3'</span>).each(<span class="function"><span class="keyword">function</span> <span class="params">(i, el)</span> {</span>
+		$(el).find(<span class="string">'input'</span>).change(<span class="keyword">function</span>(e) {
+			<span class="keyword">var</span> that = $(<span class="keyword">this</span>);
+			<span class="keyword">if</span> ($(<span class="keyword">this</span>).attr(<span class="string">'checked'</span>)) {	<span class="comment">// If the event is the checking of a checkbox</span>
+				
+				WIKIVIZ.view.data.selectAll(<span class="string">'.datum'</span>).filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> d.group == that.val(); }).transition().duration(<span class="number">500</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+			} <span class="keyword">else</span> {	<span class="comment">// Checkbox was unchecked</span>
+				WIKIVIZ.view.data.selectAll(<span class="string">'.datum'</span>).filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> d.group == that.val(); }).transition().duration(<span class="number">500</span>).attr(<span class="string">'opacity'</span>, <span class="number">0.2</span>);
+			}
+			$(<span class="string">'#t_deselect'</span>).button(<span class="string">'enable'</span>);
+		});
+	});
+	
+	$(<span class="string">'#diag_talk'</span>).dialog({
+		autoOpen: <span class="literal">false</span>,
+		title: <span class="string">'Talk Page Revision Categories'</span>,
+		resizable: <span class="literal">false</span>,
+		height: <span class="string">'auto'</span>,
+		width: <span class="number">400</span>
+	});
+	$(<span class="string">'#d_talk_accordion'</span>).accordion({
+		collapsible: <span class="literal">true</span>,
+		active: <span class="literal">false</span>,
+		autoHeight: <span class="literal">false</span>,
+		clearStyle: <span class="literal">true</span>
+	});
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-64">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-64">&#182;</a>
+              </div>
+              <p>Bind the buttons to their respective actions.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.bindToolbar = <span class="keyword">function</span>() {
+	$(<span class="string">'#t_cursor'</span>).click(<span class="keyword">function</span>() {
+		$(<span class="string">'#diag_cursor'</span>).dialog(<span class="string">'open'</span>);
+	});
+	$(<span class="string">'#t_options'</span>).click(<span class="keyword">function</span>() {
+		$(<span class="string">'#diag_options'</span>).dialog(<span class="string">'open'</span>);
+	});
+	$(<span class="string">'#t_select'</span>).click(<span class="keyword">function</span>() {
+		$(<span class="string">'#diag_select'</span>).dialog(<span class="string">'open'</span>);
+	});
+	$(<span class="string">'#t_info'</span>).click(<span class="keyword">function</span>() {
+		$(<span class="string">'#diag_info'</span>).dialog(<span class="string">'open'</span>);
+	});
+	$(<span class="string">'#t_data'</span>).click(<span class="keyword">function</span>() {
+		$(<span class="string">'#diag_data'</span>).dialog(<span class="string">'open'</span>);
+	});
+	$(<span class="string">'#t_legend'</span>).click(<span class="keyword">function</span>() {
+		$(<span class="string">'#diag_legend'</span>).dialog(<span class="string">'open'</span>);
+	});
+	$(<span class="string">'#t_talk'</span>).click(<span class="keyword">function</span>() {
+		$(<span class="string">'#diag_talk'</span>).dialog(<span class="string">'open'</span>);
+	});
+};
+
+WIKIVIZ.bindDialogs = <span class="keyword">function</span>() {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-65">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-65">&#182;</a>
+              </div>
+              <p>Bind functionality to the select users dialog
+Note that the &quot;Select By Group&quot; checkboxes make changes to the selection
+in the Select By User list, so we really only need to grab the input from the select
+by user list.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'input[name=userclassselect]'</span>).each(<span class="function"><span class="keyword">function</span> <span class="params">(i,e)</span> {</span>
+		$(e).change(<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-66">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-66">&#182;</a>
+              </div>
+              <p>Gather choices</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="keyword">var</span> filt = Array();
+			$(<span class="string">'input[name=userclassselect]:checked'</span>).each(<span class="keyword">function</span>(i, el) {
+				filt.push($(el).val())
+			});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-67">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-67">&#182;</a>
+              </div>
+              <p>Use choices to generate selection in Select By User
+User names are stored in the &quot;value&quot; property of the options in the select element.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			$(<span class="string">'#userselect option'</span>).each(<span class="keyword">function</span>(i, e) {
+				<span class="keyword">if</span> (WIKIVIZ.isSubset([WIKIVIZ.getGroupsByName($(e).val())], filt)) {
+					$(e).attr(<span class="string">'selected'</span>, <span class="literal">true</span>);
+				} <span class="keyword">else</span> {
+					$(e).attr(<span class="string">'selected'</span>, <span class="literal">false</span>);
+				}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-68">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-68">&#182;</a>
+              </div>
+              <p>Force visual update on stubborn browsers (Chrome !!!)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				$(e).addClass(<span class="string">'invisible'</span>);
+				$(e).removeClass(<span class="string">'invisible'</span>);
+			});
+		});
+	});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-69">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-69">&#182;</a>
+              </div>
+              <p>Clicking &quot;Apply User Selection&quot;</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'#select_apply'</span>).click(<span class="keyword">function</span>() {
+		<span class="keyword">var</span> users = Array();
+		$(<span class="string">'#userselect option:selected'</span>).each(<span class="keyword">function</span>() { users.push($(<span class="keyword">this</span>).val()); });
+		WIKIVIZ.applyUserSelection(users);
+	});
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-70">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-70">&#182;</a>
+              </div>
+              <p>This is the code that handles the fancy draggable SVG scrollbar at the bottom of the page.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.navctl = {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-71">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-71">&#182;</a>
+              </div>
+              <p>Start up the control.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	init: <span class="keyword">function</span>(sw, sh) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-72">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-72">&#182;</a>
+              </div>
+              <p>Scrollbar dimensions</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.dim = {w: sw, h: sh};
+		
+		<span class="keyword">this</span>.sdim = {x0: <span class="number">0</span>, w: <span class="number">100</span>};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-73">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-73">&#182;</a>
+              </div>
+              <p>Create the SVG element for the scrollbar</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.svg = d3.select(<span class="string">'#navctl'</span>).append(<span class="string">'svg'</span>).attr(<span class="string">'width'</span>, <span class="keyword">this</span>.dim.w).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h);
+		<span class="keyword">this</span>.bg = <span class="keyword">this</span>.svg.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'bg'</span>);	<span class="comment">// Make a background layer</span>
+		<span class="keyword">var</span> handleWidth = <span class="keyword">this</span>.dim.h/<span class="number">2</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-74">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-74">&#182;</a>
+              </div>
+              <p>Create handles (semi-circles)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.bg.append(<span class="string">'path'</span>).attr(<span class="string">'d'</span>,<span class="string">'M'</span> + handleWidth + <span class="string">',0 A'</span> + handleWidth + <span class="string">','</span> + handleWidth + <span class="string">' 0 0,0 '</span> + handleWidth + <span class="string">','</span> + handleWidth * <span class="number">2</span> ).attr(<span class="string">'class'</span>, <span class="string">'pad'</span>).attr(<span class="string">'width'</span>, handleWidth).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h);
+		<span class="keyword">this</span>.bg.append(<span class="string">'path'</span>).attr(<span class="string">'d'</span>,<span class="string">'M0,0 A'</span> + handleWidth + <span class="string">','</span> + handleWidth + <span class="string">' 0 0,1 0,'</span> + handleWidth * <span class="number">2</span>).attr(<span class="string">'class'</span>, <span class="string">'pad'</span>).attr(<span class="string">'width'</span>, handleWidth).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span>+ (<span class="keyword">this</span>.dim.w - handleWidth) + <span class="string">',0)'</span>);
+		
+		<span class="keyword">this</span>.bg.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'navbars'</span>).attr(<span class="string">'x'</span>, handleWidth).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + handleWidth + <span class="string">','</span> + <span class="keyword">this</span>.dim.h / <span class="number">2</span> + <span class="string">')scale(1,-1)'</span>);
+		
+		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).append(<span class="string">'line'</span>)
+			.attr(<span class="string">'x1'</span>, <span class="number">0</span>)
+			.attr(<span class="string">'y1'</span>, <span class="number">0</span>)
+			.attr(<span class="string">'x2'</span>, <span class="keyword">this</span>.dim.w-<span class="number">2</span>*handleWidth)
+			.attr(<span class="string">'y2'</span>, <span class="number">0</span>);
+
+		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).append(<span class="string">'line'</span>)
+			.attr(<span class="string">'class'</span>,<span class="string">'navctlborder'</span>)
+			.attr(<span class="string">'x1'</span>, <span class="number">0</span>)
+			.attr(<span class="string">'y1'</span>, handleWidth)
+			.attr(<span class="string">'x2'</span>, <span class="keyword">this</span>.dim.w-<span class="number">2</span>*handleWidth)
+			.attr(<span class="string">'y2'</span>, handleWidth);
+
+		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).append(<span class="string">'line'</span>)
+			.attr(<span class="string">'class'</span>,<span class="string">'navctlborder'</span>)
+			.attr(<span class="string">'x1'</span>, <span class="number">0</span>)
+			.attr(<span class="string">'y1'</span>, -handleWidth)
+			.attr(<span class="string">'x2'</span>, <span class="keyword">this</span>.dim.w-<span class="number">2</span>*handleWidth)
+			.attr(<span class="string">'y2'</span>, -handleWidth);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-75">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-75">&#182;</a>
+              </div>
+              <p>Slider group</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.slider = <span class="keyword">this</span>.svg.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'slider'</span>);
+		<span class="keyword">this</span>.slider.append(<span class="string">'rect'</span>).attr(<span class="string">'class'</span>, <span class="string">'chandle'</span>).attr(<span class="string">'width'</span>, <span class="keyword">this</span>.sdim.w-handleWidth).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h).attr(<span class="string">'x'</span>, <span class="keyword">this</span>.sdim.x0 + handleWidth);
+		<span class="keyword">this</span>.slider.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'lhandlegrp'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (<span class="keyword">this</span>.sdim.x0) + <span class="string">',0)'</span>).append(<span class="string">'path'</span>).attr(<span class="string">'d'</span>,<span class="string">'M'</span> + handleWidth + <span class="string">',0 A'</span> + handleWidth + <span class="string">','</span> + handleWidth + <span class="string">' 0 0,0 '</span> + handleWidth + <span class="string">','</span> + handleWidth * <span class="number">2</span> ).attr(<span class="string">'class'</span>, <span class="string">'lhandle'</span>).attr(<span class="string">'width'</span>, handleWidth).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h);
+		<span class="keyword">this</span>.slider.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'rhandlegrp'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (<span class="keyword">this</span>.sdim.x0 + <span class="keyword">this</span>.sdim.w) + <span class="string">',0)'</span>).append(<span class="string">'path'</span>).attr(<span class="string">'d'</span>,<span class="string">'M0,0 A'</span> + handleWidth + <span class="string">','</span> + handleWidth + <span class="string">' 0 0,1 0,'</span> + handleWidth * <span class="number">2</span>).attr(<span class="string">'class'</span>, <span class="string">'rhandle'</span>).attr(<span class="string">'width'</span>, handleWidth).attr(<span class="string">'height'</span>, <span class="keyword">this</span>.dim.h);
+		
+		<span class="keyword">this</span>.xscale = d3.scale.linear();
+		<span class="keyword">this</span>.xscale.domain([<span class="number">0</span>, WIKIVIZ.data.revisions.length-<span class="number">1</span>]);
+		<span class="keyword">this</span>.xscale.range([<span class="number">0</span>, <span class="keyword">this</span>.dim.w - <span class="number">2</span>*handleWidth]);
+		
+		<span class="keyword">this</span>.yscale = d3.scale.linear();
+		<span class="keyword">this</span>.yscale.domain(WIKIVIZ.view.y.domain());
+		<span class="keyword">this</span>.yscale.range([<span class="number">0</span>, <span class="keyword">this</span>.dim.h/<span class="number">2</span>]);
+		
+		<span class="keyword">var</span> that = <span class="keyword">this</span>;
+		
+		<span class="keyword">this</span>.spikewidth = (<span class="keyword">this</span>.dim.w-<span class="number">2</span>*handleWidth) / WIKIVIZ.data.revisions.length;
+		
+		<span class="keyword">this</span>.spikes = <span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'rect.sd'</span>).data(WIKIVIZ.data.revisions);
+		<span class="keyword">this</span>.spikes.enter().append(<span class="string">'rect'</span>)
+			.attr(<span class="string">'x'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.xscale(i); })
+			.attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> -that.yscale(d.wclass.remove + d.wclass.vand); })
+			.attr(<span class="string">'width'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.spikewidth; })
+			.attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
+			.attr(<span class="string">'class'</span>, <span class="string">'sd'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-76">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-76">&#182;</a>
+              </div>
+              <p>Draw talk page entries, need to manually keep this in sync with appendCallout for now</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		
+		<span class="keyword">this</span>.dots = <span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'circle.td'</span>).data(WIKIVIZ.data.talk).enter().append(<span class="string">'circle'</span>)
+			.attr(<span class="string">'class'</span>, <span class="string">'td'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-77">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-77">&#182;</a>
+              </div>
+              <p>Max circle radius</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">var</span> maxR = <span class="number">5</span>;
+		<span class="keyword">var</span> fact = <span class="number">0.6</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-78">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-78">&#182;</a>
+              </div>
+              <p>Append circle to our element. Cap the circle size and re-style the circle if it has reached the cap.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.dots.filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> Math.log(d.lev+<span class="number">1</span>)*fact &lt;= maxR; }).attr(<span class="string">'r'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> Math.log(d.lev+<span class="number">1</span>)*fact; }).attr(<span class="string">'class'</span>, <span class="string">'tcircle'</span>);
+		<span class="keyword">this</span>.dots.filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> Math.log(d.lev+<span class="number">1</span>)*fact &gt; maxR; }).attr(<span class="string">'r'</span>, maxR).attr(<span class="string">'class'</span>, <span class="string">'tcircle_full'</span>);
+		
+		<span class="keyword">this</span>.mode = <span class="string">'adj'</span>;
+		
+		<span class="keyword">this</span>.sd = { dx: <span class="number">0</span> };</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-79">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-79">&#182;</a>
+              </div>
+              <p>Event handlers for the slider
+The slider &quot;dragging&quot; state is stored as a CSS class.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		$(<span class="string">'.chandle'</span>).mousedown(<span class="keyword">function</span>(event) {
+			$(<span class="keyword">this</span>).addClass(<span class="string">'dragging'</span>);
+			that.sd.dx = event.pageX - that.sdim.x0;
+			event.preventDefault();
+		});
+		$(<span class="string">'.lhandle'</span>).mousedown(<span class="keyword">function</span>(event) {
+			$(<span class="keyword">this</span>).addClass(<span class="string">'dragging'</span>);
+			that.sd.dx = event.pageX - that.sdim.x0;
+			event.preventDefault();
+		});
+		$(<span class="string">'.rhandle'</span>).mousedown(<span class="keyword">function</span>(event) {
+			$(<span class="keyword">this</span>).addClass(<span class="string">'dragging'</span>);
+			that.sd.dx = event.pageX;
+			event.preventDefault();
+		});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-80">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-80">&#182;</a>
+              </div>
+              <p>More event handlers. These deal with dragging the slider.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		$(document).mousemove(<span class="keyword">function</span>(event) {
+			<span class="keyword">if</span> ($(<span class="string">'.rhandle'</span>).hasClass(<span class="string">'dragging'</span>)) {
+				<span class="keyword">var</span> dw = (event.pageX - that.sd.dx);
+				that.sd.dx = event.pageX;
+				<span class="keyword">var</span> newW = +that.sdim.w +dw;
+				
+				<span class="keyword">if</span> (newW &lt; handleWidth) newW = handleWidth;
+				<span class="keyword">if</span> (newW + that.sdim.x0 + handleWidth &gt; that.dim.w) newW = that.dim.w-that.sdim.x0-handleWidth;
+				that.sdim.w = newW;
+				
+				$(<span class="string">'.chandle'</span>).attr(<span class="string">'width'</span>, that.sdim.w - handleWidth);
+				$(<span class="string">'.rhandlegrp'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (+that.sdim.w) + <span class="string">',0)'</span>)
+				that.onScale();
+				that.onSlide();
+			}
+			<span class="keyword">if</span> ($(<span class="string">'.lhandle'</span>).hasClass(<span class="string">'dragging'</span>)) {
+				<span class="keyword">var</span> newX0 = (event.pageX - that.sd.dx);
+				<span class="keyword">if</span> (newX0 &lt; <span class="number">0</span>) newX0 = <span class="number">0</span>;
+				<span class="keyword">if</span> (newX0 &gt; that.sdim.x0 + that.sdim.w - handleWidth) newX0 = that.sdim.x0 + that.sdim.w - handleWidth;
+				
+				<span class="keyword">var</span> newW = +that.sdim.w - (+newX0 - +that.sdim.x0);
+				<span class="keyword">if</span> (newW &lt; handleWidth) {
+					newW = handleWidth;
+				}
+				
+				that.sdim.x0 = newX0;
+				that.sdim.w = newW;
+				
+				$(<span class="string">'.slider'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (that.sdim.x0) + <span class="string">',0)'</span>);
+				$(<span class="string">'.chandle'</span>).attr(<span class="string">'width'</span>, that.sdim.w - handleWidth);
+				$(<span class="string">'.rhandlegrp'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (+that.sdim.w) + <span class="string">',0)'</span>)
+				that.onScale();
+				that.onSlide();
+			}
+			<span class="keyword">if</span> ($(<span class="string">'.chandle'</span>).hasClass(<span class="string">'dragging'</span>)) {
+				that.sdim.x0 = (event.pageX - that.sd.dx);
+				
+				<span class="keyword">if</span> (that.sdim.x0 &lt; <span class="number">0</span>) that.sdim.x0 = <span class="number">0</span>;
+				<span class="keyword">if</span> (that.sdim.x0 &gt; that.dim.w - ((handleWidth) + that.sdim.w)) that.sdim.x0 = that.dim.w - ((handleWidth) + that.sdim.w);
+				$(<span class="string">'.slider'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (that.sdim.x0) + <span class="string">',0)'</span>);
+				that.onSlide();
+			}
+		});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-81">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-81">&#182;</a>
+              </div>
+              <p>Once the mouse is released, reset the slider &quot;dragging&quot; state.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		$(document).mouseup(<span class="keyword">function</span>() {
+			$(<span class="string">'.chandle'</span>).removeClass(<span class="string">'dragging'</span>);
+			$(<span class="string">'.lhandle'</span>).removeClass(<span class="string">'dragging'</span>);
+			$(<span class="string">'.rhandle'</span>).removeClass(<span class="string">'dragging'</span>);
+		})
+		
+		<span class="keyword">this</span>.handleWidth = handleWidth;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-82">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-82">&#182;</a>
+              </div>
+              <p>Call these to update the slider for the first time.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.onSlide();
+		<span class="keyword">this</span>.onScale();
+	},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-83">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-83">&#182;</a>
+              </div>
+              <p>Adjust the slider when we switch to time-spaced mode.
+Use a new time-spaced scale for display.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	toTimeSpaced: <span class="keyword">function</span>() {
+		
+		<span class="keyword">var</span> minDate = WIKIVIZ.data.revisions[<span class="number">0</span>].date;
+		
+		<span class="keyword">this</span>.xscale = d3.time.scale();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-84">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-84">&#182;</a>
+              </div>
+              <p>Todo: domain of talk entries may exceed revisions</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">this</span>.xscale.domain([<span class="keyword">new</span> Date(minDate.getFullYear(), minDate.getMonth()),
+			WIKIVIZ.data.revisions[WIKIVIZ.data.revisions.length - <span class="number">1</span>].date]);
+		<span class="keyword">this</span>.xscale.range([<span class="number">0</span>, <span class="keyword">this</span>.dim.w - <span class="number">2</span>*<span class="keyword">this</span>.handleWidth]);
+		
+		<span class="keyword">var</span> that = <span class="keyword">this</span>;
+		
+		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'rect.sd'</span>).data(WIKIVIZ.data.revisions)
+			.attr(<span class="string">'x'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.xscale(d.date); })
+			.attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> -that.yscale(d.wclass.remove + d.wclass.vand); })
+			.attr(<span class="string">'width'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.spikewidth; })
+			.attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
+			.attr(<span class="string">'class'</span>, <span class="string">'sd'</span>);
+			
+		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'circle.tcircle'</span>).data(WIKIVIZ.data.talk)
+			.attr(<span class="string">'cx'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> that.xscale(d.date); });
+				
+		<span class="keyword">this</span>.mode = <span class="string">'time'</span>;
+		
+		WIKIVIZ.toTimeSpaced();
+		
+		<span class="keyword">this</span>.onSlide();
+		<span class="keyword">this</span>.onScale();
+	},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-85">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-85">&#182;</a>
+              </div>
+              <p>When we switch to adjacent-spaced mode, switch back to using a linear scale for display.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	toAdjacentSpaced: <span class="keyword">function</span>() {
+		
+		<span class="keyword">this</span>.xscale = d3.scale.linear();
+		
+		<span class="keyword">if</span> (WIKIVIZ.view.mode == <span class="string">'talk'</span>)
+			<span class="keyword">this</span>.xscale.domain([<span class="number">0</span>, WIKIVIZ.data.talk.length-<span class="number">1</span>]);
+		<span class="keyword">else</span>
+			<span class="keyword">this</span>.xscale.domain([<span class="number">0</span>, WIKIVIZ.data.revisions.length-<span class="number">1</span>]);
+			
+		<span class="keyword">this</span>.xscale.range([<span class="number">0</span>, <span class="keyword">this</span>.dim.w - <span class="number">2</span>*<span class="keyword">this</span>.handleWidth]);
+		
+		<span class="keyword">var</span> that = <span class="keyword">this</span>;
+		
+		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'rect.sd'</span>).data(WIKIVIZ.data.revisions)
+			.attr(<span class="string">'x'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.xscale(i); })
+			.attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> -that.yscale(d.wclass.remove + d.wclass.vand); })
+			.attr(<span class="string">'width'</span>, <span class="keyword">function</span>(d,i) { <span class="keyword">return</span> that.spikewidth; })
+			.attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
+			.attr(<span class="string">'class'</span>, <span class="string">'sd'</span>);
+		
+		<span class="keyword">this</span>.bg.select(<span class="string">'g.navbars'</span>).selectAll(<span class="string">'circle'</span>).data(WIKIVIZ.data.talk)
+			.attr(<span class="string">'cx'</span>, <span class="keyword">function</span>(d, i) { <span class="keyword">return</span> that.xscale(i); });
+		
+		<span class="keyword">this</span>.mode = <span class="string">'adj'</span>;
+		
+		WIKIVIZ.toAdjacentSpaced();
+		
+		<span class="keyword">this</span>.onSlide();
+		<span class="keyword">this</span>.onScale();
+	},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-86">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-86">&#182;</a>
+              </div>
+              <p>Slide the view when we slide the slider.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	onSlide: <span class="keyword">function</span>() {
+		d3.select(<span class="string">'g.body'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + -<span class="keyword">this</span>.getPanOffset() + <span class="string">',0)'</span>)
+	},
+	
+	onScale: <span class="keyword">function</span>() {
+		<span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'adj'</span> &amp;&amp; WIKIVIZ.view.mode == <span class="string">'art'</span>) { WIKIVIZ.setNumBars(<span class="keyword">this</span>.getNumBars()); }
+		<span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'adj'</span> &amp;&amp; WIKIVIZ.view.mode == <span class="string">'talk'</span>) { WIKIVIZ.setNumDots(<span class="keyword">this</span>.getNumBars()); }
+		<span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'time'</span>) {
+			<span class="keyword">var</span> df = WIKIVIZ.data.revisions[WIKIVIZ.data.revisions.length - <span class="number">1</span>].date;
+			<span class="keyword">var</span> d0 = WIKIVIZ.data.revisions[<span class="number">0</span>].date;
+			<span class="keyword">var</span> d1 = <span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0);
+			<span class="keyword">var</span> d2 = <span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0+<span class="keyword">this</span>.sdim.w-<span class="keyword">this</span>.handleWidth);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-87">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-87">&#182;</a>
+              </div>
+              <p>The multiplier 0.9 is a quick fix for getting the rightmost bars in TS mode visible.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			WIKIVIZ.view.timeX.range([<span class="number">0</span>, <span class="number">0.9</span>*WIKIVIZ.width * (df-d0) / (d2 - d1)]);
+			WIKIVIZ.toTimeSpaced();
+		}
+		
+	},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-88">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-88">&#182;</a>
+              </div>
+              <p>Map slider motion to an offset by which to pan the main view. Behaves differently for time and adjacent spaced modes.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	getPanOffset: <span class="keyword">function</span>() {
+		<span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'adj'</span> &amp;&amp; WIKIVIZ.view.mode == <span class="string">'art'</span>) {
+			<span class="keyword">return</span> ((<span class="keyword">this</span>.sdim.x0) / (<span class="keyword">this</span>.dim.w - <span class="number">2</span>*<span class="keyword">this</span>.handleWidth))*(WIKIVIZ.data.revisions.length*WIKIVIZ.calcBarWidth());
+		}
+		<span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'adj'</span> &amp;&amp; WIKIVIZ.view.mode == <span class="string">'talk'</span>) {
+			<span class="keyword">return</span> ((<span class="keyword">this</span>.sdim.x0) / (<span class="keyword">this</span>.dim.w - <span class="number">2</span>*<span class="keyword">this</span>.handleWidth))*(WIKIVIZ.data.talk.length*WIKIVIZ.calcTalkWidth());
+		}
+		<span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">this</span>.mode == <span class="string">'time'</span>) {
+			<span class="keyword">return</span> WIKIVIZ.view.timeX(<span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0));
+		}
+		<span class="keyword">return</span> <span class="number">0</span>;
+	},
+	
+	getNumBars: <span class="keyword">function</span>() {
+		<span class="keyword">return</span> <span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0+<span class="keyword">this</span>.sdim.w-<span class="keyword">this</span>.handleWidth) - <span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0);
+	},
+	
+	getTimeRange: <span class="keyword">function</span>() {
+		
+	}
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-89">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-89">&#182;</a>
+              </div>
+              <p>Init visualization with a given article.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.init = <span class="keyword">function</span>(art_title) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-90">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-90">&#182;</a>
+              </div>
+              <p>Create UI components</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.createToolbar();
+	WIKIVIZ.createDialogs();
+	
+	$(<span class="string">'#viewtabs'</span>).tabs();
+	
+	$(<span class="string">'.spacing_wrapper'</span>).mouseenter(<span class="keyword">function</span>() {
+		$(<span class="keyword">this</span>).css(<span class="string">'opacity'</span>, <span class="number">1</span>);
+	}).mouseleave(<span class="keyword">function</span>() {
+		$(<span class="keyword">this</span>).css(<span class="string">'opacity'</span>, <span class="number">0.8</span>);
+	});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-91">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-91">&#182;</a>
+              </div>
+              <p>Bind UI components to functionality</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.bindToolbar();
+	WIKIVIZ.bindDialogs();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-92">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-92">&#182;</a>
+              </div>
+              <p>Load visualization data from DB</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.load(art_title);
+	
+	WIKIVIZ.isTimeSpaced = <span class="literal">false</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-93">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-93">&#182;</a>
+              </div>
+              <p>TODO: Move this code to a more appropriate place?</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-94">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-94">&#182;</a>
+              </div>
+              <p>Program the &#39;to adjacent spacing&#39; and &#39;to time spacing&#39; mode buttons with
+appropriate functionality.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'#toAdj'</span>).button().attr(<span class="string">'title'</span>, <span class="string">'Adjacent Spacing'</span>);
+	$(<span class="string">'#toTime'</span>).button().attr(<span class="string">'title'</span>, <span class="string">'Time Spacing'</span>);
+	
+	$(<span class="string">'#toAdj'</span>).click(<span class="keyword">function</span>() {
+		WIKIVIZ.navctl.toAdjacentSpaced();
+		$(<span class="string">'#toAdj'</span>).button(<span class="string">'disable'</span>);
+		$(<span class="string">'#toTime'</span>).button(<span class="string">'enable'</span>);
+	});
+	$(<span class="string">'#toTime'</span>).click(<span class="keyword">function</span>() {
+		WIKIVIZ.navctl.toTimeSpaced();
+		$(<span class="string">'#toAdj'</span>).button(<span class="string">'enable'</span>);
+		$(<span class="string">'#toTime'</span>).button(<span class="string">'disable'</span>);
+	});
+	
+	$(<span class="string">'a[href=#artview]'</span>).click(<span class="keyword">function</span>(event, ui) {
+		$(<span class="string">'#view'</span>).appendTo(<span class="string">'#artview'</span>);
+		WIKIVIZ.view.data.selectAll(<span class="string">'.datum'</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+		d3.selectAll(<span class="string">'.sd'</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+		d3.selectAll(<span class="string">'.tdatum'</span>).attr(<span class="string">'opacity'</span>, <span class="number">0</span>);
+		d3.selectAll(<span class="string">'.tcircle'</span>).attr(<span class="string">'opacity'</span>, <span class="number">0</span>);
+		
+		$(<span class="string">'#t_legend'</span>).button(<span class="string">'enable'</span>);
+		$(<span class="string">'#t_talk'</span>).button(<span class="string">'disable'</span>);
+		
+		$(<span class="string">'#toAdj'</span>).button(<span class="string">'enable'</span>);
+		
+		d3.selectAll(<span class="string">'.month'</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+		
+		WIKIVIZ.view.mode = <span class="string">'art'</span>;
+		
+		<span class="keyword">if</span> (WIKIVIZ.isTimeSpaced === <span class="literal">false</span>) {
+			$(<span class="string">'#toAdj'</span>).button(<span class="string">'disable'</span>);
+			$(<span class="string">'#toTime'</span>).button(<span class="string">'enable'</span>);
+			WIKIVIZ.navctl.toAdjacentSpaced();
+		} <span class="keyword">else</span> {
+			$(<span class="string">'#toAdj'</span>).button(<span class="string">'enable'</span>);
+			$(<span class="string">'#toTime'</span>).button(<span class="string">'disable'</span>);
+			WIKIVIZ.navctl.toTimeSpaced();
+		}
+		
+		WIKIVIZ.navctl.onScale();
+		
+		$(<span class="string">'.talkrow'</span>).addClass(<span class="string">'invisible'</span>);
+		$(<span class="string">'.defaultrow'</span>).removeClass(<span class="string">'invisible'</span>);
+		
+		d3.select(<span class="string">'.fg'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate(0, -500)'</span>);
+		
+		d3.selectAll(<span class="string">'g.ylabel'</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+	});
+	$(<span class="string">'a[href=#talkview]'</span>).click(<span class="keyword">function</span>(event, ui) {
+		$(<span class="string">'#view'</span>).appendTo(<span class="string">'#talkview'</span>);
+		WIKIVIZ.view.data.selectAll(<span class="string">'.datum'</span>).attr(<span class="string">'opacity'</span>, <span class="number">0</span>);
+		d3.selectAll(<span class="string">'.sd'</span>).attr(<span class="string">'opacity'</span>, <span class="number">0</span>);
+		d3.selectAll(<span class="string">'.tdatum'</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+		d3.selectAll(<span class="string">'.tcircle'</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+		
+		$(<span class="string">'#t_legend'</span>).button(<span class="string">'disable'</span>);
+		$(<span class="string">'#t_talk'</span>).button(<span class="string">'enable'</span>);
+		
+		WIKIVIZ.view.mode = <span class="string">'talk'</span>;
+		
+		<span class="keyword">if</span> (WIKIVIZ.isTimeSpaced === <span class="literal">false</span>) {
+			d3.selectAll(<span class="string">'.month'</span>).attr(<span class="string">'opacity'</span>, <span class="number">0</span>);
+			$(<span class="string">'#toAdj'</span>).button(<span class="string">'disable'</span>);
+			$(<span class="string">'#toTime'</span>).button(<span class="string">'enable'</span>);
+			WIKIVIZ.navctl.toAdjacentSpaced();
+		} <span class="keyword">else</span> {
+			$(<span class="string">'#toAdj'</span>).button(<span class="string">'enable'</span>);
+			$(<span class="string">'#toTime'</span>).button(<span class="string">'disable'</span>);
+			WIKIVIZ.navctl.toTimeSpaced();
+		}
+		
+		WIKIVIZ.navctl.onScale();
+		
+		$(<span class="string">'.talkrow'</span>).removeClass(<span class="string">'invisible'</span>);
+		$(<span class="string">'.defaultrow'</span>).addClass(<span class="string">'invisible'</span>);
+		
+		d3.select(<span class="string">'.fg'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate(0, 0)'</span>);
+		
+		d3.selectAll(<span class="string">'g.ylabel'</span>).attr(<span class="string">'opacity'</span>, <span class="number">0</span>);
+	});
+	$(<span class="string">'a[href=#hybridview]'</span>).click(<span class="keyword">function</span>(event, ui) {
+		$(<span class="string">'#view'</span>).appendTo(<span class="string">'#hybridview'</span>);
+		WIKIVIZ.view.data.selectAll(<span class="string">'.datum'</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+		d3.selectAll(<span class="string">'.sd'</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+		d3.selectAll(<span class="string">'.tdatum'</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+		d3.selectAll(<span class="string">'.tcircle'</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+
+		
+		$(<span class="string">'#t_legend'</span>).button(<span class="string">'enable'</span>);
+		$(<span class="string">'#t_talk'</span>).button(<span class="string">'enable'</span>);
+		
+		$(<span class="string">'#toAdj'</span>).button(<span class="string">'disable'</span>);
+		$(<span class="string">'#toTime'</span>).button(<span class="string">'disable'</span>);
+		
+		WIKIVIZ.view.mode = <span class="string">'hybrid'</span>;
+		WIKIVIZ.navctl.toTimeSpaced();
+		
+		d3.selectAll(<span class="string">'.month'</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+		
+		$(<span class="string">'.talkrow'</span>).removeClass(<span class="string">'invisible'</span>);
+		$(<span class="string">'.defaultrow'</span>).removeClass(<span class="string">'invisible'</span>);
+		
+		d3.select(<span class="string">'.fg'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate(0, 0)'</span>);
+		d3.selectAll(<span class="string">'g.ylabel'</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+	});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-95">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-95">&#182;</a>
+              </div>
+              <p>In the default configuration, we are already in adjacent spacing mode, so we can disable the adjacent spacing button.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'#toAdj'</span>).button(<span class="string">'disable'</span>);
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-96">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-96">&#182;</a>
+              </div>
+              <p>Initialize the visualization. Create SVG and elements correspondng to data.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.initViz = <span class="keyword">function</span>()
+{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-97">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-97">&#182;</a>
+              </div>
+              <p>For brevity</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> maskWidth = WIKIVIZ.maskWidth;	<span class="comment">// Width of mask over which y label is written</span>
+	
+	WIKIVIZ.view.svg = d3.select(<span class="string">'#view'</span>).append(<span class="string">'svg'</span>).attr(<span class="string">'width'</span>, WIKIVIZ.width).attr(<span class="string">'height'</span>, WIKIVIZ.height);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-98">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-98">&#182;</a>
+              </div>
+              <p>Re-arrange coordinate system by setting x=0 to the center of the SVG and flipping the y-axis values.
+Also, set y=0 offset by maskWidth to the left to simplify math regarding the position of the y-axis title and masking rect.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.view.sview = WIKIVIZ.view.svg.append(<span class="string">'g'</span>).attr(<span class="string">'width'</span>, WIKIVIZ.width).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (maskWidth) + <span class="string">','</span> + (WIKIVIZ.height/<span class="number">2</span> - <span class="number">0.5</span>) + <span class="string">')scale(1,-1)'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-99">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-99">&#182;</a>
+              </div>
+              <p>Init the x and y scale objects.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.view.x = d3.scale.linear();
+	WIKIVIZ.view.y = d3.scale.linear();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-100">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-100">&#182;</a>
+              </div>
+              <p>For adjancent talk pages.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.view.tx = d3.scale.linear();
+	WIKIVIZ.view.ty = d3.scale.linear();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-101">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-101">&#182;</a>
+              </div>
+              <p>Must take into account the mask width here!</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> barWidth = WIKIVIZ.calcBarWidth();
+	
+	<span class="keyword">var</span> view = WIKIVIZ.view;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-102">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-102">&#182;</a>
+              </div>
+              <p>Set up x and y ranges for the visualization. The x-range is designed so that x(n) gives the x-position of the nth bar&#39;s left edge.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	view.x.range([<span class="number">0</span>, barWidth]);
+	view.y.range([<span class="number">0</span>, WIKIVIZ.height/<span class="number">2</span> - <span class="number">50</span>]);	<span class="comment">// Leave a little bit of room.</span>
+	view.y.domain([<span class="number">0</span>, WIKIVIZ.absMax(WIKIVIZ.data[<span class="string">'revisions'</span>], <span class="keyword">function</span>(elem) { <span class="keyword">return</span> elem.loglev; })]);	<span class="comment">// Y domain determined using largest magnitude y-value</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-103">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-103">&#182;</a>
+              </div>
+              <p>Group to contain horizontal rules for the visualization</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	view.rules = view.sview.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'rules'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-104">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-104">&#182;</a>
+              </div>
+              <p>Positive and negative horizontal rules groups.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> posrules = view.rules.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'posrules'</span>);
+	<span class="keyword">var</span> negrules = view.rules.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'negrules'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-105">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-105">&#182;</a>
+              </div>
+              <p>Generate actual rules</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	posrules.selectAll(<span class="string">'g.rule'</span>).data(view.y.ticks(<span class="number">5</span>)).enter().append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'rule'</span>).attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="string">'translate(0,'</span> + view.y(d) + <span class="string">')'</span>; });
+	negrules.selectAll(<span class="string">'g.rule'</span>).data(view.y.ticks(<span class="number">5</span>)).enter().append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'rule'</span>).attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="string">'translate(0,'</span> + (-view.y(d)) + <span class="string">')'</span>; });</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-106">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-106">&#182;</a>
+              </div>
+              <p>Append lines to rules (i.e. visual representation of rules)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	view.rules.selectAll(<span class="string">'.rule'</span>).append(<span class="string">'line'</span>).attr(<span class="string">'x2'</span>, WIKIVIZ.width);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-107">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-107">&#182;</a>
+              </div>
+              <p>Append visualization body group. This group contains the actual visualization. By transforming this group, we transform all the bars and annotations of the visualization.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.view.body = view.sview.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'body'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate(0,0)'</span>);
+	
+	<span class="keyword">var</span> body = WIKIVIZ.view.body;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-108">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-108">&#182;</a>
+              </div>
+              <p>Append x-axis</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	view.sview.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'xaxis'</span>).append(<span class="string">'line'</span>).attr(<span class="string">'x2'</span>, WIKIVIZ.width);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-109">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-109">&#182;</a>
+              </div>
+              <p>Y-label and mask group</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> ylabel = view.sview.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'ylabel'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-110">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-110">&#182;</a>
+              </div>
+              <p>Append mask for y-label</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	ylabel.append(<span class="string">'rect'</span>).attr(<span class="string">'class'</span>, <span class="string">'ymask'</span>).attr(<span class="string">'width'</span>, maskWidth).attr(<span class="string">'height'</span>, WIKIVIZ.height).attr(<span class="string">'y'</span>, -WIKIVIZ.height/<span class="number">2</span>).attr(<span class="string">'x'</span>, -maskWidth);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-111">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-111">&#182;</a>
+              </div>
+              <p>Append y-label string</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	ylabel.append(<span class="string">'text'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + -(maskWidth-<span class="number">10</span>) + <span class="string">', 0)rotate(90, 0, 0)scale(1, -1)'</span>).text(<span class="string">'Revision Size'</span>);
+	<span class="keyword">var</span> poslabels = ylabel.append(<span class="string">'g'</span>);
+	poslabels.selectAll(<span class="string">'.yl'</span>).data(view.y.ticks(<span class="number">5</span>)).enter().append(<span class="string">'text'</span>).attr(<span class="string">'class'</span>, <span class="string">'yl'</span>)
+		.attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d, i) { <span class="keyword">return</span> <span class="string">'translate(-8,'</span> + (view.y(d)) + <span class="string">')scale(1,-1)'</span> }).text(<span class="keyword">function</span>(d, i) {<span class="keyword">return</span> (Math.exp(d)-<span class="number">1</span>).toPrecision(<span class="number">3</span>);});
+	<span class="keyword">var</span> neglabels = ylabel.append(<span class="string">'g'</span>);
+	neglabels.selectAll(<span class="string">'.yl'</span>).data(view.y.ticks(<span class="number">5</span>)).enter().append(<span class="string">'text'</span>).attr(<span class="string">'class'</span>, <span class="string">'yl'</span>)
+		.attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d, i) { <span class="keyword">return</span> <span class="string">'translate(-8,'</span> + (-view.y(d)) + <span class="string">')scale(1,-1)'</span> }).text(<span class="keyword">function</span>(d, i) {<span class="keyword">return</span> (-Math.exp(d)+<span class="number">1</span>).toPrecision(<span class="number">3</span>);});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-112">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-112">&#182;</a>
+              </div>
+              <p>Set up layers for the body</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	body.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'bg'</span>);
+	body.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'mid'</span>);
+	body.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'fg'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-113">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-113">&#182;</a>
+              </div>
+              <p>Create a group for the article revision datum elements.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.view.data = body.select(<span class="string">'g.mid'</span>).append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'data'</span>);
+	<span class="keyword">var</span> data = WIKIVIZ.view.data;
+	
+	<span class="keyword">var</span> datum = data.selectAll(<span class="string">'.datum'</span>).data(WIKIVIZ.data[<span class="string">'revisions'</span>]).enter().append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'datum'</span>).attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="string">'translate('</span> + view.x(WIKIVIZ.index(d)) + <span class="string">', 0)'</span>; }).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+	datum.append(<span class="string">'title'</span>).text(<span class="keyword">function</span>(d) {
+		<span class="keyword">return</span> d.group + <span class="string">': '</span> + d.user + <span class="string">'\n'</span> + WIKIVIZ.formatDate(<span class="keyword">new</span> Date(d.timestamp)) + <span class="string">'\n'</span> + <span class="string">'Revision Categories: '</span> + WIKIVIZ.toClassString(d.class) + <span class="string">'\n'</span> + <span class="string">'Revision Size: '</span> + d.lev;
+	});
+	<span class="keyword">var</span> bars = datum.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'bars'</span>);
+	WIKIVIZ.buildBars(bars, barWidth);
+	datum.append(<span class="string">'text'</span>).attr(<span class="string">'class'</span>, <span class="string">'xlabel'</span>).text(<span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="number">1</span>+WIKIVIZ.index(d); })
+		.attr(<span class="string">'transform'</span>, <span class="keyword">function</span>() { <span class="keyword">return</span> <span class="string">'translate(0,'</span> + String(-<span class="number">7</span>) + <span class="string">')scale(1,-1)rotate(90,0,0)'</span>; });
+	WIKIVIZ.buildMonths();
+	
+	
+	WIKIVIZ.view.tdata = body.select(<span class="string">'g.fg'</span>).append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'tdata'</span>);	<span class="comment">// Group for talk page data entries</span>
+	<span class="keyword">var</span> tentries = WIKIVIZ.view.tdata.selectAll(<span class="string">'.tdatum'</span>).data(WIKIVIZ.data.talk).enter().append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'tdatum'</span>)
+		.attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="string">'translate('</span> + view.x(WIKIVIZ.index(d)) + <span class="string">', 0)'</span>; }).attr(<span class="string">'opacity'</span>, <span class="number">0</span>);
+	WIKIVIZ.appendCallout(tentries);
+	
+	WIKIVIZ.toAdjacentSpaced();
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-114">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-114">&#182;</a>
+              </div>
+              <p>This is the action that is taken when the user clicks on the &quot;reset selections&quot; button in the toolbar.
+It should reset all selection tools to their default states, and enable previously disabled selection tools as necessary.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.clearAllSelections = <span class="keyword">function</span>() {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-115">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-115">&#182;</a>
+              </div>
+              <p>Disable the deselect button</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'#t_deselect'</span>).button(<span class="string">'disable'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-116">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-116">&#182;</a>
+              </div>
+              <p>Update the info box (UNUSED)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.updateInfo({});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-117">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-117">&#182;</a>
+              </div>
+              <p>Clear all selections made in the table view.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'#diag_data table tbody tr'</span>).each(<span class="function"><span class="keyword">function</span> <span class="params">(i, elem)</span> {</span> $(elem).removeClass(<span class="string">'rowselect'</span>); });</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-118">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-118">&#182;</a>
+              </div>
+              <p>Pre-check all edit category and user group selection boxes.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'#d_legend_accordion input'</span>).attr(<span class="string">'checked'</span>, <span class="string">'checked'</span>);
+	$(<span class="string">'#d_select_groups_accordion input'</span>).attr(<span class="string">'checked'</span>, <span class="string">'checked'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-119">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-119">&#182;</a>
+              </div>
+              <p>Update the various views to reflect reset of all selections.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.view.data.selectAll(<span class="string">'.bars rect'</span>).transition().duration(<span class="number">500</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+	WIKIVIZ.view.data.selectAll(<span class="string">'.datum'</span>).transition().duration(<span class="number">500</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-120">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-120">&#182;</a>
+              </div>
+              <p>Update nav control spikes</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.navctl.spikes.transition().duration(<span class="number">500</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-121">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-121">&#182;</a>
+              </div>
+              <p>Re-enable any previously disabled selection controls</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'#diag_legend input'</span>).removeAttr(<span class="string">'disabled'</span>);
+	$(<span class="string">'#d_select_groups_accordion input'</span>).removeAttr(<span class="string">'disabled'</span>);
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-122">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-122">&#182;</a>
+              </div>
+              <p>Switch visualization to time-spaced mode, or update time-spaced visualization
+This is currently called by the slider element on a switch mode event.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.toTimeSpaced = <span class="keyword">function</span>()
+{
+	WIKIVIZ.isTimeSpaced = <span class="literal">true</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-123">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-123">&#182;</a>
+              </div>
+              <p>Re-position all article revision elements using the x axis time scale.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	d3.selectAll(<span class="string">'.datum'</span>)
+		.attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d) {<span class="keyword">return</span> <span class="string">'translate('</span> + WIKIVIZ.view.timeX(d.date) + <span class="string">',0)'</span>;})
+		.selectAll(<span class="string">'.bars rect'</span>).attr(<span class="string">'width'</span>, WIKIVIZ.calcBarWidth());</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-124">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-124">&#182;</a>
+              </div>
+              <p>Re-position talk page entry callouts using the x-axis time scale.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	d3.selectAll(<span class="string">'.tdatum'</span>)
+		.attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d) {<span class="keyword">return</span> <span class="string">'translate('</span> + WIKIVIZ.view.timeX(d.date) + <span class="string">',0)'</span>;})</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-125">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-125">&#182;</a>
+              </div>
+              <p>Update the month view.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.buildMonths();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-126">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-126">&#182;</a>
+              </div>
+              <p>Show the month view if we are in TS talk page mode.
+This is because the month view is hidden in adj-talk page mode, but we want it for TS anyway.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">if</span> (WIKIVIZ.view.mode == <span class="string">"talk"</span>) {
+		d3.selectAll(<span class="string">'.month'</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+	}
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-127">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-127">&#182;</a>
+              </div>
+              <p>Switch visualization to adacent-spacing mode
+Currently called by the slider element when a mode change event occurs.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.toAdjacentSpaced = <span class="keyword">function</span>()
+{
+	WIKIVIZ.isTimeSpaced = <span class="literal">false</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-128">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-128">&#182;</a>
+              </div>
+              <p>Hide the month view if we are in adjacent spacing talk-page mode.
+(The month view does not make any sense in this mode)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">if</span> (WIKIVIZ.view.mode == <span class="string">"talk"</span>) {
+		d3.selectAll(<span class="string">'.month'</span>).attr(<span class="string">'opacity'</span>, <span class="number">0</span>);
+		WIKIVIZ.view.tx.range([<span class="number">0</span>, WIKIVIZ.getAdjacentTalkWidth() ]);
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-129">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-129">&#182;</a>
+              </div>
+              <p>Re-position all article and talk-page contributions using adjacent-spacing parameters / axes.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	d3.selectAll(<span class="string">'.datum'</span>)
+		.attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d) {<span class="keyword">return</span> <span class="string">'translate('</span> + WIKIVIZ.view.x(WIKIVIZ.index(d)) + <span class="string">',0)'</span>;})
+		.selectAll(<span class="string">'.bars rect'</span>).attr(<span class="string">'width'</span>, WIKIVIZ.calcBarWidth());
+		
+	d3.selectAll(<span class="string">'.tdatum'</span>)
+		.attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d, i) {<span class="keyword">return</span> <span class="string">'translate('</span> + WIKIVIZ.view.tx(i) + <span class="string">',0)'</span>;});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-130">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-130">&#182;</a>
+              </div>
+              <p>Update the month view.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.buildMonths();
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-131">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-131">&#182;</a>
+              </div>
+              <p>Calculate the inner width of a callout element based in its contents.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.getCalloutHeight = <span class="keyword">function</span>(d)
+{
+	<span class="keyword">var</span> ret = <span class="number">0</span>;
+	<span class="keyword">var</span> el_w = <span class="number">29</span>;	<span class="comment">// Width of icon + padding</span>
+	<span class="keyword">if</span> (d.att !== <span class="number">0</span>) { ret += el_w; }
+	<span class="keyword">if</span> (d.crit !== <span class="number">0</span>) { ret += el_w; }
+	<span class="keyword">if</span> (d.inf !== <span class="number">0</span>) { ret += el_w; }
+	<span class="keyword">if</span> (d.perf !== <span class="number">0</span>) { ret += el_w; }
+	<span class="keyword">return</span> ret;
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-132">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-132">&#182;</a>
+              </div>
+              <p>Generate an array of callout classification images based on the talk-page
+entry that is represented by that callout.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.genCalloutImageSet = <span class="keyword">function</span>(d)
+{
+	<span class="keyword">var</span> imgs = [];
+	<span class="keyword">if</span> (d.att !== <span class="number">0</span>) { imgs.push(<span class="string">'att'</span>); }
+	<span class="keyword">if</span> (d.crit !== <span class="number">0</span>) { imgs.push(<span class="string">'crit'</span>); }
+	<span class="keyword">if</span> (d.inf !== <span class="number">0</span>) { imgs.push(<span class="string">'inf'</span>); }
+	<span class="keyword">if</span> (d.perf !== <span class="number">0</span>) { imgs.push(<span class="string">'perf'</span>); }
+	<span class="keyword">return</span> imgs;
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-133">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-133">&#182;</a>
+              </div>
+              <p>Append the callouts that correspond to the talk-page entries for our article to the given element.
+Note that the argument &#39;parent&#39; should be a d3 selection.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.appendCallout = <span class="keyword">function</span>(parent)
+{
+	<span class="keyword">var</span> cw = <span class="number">24</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-134">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-134">&#182;</a>
+              </div>
+              <p>Padding around content</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> px = <span class="number">10</span>;
+	<span class="keyword">var</span> py = <span class="number">10</span>;
+	<span class="keyword">var</span> ox = <span class="number">10</span>;
+	<span class="keyword">var</span> oy = <span class="number">10</span>;
+	<span class="keyword">var</span> cr = <span class="number">5</span>;	<span class="comment">// Corner radius in px</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-135">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-135">&#182;</a>
+              </div>
+              <p>Max circle radius</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> maxR = <span class="number">10</span>;
+	<span class="keyword">var</span> fact = <span class="number">1.2</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-136">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-136">&#182;</a>
+              </div>
+              <p>Append circle to our element. Cap the circle size and re-style the circle if it has reached the cap.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	parent.filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> Math.log(d.lev+<span class="number">1</span>)*fact &lt;= maxR; }).append(<span class="string">'circle'</span>).attr(<span class="string">'r'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> Math.log(d.lev+<span class="number">1</span>)*fact; }).attr(<span class="string">'class'</span>, <span class="string">'tcircle'</span>);
+	parent.filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> Math.log(d.lev+<span class="number">1</span>)*fact &gt; maxR; }).append(<span class="string">'circle'</span>).attr(<span class="string">'r'</span>, maxR).attr(<span class="string">'class'</span>, <span class="string">'tcircle_full'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-137">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-137">&#182;</a>
+              </div>
+              <p>Generate the tooltip for this element.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	parent.append(<span class="string">'title'</span>).text(<span class="keyword">function</span>(d) {
+		<span class="keyword">return</span> <span class="string">'User: '</span> + d.contributor + <span class="string">'\n'</span> + WIKIVIZ.formatDate(d.date) + <span class="string">'\n'</span> + <span class="string">'Revision Categories: '</span> + WIKIVIZ.toTalkClassString(d) + <span class="string">'\n'</span> + <span class="string">'Revision Size: '</span> + d.lev;
+	});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-138">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-138">&#182;</a>
+              </div>
+              <p>Generate the path that defines the shape of the callout.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> callout = parent.append(<span class="string">'path'</span>);
+	callout.attr(<span class="string">'d'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="string">"M 0 0 l {0} {1} l 0 {2} a {3} {3} 0 0 0 {3} {3} l {4} 0 a {3} {3} 0 0 0 {3} -{3} l 0 -{5} a {3} {3} 0 0 0 -{3} -{3} l -{6} 0 z"</span>.format(
+		ox, oy,	<span class="comment">// Coords of left bottom of callout "box" rel. to "origin"</span>
+		WIKIVIZ.getCalloutHeight(d) + <span class="number">2</span>*px - <span class="number">2</span>*cr,
+		cr,	<span class="comment">// Corner radius</span>
+		cw + <span class="number">2</span>*py - cr,
+		WIKIVIZ.getCalloutHeight(d) + <span class="number">2</span>*px - cr - <span class="number">10</span>,
+		cw + <span class="number">2</span>*py - <span class="number">2</span>*cr	<span class="comment">// Last number here is the width of the wide-end of the callout triangle</span>
+	)});
+	callout.attr(<span class="string">'class'</span>, <span class="string">'callout'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-139">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-139">&#182;</a>
+              </div>
+              <p>Generate the x-offset for each callout incrementally.
+This is used in adjacent spacing of callouts.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> x = <span class="number">0</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-140">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-140">&#182;</a>
+              </div>
+              <p>Create image groups based on talk-page classifications and append these image groups to their respective callouts.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> igroup = parent.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'igroup'</span>).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (ox+px) + <span class="string">','</span> + (oy+py) +<span class="string">')scale(1,-1)'</span>).datum(<span class="keyword">function</span>(d) { <span class="keyword">return</span> WIKIVIZ.genCalloutImageSet(d); });
+	igroup.each(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span>
+		d3.select(<span class="keyword">this</span>).selectAll(<span class="string">'image'</span>).data(d).enter().append(<span class="string">'image'</span>).attr(<span class="string">'xlink:href'</span>, <span class="keyword">function</span>(dm) { <span class="keyword">return</span> <span class="string">"img/"</span> + dm + <span class="string">".png"</span>; }).attr(<span class="string">'y'</span>, <span class="keyword">function</span>(dm, i) { <span class="keyword">return</span> -<span class="number">29</span>*i-<span class="number">24</span>; })
+			.attr(<span class="string">'width'</span>, <span class="number">24</span>).attr(<span class="string">'height'</span>, <span class="number">24</span>).attr(<span class="string">'x'</span>, <span class="number">3</span>).attr(<span class="string">'class'</span>, <span class="keyword">function</span>(dm) { <span class="keyword">return</span> dm; } );
+	});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-141">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-141">&#182;</a>
+              </div>
+              <p>Append to each callout an x-axis label corresponding to its ID.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	parent.append(<span class="string">'text'</span>).attr(<span class="string">'class'</span>, <span class="string">'xlabel'</span>).text(<span class="keyword">function</span>(d, i) { <span class="keyword">return</span> i + <span class="number">1</span>; })
+		.attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="string">'translate('</span> + (ox+px/<span class="number">2</span>) + <span class="string">','</span> + (oy+py/<span class="number">2</span>) + <span class="string">')scale(1,-1)'</span>; });
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-142">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-142">&#182;</a>
+              </div>
+              <p>Calculate bar width based on number of bars per screen</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.calcBarWidth = <span class="keyword">function</span>()
+{
+	<span class="keyword">var</span> w = (WIKIVIZ.width - WIKIVIZ.maskWidth)/(WIKIVIZ.numBars);
+	<span class="keyword">if</span> (WIKIVIZ.isTimeSpaced) { w = Math.min(w, <span class="number">7</span>); }
+	<span class="keyword">return</span> w;
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-143">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-143">&#182;</a>
+              </div>
+              <p>Calculate talk width based on number of talk entries per screen</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.calcTalkWidth = <span class="keyword">function</span>()
+{
+	<span class="keyword">var</span> w = (WIKIVIZ.width - WIKIVIZ.maskWidth)/(WIKIVIZ.numDots);
+	<span class="keyword">return</span> w;
+};
+
+WIKIVIZ.getAdjacentTalkWidth = <span class="keyword">function</span>()
+{
+	<span class="keyword">return</span> WIKIVIZ.data.talk.length * <span class="number">70</span>; <span class="comment">// width of one callout</span>
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-144">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-144">&#182;</a>
+              </div>
+              <p>Function to map revision data to rectangle groups that represent the data as a stacked bar graph.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.buildBars = <span class="keyword">function</span>(barsGroup, barWidth)
+{
+	<span class="keyword">var</span> posFields = [<span class="string">'add'</span>, <span class="string">'unsure'</span>, <span class="string">'reorganize'</span>, <span class="string">'edit'</span>, <span class="string">'cite'</span>, <span class="string">'vand'</span>, <span class="string">'unclassified'</span>];
+	<span class="keyword">var</span> negFields = [<span class="string">'unvand'</span>, <span class="string">'remove'</span>];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-145">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-145">&#182;</a>
+              </div>
+              <p>For brevity</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> y = WIKIVIZ.view.y;
+	<span class="keyword">var</span> index = WIKIVIZ.index;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-146">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-146">&#182;</a>
+              </div>
+              <p>Make array to store partial sums of weighted attributes for each data element</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> sums = [];
+	<span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; WIKIVIZ.data.revisions.length; ++i) { sums[i] = <span class="number">0</span>; }	<span class="comment">// Zero-out array</span>
+	$.each(posFields, <span class="keyword">function</span>(i, v) {	<span class="comment">// Build up the stacked bars. The sums array stores the sum of the last few stacked values' heights so that we can stack them properly</span>
+		barsGroup.filter(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d.wclass[v] &gt; <span class="number">0.0001</span>; }).append(<span class="string">'rect'</span>).attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> y(sums[index(d)]); })
+			.attr(<span class="string">'width'</span>, barWidth).attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> y(d.wclass[v]); }).attr(<span class="string">'class'</span>, v)
+			.attr(<span class="string">'desc'</span>, index).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-147">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-147">&#182;</a>
+              </div>
+              <p>Collect the sums of what we&#39;ve seen so far so as to stack the bars properly</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">for</span> (<span class="keyword">var</span> ind = <span class="number">0</span>; ind &lt; WIKIVIZ.data.revisions.length; ++ind) { sums[ind] += WIKIVIZ.data.revisions[ind].wclass[v]; }
+	});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-148">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-148">&#182;</a>
+              </div>
+              <p>The negatives are done the same way, but we have to change the role of the &#39;y&#39; attribute.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; WIKIVIZ.data.revisions.length; ++i) { sums[i] = <span class="number">0</span>; }	<span class="comment">// Zero-out array</span>
+	$.each(negFields, <span class="keyword">function</span>(i, v) {	<span class="comment">// Build up the stacked bars. The sums array stores the sum of the last few stacked values' heights so that we can stack them properly</span>
+		barsGroup.filter(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d.wclass[v] &gt; <span class="number">0.0001</span>; }).append(<span class="string">'rect'</span>).attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> -y(d.wclass[v]+sums[index(d)]); }).attr(<span class="string">'width'</span>, barWidth)
+			.attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> y(d.wclass[v]); }).attr(<span class="string">'class'</span>, v).attr(<span class="string">'desc'</span>, index).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-149">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-149">&#182;</a>
+              </div>
+              <p>Collect the sums of what we&#39;ve seen so far so as to stack the bars properly</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">for</span> (<span class="keyword">var</span> ind = <span class="number">0</span>; ind &lt; WIKIVIZ.data[<span class="string">'revisions'</span>].length; ++ind) { sums[ind] += WIKIVIZ.data[<span class="string">'revisions'</span>][ind].wclass[v]; }
+	});
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-150">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-150">&#182;</a>
+              </div>
+              <p>Get left edge of a given bar on the visualization</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.getOffset = <span class="keyword">function</span>(ind)
+{
+	<span class="keyword">if</span> (WIKIVIZ.isTimeSpaced == <span class="literal">false</span>) {
+		<span class="keyword">return</span> ind * WIKIVIZ.calcBarWidth();
+	} <span class="keyword">else</span> {
+		<span class="keyword">return</span> WIKIVIZ.data.revisions[ind].dateOffset;
+	}
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-151">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-151">&#182;</a>
+              </div>
+              <p>Create or Update month background rects.
+These are the shaded rectangles in the background of the visualization that indicate periods of 1 month.
+We need to build these to the correct scale so that they line up with the correct revisions.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.buildMonths = <span class="function"><span class="keyword">function</span> <span class="params">()</span>
+{</span>
+	<span class="keyword">var</span> barWidth = WIKIVIZ.calcBarWidth();
+	<span class="keyword">var</span> revdata = WIKIVIZ.data.revisions;
+	<span class="keyword">var</span> blankThreshold = <span class="number">10</span>;	<span class="comment">// Min. additional width of month box required to display text.</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-152">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-152">&#182;</a>
+              </div>
+              <p>WIKIVIZ.view.body.select(&#39;.bg&#39;).selectAll(&#39;.month&#39;).data([]).exit().remove();</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">var</span> data = [];
+	<span class="keyword">var</span> months = [<span class="string">'Jan'</span>, <span class="string">'Feb'</span>, <span class="string">'Mar'</span>, <span class="string">'Apr'</span>, <span class="string">'May'</span>, <span class="string">'Jun'</span>, <span class="string">'Jul'</span>, <span class="string">'Aug'</span>, <span class="string">'Sep'</span>, <span class="string">'Oct'</span>, <span class="string">'Nov'</span>, <span class="string">'Dec'</span>];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-153">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-153">&#182;</a>
+              </div>
+              <p>If the visualization is not time spaced, we need to go through our data, find month boundaries, and
+build a list of the left and right offsets of the month rects on the visualization</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="keyword">if</span> (!WIKIVIZ.isTimeSpaced) {
+		<span class="keyword">var</span> lastDate = <span class="keyword">new</span> Date(revdata[<span class="number">0</span>].timestamp);
+		<span class="keyword">var</span> curDate;
+		<span class="keyword">var</span> lastIndex = <span class="number">0</span>;
+		<span class="keyword">var</span> lastRev = WIKIVIZ.data.revisions[<span class="number">0</span>];
+		<span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">1</span>; i &lt; revdata.length; ++i) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-154">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-154">&#182;</a>
+              </div>
+              <p>We need to build width and offset positions for the various month groups
+We do this by scanning through our bar graph data and appending to the month data as we go.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			curDate = <span class="keyword">new</span> Date(revdata[i].timestamp);
+			<span class="keyword">if</span> (curDate.getMonth() !== lastDate.getMonth() || curDate.getYear() !== lastDate.getYear()) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-155">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-155">&#182;</a>
+              </div>
+              <p>var left = lastIndex <em> barWidth;
+var right = (i-1) </em> barWidth;</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="keyword">var</span> left = WIKIVIZ.getOffset(lastIndex);
+				<span class="keyword">var</span> right = WIKIVIZ.getOffset(i);
+				<span class="keyword">if</span> (left === right) <span class="keyword">continue</span>;
+				data.push({l: left, r:right, m:lastDate.getMonth(), y:lastDate.getFullYear()});
+				lastDate = curDate;
+				lastIndex = i;
+			}
+		}
+		
+		<span class="keyword">var</span> left = WIKIVIZ.getOffset(lastIndex);
+		<span class="keyword">var</span> right = WIKIVIZ.getOffset(revdata.length);
+		data.push({l: left, r:right, m:lastDate.getMonth(), y:lastDate.getFullYear()});
+	} <span class="keyword">else</span> {	<span class="comment">// If we ARE in time-separated mode, we need to loop through all the months between the first and last edits</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-156">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-156">&#182;</a>
+              </div>
+              <p>and add them all.
+We use the timeX scale to find the left and right boundaries.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="keyword">var</span> last = WIKIVIZ.data.revisions.length-<span class="number">1</span>;
+		<span class="keyword">var</span> lastMonth;
+		<span class="keyword">var</span> first = <span class="literal">true</span>;
+		<span class="keyword">var</span> timeX = WIKIVIZ.view.timeX;
+		<span class="keyword">for</span> (<span class="keyword">var</span> m = WIKIVIZ.data.revisions[<span class="number">0</span>].date.getMonth(),
+		     y = WIKIVIZ.data.revisions[<span class="number">0</span>].date.getFullYear();
+		     m &lt;= WIKIVIZ.data.revisions[last].date.getMonth() || y &lt;= WIKIVIZ.data.revisions[last].date.getFullYear();
+		     ++m) {
+			<span class="keyword">if</span> (m &gt; <span class="number">11</span>) { m = <span class="number">0</span>; ++y;}
+			<span class="keyword">if</span> (first) {
+				<span class="keyword">if</span> (m == <span class="number">0</span>) lastMonth = <span class="keyword">new</span> Date(y - <span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>);
+				<span class="keyword">else</span> lastMonth = <span class="keyword">new</span> Date(y, m - <span class="number">1</span>, <span class="number">1</span>);
+				first = <span class="literal">false</span>;
+			}
+			<span class="keyword">var</span> curMonth = <span class="keyword">new</span> Date(y, m, <span class="number">1</span>);
+			data.push({l: timeX(lastMonth), r: timeX(curMonth), m: lastMonth.getMonth(), y: lastMonth.getFullYear()});
+			lastMonth = curMonth;
+		}
+	}
+	
+	<span class="keyword">var</span> mts_e = WIKIVIZ.view.body.select(<span class="string">'.bg'</span>).selectAll(<span class="string">'.month'</span>).data(data, <span class="keyword">function</span>(d, i) { <span class="keyword">return</span> i; }).enter();
+	<span class="keyword">var</span> mts_g = mts_e.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'month'</span>).attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="string">'translate('</span> + d.l + <span class="string">',0)'</span>; });
+	mts_g.append(<span class="string">'rect'</span>).attr(<span class="string">'height'</span>, String(WIKIVIZ.height)).attr(<span class="string">'width'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> (d.r-d.l); })
+		.attr(<span class="string">'class'</span>, <span class="keyword">function</span>(d, i) { <span class="keyword">return</span> (i%<span class="number">2</span> === <span class="number">0</span>)?(<span class="string">'m_odd'</span>):(<span class="string">'m_even'</span>);}).attr(<span class="string">'y'</span>, String(-WIKIVIZ.height/<span class="number">2</span>));
+	mts_g.append(<span class="string">'text'</span>).attr(<span class="string">'class'</span>, <span class="string">'mtext'</span>).text(<span class="keyword">function</span>(d) { <span class="keyword">return</span> months[d.m]; }).attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="string">'translate(5,'</span> + (WIKIVIZ.height/<span class="number">2</span> - <span class="number">15</span>) + <span class="string">')scale(1,-1)'</span>;}).attr(<span class="string">'opacity'</span>, <span class="number">1</span>).filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> ((d.r-d.l) - <span class="keyword">this</span>.getComputedTextLength()) &lt; blankThreshold;}).attr(<span class="string">'opacity'</span>, <span class="number">0</span>);
+	mts_g.append(<span class="string">'text'</span>).attr(<span class="string">'class'</span>, <span class="string">'ytext'</span>).text(<span class="keyword">function</span>(d) { <span class="keyword">return</span> String(d.y); }).attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="string">'translate(5,'</span> + (WIKIVIZ.height/<span class="number">2</span> - <span class="number">30</span>) + <span class="string">')scale(1,-1)'</span>;}).attr(<span class="string">'opacity'</span>, <span class="number">1</span>).filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> ((d.r-d.l) - <span class="keyword">this</span>.getComputedTextLength()) &lt; blankThreshold;}).attr(<span class="string">'opacity'</span>, <span class="number">0</span>);
+	
+	
+	mts = WIKIVIZ.view.body.selectAll(<span class="string">'.month'</span>).data(data, <span class="keyword">function</span>(d, i) { <span class="keyword">return</span> i; });
+	<span class="keyword">var</span> mts_t = mts;
+	mts_t.attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="string">'translate('</span> + d.l + <span class="string">',0)'</span>; });
+	mts_t.select(<span class="string">'rect'</span>).attr(<span class="string">'width'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> (d.r-d.l); });;
+	mts.select(<span class="string">'text.mtext'</span>).text(<span class="keyword">function</span>(d) { <span class="keyword">return</span> months[d.m]; });
+	mts.select(<span class="string">'text.ytext'</span>).text(<span class="keyword">function</span>(d) { <span class="keyword">return</span> String(d.y); });
+	mts_t.select(<span class="string">'rect'</span>).attr(<span class="string">'class'</span>, <span class="keyword">function</span>(d, i) { <span class="keyword">return</span> (i%<span class="number">2</span> === <span class="number">0</span>)?(<span class="string">'m_odd'</span>):(<span class="string">'m_even'</span>);});
+	mts.select(<span class="string">'text.mtext'</span>).filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> ((d.r-d.l) - <span class="keyword">this</span>.getComputedTextLength()) &lt; blankThreshold;}).attr(<span class="string">'opacity'</span>, <span class="number">0</span>);
+	mts.select(<span class="string">'text.mtext'</span>).filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> ((d.r-d.l) - <span class="keyword">this</span>.getComputedTextLength()) &gt;= blankThreshold;}).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+	mts.select(<span class="string">'text.ytext'</span>).filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> ((d.r-d.l) - <span class="keyword">this</span>.getComputedTextLength()) &lt; blankThreshold;}).attr(<span class="string">'opacity'</span>, <span class="number">0</span>);
+	mts.select(<span class="string">'text.ytext'</span>).filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> ((d.r-d.l) - <span class="keyword">this</span>.getComputedTextLength()) &gt;= blankThreshold;}).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+	
+	<span class="keyword">var</span> mts_x = mts.exit();
+	mts_x.attr(<span class="string">'opacity'</span>, <span class="number">0</span>).remove();
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-157">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-157">&#182;</a>
+              </div>
+              <p>Deletes all of the month rects.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.clearMonths = <span class="keyword">function</span>() {
+	WIKIVIZ.view.body.select(<span class="string">'.bg'</span>).selectAll(<span class="string">'.month'</span>).data([]).exit().remove();
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-158">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-158">&#182;</a>
+              </div>
+              <p>Rescale x-axis based on the number of bars that should fit into a screen.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>WIKIVIZ.setNumBars = <span class="keyword">function</span>(numBars)
+{
+	<span class="keyword">if</span> (numBars &lt;= <span class="number">0</span>) <span class="keyword">return</span>;	<span class="comment">// Don't act on invalid values!</span>
+	WIKIVIZ.numBars = numBars;
+	
+	WIKIVIZ.view.x.range([<span class="number">0</span>, WIKIVIZ.calcBarWidth()]);
+	
+	<span class="keyword">if</span> (!WIKIVIZ.isTimeSpaced)
+		WIKIVIZ.view.data.selectAll(<span class="string">'.datum'</span>)
+			.attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="string">'translate('</span> + WIKIVIZ.view.x(WIKIVIZ.index(d)) + <span class="string">', 0)'</span>; });
+	
+	WIKIVIZ.view.data.selectAll(<span class="string">'.datum'</span>).selectAll(<span class="string">'.bars rect'</span>).attr(<span class="string">'width'</span>, WIKIVIZ.calcBarWidth());</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-159">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-159">&#182;</a>
+              </div>
+              <p>Hide x labels that would overlap!</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.view.data.selectAll(<span class="string">'.datum'</span>).select(<span class="string">'.xlabel'</span>).filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="keyword">this</span>.getBBox().width &lt;= WIKIVIZ.calcBarWidth(); })
+		.attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
+	WIKIVIZ.view.data.selectAll(<span class="string">'.datum'</span>).select(<span class="string">'.xlabel'</span>).filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="keyword">this</span>.getBBox().width &gt; WIKIVIZ.calcBarWidth(); })
+		.attr(<span class="string">'opacity'</span>, <span class="number">0</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-160">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-160">&#182;</a>
+              </div>
+              <p>Need to update the month rectangles so that they use the new scale!</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	WIKIVIZ.buildMonths();
+};
+
+WIKIVIZ.setNumDots = <span class="keyword">function</span>(numDots)
+{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-161">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-161">&#182;</a>
+              </div>
+              <p>Redraw dots here for talk page entries</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	
+	<span class="keyword">if</span> (numDots &lt;= <span class="number">0</span>) <span class="keyword">return</span>;	<span class="comment">// Don't act on invalid values!</span>
+	WIKIVIZ.numDots = numDots;
+	
+	WIKIVIZ.view.tx.range([<span class="number">0</span>, WIKIVIZ.calcTalkWidth()]);
+
+	<span class="keyword">if</span> (!WIKIVIZ.isTimeSpaced)
+		WIKIVIZ.view.tdata.selectAll(<span class="string">'.tdatum'</span>)
+			.attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d, i) { <span class="keyword">return</span> <span class="string">'translate('</span> + WIKIVIZ.view.tx(i) + <span class="string">', 0)'</span>; });
+	
+	WIKIVIZ.buildMonths();
+
+};
+
+$(document).ready(<span class="keyword">function</span>() {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-162">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-162">&#182;</a>
+              </div>
+              <p>Quick &#39;N dirty way to allow user to select which article to view.
+This is the modal dialog that appears on page load.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$(<span class="string">'body'</span>).append($(<span class="string">'&lt;div&gt;'</span>).attr(<span class="string">'id'</span>, <span class="string">'diag_article'</span>));
+	$(<span class="string">'#diag_article'</span>).append($(<span class="string">'&lt;h3&gt;'</span>).text(<span class="string">'Select an article below:'</span>));
+	$(<span class="string">'#diag_article'</span>).append($(<span class="string">'&lt;div&gt;'</span>).attr(<span class="string">'id'</span>, <span class="string">'d_article_list'</span>));
+	$(<span class="string">'#diag_article'</span>).append($(<span class="string">'&lt;div&gt;'</span>).attr(<span class="string">'id'</span>, <span class="string">'d_article_list_loading'</span>));
+	$(<span class="string">'#d_article_list_loading'</span>).append($(<span class="string">'&lt;span&gt;'</span>).text(<span class="string">'Loading . . .'</span>));
+	$(<span class="string">'#diag_article'</span>).dialog({
+		resizable: <span class="literal">false</span>,
+		width: <span class="string">'auto'</span>,
+		height: <span class="number">300</span>,
+		autoOpen: <span class="literal">true</span>,
+		title: <span class="string">'Select Article'</span>
+	});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-163">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-163">&#182;</a>
+              </div>
+              <p>Query the DB to get a listing of the available articles.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	$.getJSON(<span class="string">'dbquery.php?list'</span>, <span class="keyword">function</span>(data) {
+		<span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; data.length; ++i) {
+			$(<span class="string">'#d_article_list'</span>).append($(<span class="string">'&lt;h3&gt;'</span>).append($(<span class="string">'&lt;a&gt;'</span>).append($(<span class="string">'&lt;span&gt;'</span>).text(data[i][<span class="string">'title'</span>])).append($(<span class="string">'&lt;span&gt;'</span>).text(<span class="string">'('</span>+data[i][<span class="string">'rev_count'</span>]+<span class="string">' Revisions)'</span>).attr(<span class="string">'style'</span>,<span class="string">'float:right'</span>)).attr(<span class="string">'href'</span>, <span class="string">'#'</span>)));</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-164">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-164">&#182;</a>
+              </div>
+              <p>Function which is called when we select an article to view.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="function"><span class="keyword">function</span> <span class="title">getClickClosure</span><span class="params">(in_datum)</span> {</span>
+				<span class="keyword">this</span>.datum = in_datum;
+				<span class="keyword">return</span> <span class="keyword">function</span>() {
+					<span class="keyword">var</span> title = in_datum[<span class="string">'title'</span>];
+					$(<span class="string">'#page_title'</span>).text(title);
+					WIKIVIZ.init(title);	<span class="comment">// Init the visualization with this article.</span>
+					$(<span class="string">'#everything'</span>).fadeIn(<span class="string">"slow"</span>);
+					$(<span class="string">'#diag_article'</span>).dialog(<span class="string">'close'</span>);
+				}
+			}
+			
+			$(<span class="string">'#d_article_list'</span>).append($(<span class="string">'&lt;div&gt;'</span>).append($(<span class="string">'&lt;button&gt;'</span>).attr(<span class="string">'id'</span>, <span class="string">'d_article_enter_'</span>+i).text(<span class="string">'Go'</span>).click(getClickClosure(data[i]))));
+		}
+		$(<span class="string">'#d_article_list'</span>).accordion({
+			collapsible: <span class="literal">true</span>,
+			active: <span class="literal">false</span>,
+			autoHeight: <span class="literal">false</span>,
+			clearStyle: <span class="literal">true</span>
+		});
+		$(<span class="string">'#d_article_list_loading'</span>).remove();
+	});
+});
+
+})(window,document);</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
