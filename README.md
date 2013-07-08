@@ -16,7 +16,7 @@ To get set up, make sure that http://nodejs.org/ is installed, and then in a ter
 
 ```# npm install ```
 
-NPM will automatically fetch all the necessary packages required for buildin the project (specified in package.json).
+NPM will automatically fetch all the necessary packages required for building the project (specified in package.json).
 
 To build the project, you can run the following command:
 

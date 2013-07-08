@@ -1,5 +1,7 @@
 body {
 	background-color: #aaa;
+	font-family: sans-serif;
+	font-size: 12px;
 }
 
 #floater {
