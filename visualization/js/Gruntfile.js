@@ -19,10 +19,15 @@ module.exports = function(grunt) {
       dist: {
         src: [
           'src/state.js',
-          'src/helpers.js',
           'src/ui.js',
           'src/visualization.js',
-          'src/main.js'
+          'src/main.js',
+          
+          'src/Models/Article.js',
+          'src/Views/NewArticleView.js',
+          'src/Views/ArticleView.js',
+          'src/helpers.js',
+          'src/router.js'
         ],
         dest: 'build/<%= pkg.name %>.js'
       },

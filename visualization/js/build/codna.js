@@ -307,87 +307,6 @@ WIKIVIZ.load = function(art_title) {
 	});
 };
 
-// From http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format
-// Sort of like Python's new string formatting method. Handy when one wants to do some large string substitutions.
-String.prototype.format = function() {
-  var args = arguments;
-  return this.replace(/{(\d+)}/g, function(match, number) { 
-    return typeof args[number] != 'undefined'
-      ? args[number]
-      : match
-    ;
-  });
-};
-
-// Takes in a javascript date object and pretty-prints it to a string which is returned.
-WIKIVIZ.formatDate = function(dt) {
-	return ['January', 'February', 'March',
-		'April', 'May', 'June',
-		'July', 'August', 'September',
-		'October', 'November', 'December'][dt.getMonth()] +
-		' ' + dt.getDate() + ', ' + dt.getFullYear() + '   ' +
-		('0'+dt.getHours()).substr(-2,2) + ':' +
-		('0'+dt.getMinutes()).substr(-2,2);	// Thanks to http://stackoverflow.com/questions/5250244/jquery-date-formatting
-							// for the quick fix for hours, minutes and seconds!
-};
-
-// Build a sorting key for the sorttable library to sort the date field used in the table view.
-WIKIVIZ.getDateSortKey = function(dt) {
-	return String(dt.getFullYear()) + ('0'+dt.getMonth()).substr(-2, 2) +
-		('0'+dt.getDate()).substr(-2, 2) + ('0'+dt.getHours()).substr(-2,2) +
-		('0'+dt.getMinutes()).substr(-2,2)+('0'+dt.getSeconds()).substr(-2,2);
-};
-
-// Take two lists, interpret as sets, and return true if subset_l is a subset of superset_l
-WIKIVIZ.isSubset = function(subset_l, superset_l) {
-	var superset = {};
-	for (var i = 0; i < superset_l.length; ++i) {
-		superset[superset_l[i]] = true;
-	}
-	for (var i = 0; i < subset_l.length; ++i) {
-		if (!superset.hasOwnProperty(subset_l[i])) {
-			return false;
-		}
-	}
-	return true;
-};
-
-// Generate a string describing a given article revisions' edit categories
-WIKIVIZ.toClassString = function(rc)
-{
-	return rc.split(';').map(function(c) { return ({
-			'a': 'edit',
-			'b': 'add',
-			'c': 'remove',
-			'd': 'reorganize',
-			'e': 'cite',
-			'f': 'vandalize',
-			'g': 'unvandalize',
-			'x': 'unclassified'
-		})[c]; }).join(', ');
-};
-
-// Generate a string describing a given talk page revision entry's revision categories.
-WIKIVIZ.toTalkClassString = function(d) {
-	var ret = "";
-	if (d.att) ret += "attitude, ";
-	if (d.crit) ret += "criticism, ";
-	if (d.inf) ret += "informative, ";
-	if (d.perf) ret += "performative, ";
-	return ret.substring(0,ret.length-2);
-}
-
-// Return absolute max (disregarding sign) of func(arr[i])
-WIKIVIZ.absMax = function(arr, func)
-{
-	if (!(arr instanceof Array) || (arr.length < 1)) return undefined;
-	var max = func(arr[0]);
-	for (var i = 1; i < arr.length; ++i) {
-		max = Math.max(max, Math.abs(func(arr[i])));
-	}
-	return max;
-};
-
 // Highlight those entries that were made by users in userlist.
 // TODO: Apply selections to the scroll bar area and to the talk page contributions!
 WIKIVIZ.applyUserSelection = function(userlist) {
@@ -1591,7 +1510,7 @@ WIKIVIZ.navctl = {
 	}
 }
 
-$(document).ready(function() {
+/*$(document).ready(function() {
 	// Quick 'N dirty way to allow user to select which article to view.
 	// This is the modal dialog that appears on page load.
 	$('body').append($('<div>').attr('id', 'diag_article'));
@@ -1633,6 +1552,261 @@ $(document).ready(function() {
 		});
 		$('#d_article_list_loading').remove();
 	});
+});*/
+
+// ## Article
+Article = Backbone.Model.extend({
+
+    initialize: function(){
+    
+    },
+    
+    urlRoot: "",
+    
+    defaults: {
+        'title': "",
+        'rev_count': 0
+    }
+
 });
+
+// ## ArticleCollection
+ArticleCollection = Backbone.Collection.extend({
+    
+    model: Article,
+    
+    url: "dbquery.php?list"
+    
+});
+
+// ## NewArticleView
+NewArticleView = Backbone.View.extend({    
+    
+    initialize: function(){
+        this.listenTo(this.model, 'sync', this.render);
+        this.template = _.template($("#new_article_template").html());
+    },
+    
+    events: {
+        "click #initiative .option": "clickInitiative",
+        "click #project .option": "clickProject",
+        "click #analyse button": "clickAnalyse"
+    },
+    
+    clickInitiative: function(e){
+        this.$("#initiative .option").not(e.currentTarget).removeClass('selected');
+        $(e.currentTarget).toggleClass('selected');
+        this.renderProjects();
+        if(this.$("#project").css('display') == 'none' &&
+           this.$("#initiative .option.selected").length > 0){
+            this.$("#project").show('slide', 400);
+        }
+        else if(this.$("#project").css('display') != 'none' && 
+                this.$("#initiative .option.selected").length == 0){
+            this.$("#project").hide('slide', 400);
+            if(this.$("#analyse").css('display') != 'none'){
+                this.$("#analyse").hide('slide', 400);
+            }
+        }
+    },
+    
+    clickProject: function(e){
+        this.$("#project .option").not(e.currentTarget).removeClass('selected');
+        $(e.currentTarget).toggleClass('selected');
+        if(this.$("#analyse").css('display') == 'none' &&
+           this.$("#project .option.selected").length > 0){
+            this.$("#analyse").show('slide', 400);
+        }
+        else if(this.$("#analyse").css('display') != 'none' && 
+                this.$("#project .option.selected").length == 0){
+            this.$("#analyse").hide('slide', 400);
+        }
+    },
+    
+    clickAnalyse: function(e){
+        var title = this.$("#project .option.selected .label").text();
+        var articleView = new ArticleView({el: "#content", model: this.model.findWhere({'title': title})});
+        articleView.render();
+    },
+    
+    renderInitiatives: function(){
+        this.$("#initiative").tabs();
+    },
+    
+    renderProjects: function(){
+        this.$("#project #tabs-project .select").empty();
+        this.model.each(function(article){
+            this.$("#project #tabs-project .select").append("<div class='option'><span class='label'>" + article.get('title') + "</span><span class='count'>(" + article.get('rev_count') + " edits)</span></div>");
+        });
+        this.$("#project").tabs();
+    },
+    
+    render: function(){
+        this.$el.html(this.template(this.model.toJSON()));
+        this.renderInitiatives();
+        this.renderProjects();
+        /*
+        this.$el.append($('<div>').attr('id', 'diag_article'));
+	    $('#diag_article').append($('<h3>').text('Select an article below:'));
+	    $('#diag_article').append($('<div>').attr('id', 'd_article_list'));
+	    $('#diag_article').append($('<div>').attr('id', 'd_article_list_loading'));
+	    $('#d_article_list_loading').append($('<span>').text('Loading . . .'));
+	    $('#diag_article').dialog({
+		    resizable: false,
+		    width: 'auto',
+		    height: 300,
+		    autoOpen: true,
+		    title: 'Select Article'
+	    });
+	    // Query the DB to get a listing of the available articles.
+	    $.getJSON('dbquery.php?list', function(data) {
+		    for (var i = 0; i < data.length; ++i) {
+			    $('#d_article_list').append($('<h3>').append($('<a>').append($('<span>').text(data[i]['title'])).append($('<span>').text('('+data[i]['rev_count']+' Revisions)').attr('style','float:right')).attr('href', '#')));
+			
+			    // Function which is called when we select an article to view.
+			    function getClickClosure(in_datum) {
+				    this.datum = in_datum;
+				    return function() {
+					    var title = in_datum['title'];
+					    $('#page_title').text(title);
+					    WIKIVIZ.init(title);	// Init the visualization with this article.
+					    $('#everything').fadeIn("slow");
+					    $('#diag_article').dialog('close');
+				    }
+			    }
+			
+			    $('#d_article_list').append($('<div>').append($('<button>').attr('id', 'd_article_enter_'+i).text('Go').click(getClickClosure(data[i]))));
+		    }
+		    $('#d_article_list').accordion({
+			    collapsible: true,
+			    active: false,
+			    autoHeight: false,
+			    clearStyle: true
+		    });
+		    $('#d_article_list_loading').remove();
+	    });
+	    */
+	    return this.$el;
+	}
+});
+
+// ## ArticleView
+ArticleView = Backbone.View.extend({
+    
+    initialize: function(){
+        this.template = _.template($("#main_container_template").html());
+    },
+    
+    render: function(){
+        this.$el.html(this.template());
+        WIKIVIZ.init(this.model.get('title'));
+        return this.$el;
+    }
+    
+});
+
+// From http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format
+// Sort of like Python's new string formatting method. Handy when one wants to do some large string substitutions.
+String.prototype.format = function() {
+  var args = arguments;
+  return this.replace(/{(\d+)}/g, function(match, number) { 
+    return typeof args[number] != 'undefined'
+      ? args[number]
+      : match
+    ;
+  });
+};
+
+// Takes in a javascript date object and pretty-prints it to a string which is returned.
+WIKIVIZ.formatDate = function(dt) {
+	return ['January', 'February', 'March',
+		'April', 'May', 'June',
+		'July', 'August', 'September',
+		'October', 'November', 'December'][dt.getMonth()] +
+		' ' + dt.getDate() + ', ' + dt.getFullYear() + '   ' +
+		('0'+dt.getHours()).substr(-2,2) + ':' +
+		('0'+dt.getMinutes()).substr(-2,2);	// Thanks to http://stackoverflow.com/questions/5250244/jquery-date-formatting
+							// for the quick fix for hours, minutes and seconds!
+};
+
+// Build a sorting key for the sorttable library to sort the date field used in the table view.
+WIKIVIZ.getDateSortKey = function(dt) {
+	return String(dt.getFullYear()) + ('0'+dt.getMonth()).substr(-2, 2) +
+		('0'+dt.getDate()).substr(-2, 2) + ('0'+dt.getHours()).substr(-2,2) +
+		('0'+dt.getMinutes()).substr(-2,2)+('0'+dt.getSeconds()).substr(-2,2);
+};
+
+// Take two lists, interpret as sets, and return true if subset_l is a subset of superset_l
+WIKIVIZ.isSubset = function(subset_l, superset_l) {
+	var superset = {};
+	for (var i = 0; i < superset_l.length; ++i) {
+		superset[superset_l[i]] = true;
+	}
+	for (var i = 0; i < subset_l.length; ++i) {
+		if (!superset.hasOwnProperty(subset_l[i])) {
+			return false;
+		}
+	}
+	return true;
+};
+
+// Generate a string describing a given article revisions' edit categories
+WIKIVIZ.toClassString = function(rc)
+{
+	return rc.split(';').map(function(c) { return ({
+			'a': 'edit',
+			'b': 'add',
+			'c': 'remove',
+			'd': 'reorganize',
+			'e': 'cite',
+			'f': 'vandalize',
+			'g': 'unvandalize',
+			'x': 'unclassified'
+		})[c]; }).join(', ');
+};
+
+// Generate a string describing a given talk page revision entry's revision categories.
+WIKIVIZ.toTalkClassString = function(d) {
+	var ret = "";
+	if (d.att) ret += "attitude, ";
+	if (d.crit) ret += "criticism, ";
+	if (d.inf) ret += "informative, ";
+	if (d.perf) ret += "performative, ";
+	return ret.substring(0,ret.length-2);
+}
+
+// Return absolute max (disregarding sign) of func(arr[i])
+WIKIVIZ.absMax = function(arr, func)
+{
+	if (!(arr instanceof Array) || (arr.length < 1)) return undefined;
+	var max = func(arr[0]);
+	for (var i = 1; i < arr.length; ++i) {
+		max = Math.max(max, Math.abs(func(arr[i])));
+	}
+	return max;
+};
+
+$.ajaxSetup({ cache: false });
+
+PageRouter = Backbone.Router.extend({
+    routes: {
+        "test": "testRoute",
+        "*actions": "defaultRoute"
+    },
+    
+    defaultRoute: function(actions){
+        var articles = new ArticleCollection();
+        articles.fetch();
+        var newArticleView = new NewArticleView({el: "#content", model: articles});
+        newArticleView.render();
+    }
+    
+});
+
+// Initiate the router
+pageRouter = new PageRouter();
+
+// Start Backbone history a necessary step for bookmarkable URL's
+Backbone.history.start();
 
 })(window,document);

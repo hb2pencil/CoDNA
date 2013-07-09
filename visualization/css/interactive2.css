@@ -1,6 +1,6 @@
 body {
 	background-color: #aaa;
-	font-family: sans-serif;
+	font-family: 'PT Sans', sans-serif;
 	font-size: 12px;
 }
 
@@ -56,7 +56,7 @@ header h1 {
 }
 
 #everything {
-	display: none;
+
 }
 
 #toolbar_wrapper {
@@ -601,4 +601,108 @@ rect.sd {
 	/*stroke: #777;
 	stroke-width: 1px;*/
 	fill: #777;
+}
+
+/* New Article View */
+table.new_article .ui-tabs {
+    border: none !important;
+}
+
+table.new_article .ui-widget-header {
+    border: none !important;
+    background: none !important;
+}
+
+table.new_article .ui-tabs-panel {
+    padding: 0;
+}
+
+table.new_article .ui-tabs-nav {
+    padding: 0;
+}
+
+table.new_article {
+    padding-top: 50px;
+    padding-left: 30px;
+    padding-right: 30px;
+    border-spacing: 0;
+}
+
+table.new_article thead > tr > th {
+    border-bottom: 2px solid #CCCCCC;
+}
+
+table.new_article th {
+    font-weight: normal;
+    background: none;
+    text-align: left;
+    font-size: 20px;
+}
+
+table.new_article .select {
+    display: inline-block;
+    max-height: 200px;
+    height: 200px;
+    border: 1px solid #AAAAAA;
+    width: 80%;
+    margin: 1px 0;
+    vertical-align: middle;
+    overflow-y: auto;
+}
+
+table.new_article .select > .option {
+    -webkit-transition: background 0.16s ease-in-out;
+    -moz-transition: background 0.16s ease-in-out;
+    -ms-transition: background 0.16s ease-in-out;
+    -o-transition: background 0.16s ease-in-out;
+    border-bottom: 1px solid #AAAAAA;
+    padding: 5px;
+}
+
+table.new_article .select > .option:hover {
+    background: #CFECAD;
+    cursor: pointer;
+}
+
+table.new_article .select > .option.selected {
+    background: #80CC28;
+}
+
+table.new_article .select > .option > .label {
+    display: table-cell;
+    width: 100%;
+}
+
+table.new_article .select > .option > .count {
+    display: table-cell;
+    text-align: right;
+    font-style: italic;
+    white-space: nowrap;
+}
+
+table.new_article button {
+    -webkit-transition: background 0.20s ease-in-out;
+    -moz-transition: background 0.20s ease-in-out;
+    -ms-transition: background 0.20s ease-in-out;
+    -o-transition: background 0.20s ease-in-out;
+    background: #80CC28;
+    border: 1px solid #425922;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -khtml-border-radius: 5px;
+    border-radius: 5px;
+    line-height: 16px;
+    padding: 15px 25px;
+    color: #FFFFFF;
+    font-size: 16px;
+}
+
+table.new_article button:hover {
+    background: #70B323;
+    cursor: pointer;
+}
+
+.green_arrow {
+    margin-left: 15px;
+    vertical-align: middle;
 }

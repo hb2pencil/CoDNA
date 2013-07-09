@@ -1,4 +1,4 @@
-$(document).ready(function() {
+/*$(document).ready(function() {
 	// Quick 'N dirty way to allow user to select which article to view.
 	// This is the modal dialog that appears on page load.
 	$('body').append($('<div>').attr('id', 'diag_article'));
@@ -40,4 +40,4 @@ $(document).ready(function() {
 		});
 		$('#d_article_list_loading').remove();
 	});
-});
+});*/
