@@ -3838,6 +3838,7 @@ then they are spaced and rerendered.</p>
                     stop: $.proxy(<span class="keyword">function</span>(){
                         tabView.$el.css(<span class="string">'z-index'</span>, <span class="number">0</span>);
                         <span class="keyword">this</span>.order();
+                        <span class="keyword">this</span>.render();
                     }, <span class="keyword">this</span>)
                 });
             }
@@ -3953,8 +3954,8 @@ the clicked tab is selected, and the previously selected tab is unselected</p>
         <span class="keyword">this</span>.model.get(<span class="string">'mainView'</span>).remove();
         <span class="keyword">this</span>.$el.hide(<span class="string">'slide'</span>, <span class="number">200</span>, $.proxy(<span class="keyword">function</span>(){
             topTabs.remove(<span class="keyword">this</span>.model);
-            <span class="keyword">if</span>(topTabs.last() != <span class="literal">null</span> &amp;&amp; topTabs.last().get(<span class="string">'type'</span>) != <span class="string">'new'</span>){
-                topTabs.last().set(<span class="string">'selected'</span>, <span class="literal">true</span>);
+            <span class="keyword">if</span>(topTabs.at(topTabs.length-<span class="number">2</span>)){
+                topTabs.at(topTabs.length-<span class="number">2</span>).set(<span class="string">'selected'</span>, <span class="literal">true</span>);
             }
         }, <span class="keyword">this</span>));
     },
