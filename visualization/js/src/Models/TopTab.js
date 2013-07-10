@@ -28,6 +28,8 @@ NewTopTab = TopTab.extend({
     
     defaults: {
         type: "new",
+        color: "#EEEEEE",
+        hoverColor: "#DDDDDD",
         title: "<b>&#10133;</b>",
         selected: false,
         x: Number.MAX_VALUE,
