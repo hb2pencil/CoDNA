@@ -20,7 +20,7 @@
 
 	<body>
 		<div id="everything">
-			<div id="floater"></div>
+		    <div id="topTabs"></div>
 			<div id="content" class="ui-corner-all">
 				<!-- This is where all the content goes -->
 			</div>
@@ -235,9 +235,11 @@
 	        <script type="text/javascript" src="js/src/main.js"></script>
 	        
 	        <!-- Models -->
+	        <script type="text/javascript" src="js/src/Models/TopTab.js"></script>
 	        <script type="text/javascript" src="js/src/Models/Article.js"></script>
 	        
 	        <!-- Views -->
+	        <script type="text/javascript" src="js/src/Views/TopTabView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/NewArticleView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/ArticleView.js"></script>
 	        

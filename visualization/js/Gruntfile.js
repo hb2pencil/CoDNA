@@ -23,9 +23,8 @@ module.exports = function(grunt) {
           'src/visualization.js',
           'src/main.js',
           
-          'src/Models/Article.js',
-          'src/Views/NewArticleView.js',
-          'src/Views/ArticleView.js',
+          'src/Models/*.js',
+          'src/Views/*.js',
           'src/helpers.js',
           'src/router.js'
         ],

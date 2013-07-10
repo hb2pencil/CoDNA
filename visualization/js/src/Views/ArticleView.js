@@ -1,8 +1,10 @@
 // ## ArticleView
 ArticleView = Backbone.View.extend({
     
+    template: _.template($("#main_container_template").html()),
+    
     initialize: function(){
-        this.template = _.template($("#main_container_template").html());
+        
     },
     
     render: function(){

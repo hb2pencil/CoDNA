@@ -3391,7 +3391,9 @@ Use a new time-spaced scale for display.</p>
 	}
 }
 
-<span class="comment">/*$(document).ready(function() {</pre></div></div>
+$(document).ready(<span class="keyword">function</span>() {
+	
+});</pre></div></div>
             
         </li>
         
@@ -3399,88 +3401,8 @@ Use a new time-spaced scale for display.</p>
         <li id="section-154">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-154">&#182;</a>
-              </div>
-              <p>Quick &#39;N dirty way to allow user to select which article to view.
-This is the modal dialog that appears on page load.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>	$(<span class="string">'body'</span>).append($(<span class="string">'&lt;div&gt;'</span>).attr(<span class="string">'id'</span>, <span class="string">'diag_article'</span>));
-	$(<span class="string">'#diag_article'</span>).append($(<span class="string">'&lt;h3&gt;'</span>).text(<span class="string">'Select an article below:'</span>));
-	$(<span class="string">'#diag_article'</span>).append($(<span class="string">'&lt;div&gt;'</span>).attr(<span class="string">'id'</span>, <span class="string">'d_article_list'</span>));
-	$(<span class="string">'#diag_article'</span>).append($(<span class="string">'&lt;div&gt;'</span>).attr(<span class="string">'id'</span>, <span class="string">'d_article_list_loading'</span>));
-	$(<span class="string">'#d_article_list_loading'</span>).append($(<span class="string">'&lt;span&gt;'</span>).text(<span class="string">'Loading . . .'</span>));
-	$(<span class="string">'#diag_article'</span>).dialog({
-		resizable: <span class="literal">false</span>,
-		width: <span class="string">'auto'</span>,
-		height: <span class="number">300</span>,
-		autoOpen: <span class="literal">true</span>,
-		title: <span class="string">'Select Article'</span>
-	});</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-155">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-155">&#182;</a>
-              </div>
-              <p>Query the DB to get a listing of the available articles.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>	$.getJSON(<span class="string">'dbquery.php?list'</span>, <span class="keyword">function</span>(data) {
-		<span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; data.length; ++i) {
-			$(<span class="string">'#d_article_list'</span>).append($(<span class="string">'&lt;h3&gt;'</span>).append($(<span class="string">'&lt;a&gt;'</span>).append($(<span class="string">'&lt;span&gt;'</span>).text(data[i][<span class="string">'title'</span>])).append($(<span class="string">'&lt;span&gt;'</span>).text(<span class="string">'('</span>+data[i][<span class="string">'rev_count'</span>]+<span class="string">' Revisions)'</span>).attr(<span class="string">'style'</span>,<span class="string">'float:right'</span>)).attr(<span class="string">'href'</span>, <span class="string">'#'</span>)));</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-156">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-156">&#182;</a>
-              </div>
-              <p>Function which is called when we select an article to view.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>			function getClickClosure(in_datum) {
-				this.datum = in_datum;
-				return function() {
-					var title = in_datum['title'];
-					$('#page_title').text(title);
-					WIKIVIZ.init(title);	// Init the visualization with this article.
-					$('#everything').fadeIn("slow");
-					$('#diag_article').dialog('close');
-				}
-			}
-			
-			$('#d_article_list').append($('&lt;div&gt;').append($('&lt;button&gt;').attr('id', 'd_article_enter_'+i).text('Go').click(getClickClosure(data[i]))));
-		}
-		$('#d_article_list').accordion({
-			collapsible: true,
-			active: false,
-			autoHeight: false,
-			clearStyle: true
-		});
-		$('#d_article_list_loading').remove();
-	});
-});*/</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-157">
-            <div class="annotation">
-              
               <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-157">&#182;</a>
+                <a class="pilcrow" href="#section-154">&#182;</a>
               </div>
               <h2>Article</h2>
 
@@ -3504,11 +3426,11 @@ This is the modal dialog that appears on page load.</p>
         </li>
         
         
-        <li id="section-158">
+        <li id="section-155">
             <div class="annotation">
               
               <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-158">&#182;</a>
+                <a class="pilcrow" href="#section-155">&#182;</a>
               </div>
               <h2>ArticleCollection</h2>
 
@@ -3519,6 +3441,86 @@ This is the modal dialog that appears on page load.</p>
     model: Article,
     
     url: <span class="string">"dbquery.php?list"</span>
+    
+});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-156">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-156">&#182;</a>
+              </div>
+              <h2>TopTab</h2>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>TopTab = Backbone.Model.extend({
+
+    initialize: <span class="keyword">function</span>(){
+        
+    },
+    
+    defaults: {
+        title: <span class="string">""</span>,
+        selected: <span class="literal">false</span>,
+        x: <span class="number">0</span>,
+        mainView: <span class="literal">null</span>
+    }
+
+});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-157">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-157">&#182;</a>
+              </div>
+              <h2>TopTabCollection</h2>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>TopTabCollection = Backbone.Collection.extend({
+    
+    comparator: <span class="keyword">function</span>(tab){
+        <span class="keyword">return</span> tab.get(<span class="string">'x'</span>);
+    },
+    
+    model: TopTab 
+    
+});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-158">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h2">
+                <a class="pilcrow" href="#section-158">&#182;</a>
+              </div>
+              <h2>ArticleView</h2>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>ArticleView = Backbone.View.extend({
+    
+    template: _.template($(<span class="string">"#main_container_template"</span>).html()),
+    
+    initialize: <span class="keyword">function</span>(){
+        
+    },
+    
+    render: <span class="keyword">function</span>(){
+        <span class="keyword">this</span>.$el.html(<span class="keyword">this</span>.template());
+        WIKIVIZ.init(<span class="keyword">this</span>.model.get(<span class="string">'title'</span>));
+        <span class="keyword">return</span> <span class="keyword">this</span>.$el;
+    }
     
 });</pre></div></div>
             
@@ -3537,9 +3539,10 @@ This is the modal dialog that appears on page load.</p>
             
             <div class="content"><div class='highlight'><pre>NewArticleView = Backbone.View.extend({    
     
+    template: _.template($(<span class="string">"#new_article_template"</span>).html()),
+    
     initialize: <span class="keyword">function</span>(){
         <span class="keyword">this</span>.listenTo(<span class="keyword">this</span>.model, <span class="string">'sync'</span>, <span class="keyword">this</span>.render);
-        <span class="keyword">this</span>.template = _.template($(<span class="string">"#new_article_template"</span>).html());
     },
     
     events: {
@@ -3600,19 +3603,9 @@ This is the modal dialog that appears on page load.</p>
         <span class="keyword">this</span>.$el.html(<span class="keyword">this</span>.template(<span class="keyword">this</span>.model.toJSON()));
         <span class="keyword">this</span>.renderInitiatives();
         <span class="keyword">this</span>.renderProjects();
-        <span class="comment">/*
-        this.$el.append($('&lt;div&gt;').attr('id', 'diag_article'));
-	    $('#diag_article').append($('&lt;h3&gt;').text('Select an article below:'));
-	    $('#diag_article').append($('&lt;div&gt;').attr('id', 'd_article_list'));
-	    $('#diag_article').append($('&lt;div&gt;').attr('id', 'd_article_list_loading'));
-	    $('#d_article_list_loading').append($('&lt;span&gt;').text('Loading . . .'));
-	    $('#diag_article').dialog({
-		    resizable: false,
-		    width: 'auto',
-		    height: 300,
-		    autoOpen: true,
-		    title: 'Select Article'
-	    });</pre></div></div>
+	    <span class="keyword">return</span> <span class="keyword">this</span>.$el;
+	}
+});</pre></div></div>
             
         </li>
         
@@ -3620,16 +3613,21 @@ This is the modal dialog that appears on page load.</p>
         <li id="section-160">
             <div class="annotation">
               
-              <div class="pilwrap ">
+              <div class="pilwrap for-h2">
                 <a class="pilcrow" href="#section-160">&#182;</a>
               </div>
-              <p>Query the DB to get a listing of the available articles.</p>
+              <h2>TopTabsView</h2>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>	    $.getJSON(<span class="string">'dbquery.php?list'</span>, <span class="keyword">function</span>(data) {
-		    <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; data.length; ++i) {
-			    $(<span class="string">'#d_article_list'</span>).append($(<span class="string">'&lt;h3&gt;'</span>).append($(<span class="string">'&lt;a&gt;'</span>).append($(<span class="string">'&lt;span&gt;'</span>).text(data[i][<span class="string">'title'</span>])).append($(<span class="string">'&lt;span&gt;'</span>).text(<span class="string">'('</span>+data[i][<span class="string">'rev_count'</span>]+<span class="string">' Revisions)'</span>).attr(<span class="string">'style'</span>,<span class="string">'float:right'</span>)).attr(<span class="string">'href'</span>, <span class="string">'#'</span>)));</pre></div></div>
+            <div class="content"><div class='highlight'><pre>TopTabsView = Backbone.View.extend({
+
+    views: <span class="keyword">new</span> Array(),
+
+    initialize: <span class="keyword">function</span>(){
+        <span class="keyword">this</span>.listenTo(<span class="keyword">this</span>.model, <span class="string">'add'</span>, <span class="keyword">this</span>.render);
+        <span class="keyword">this</span>.listenTo(<span class="keyword">this</span>.model, <span class="string">'remove'</span>, <span class="keyword">this</span>.render);
+    },</pre></div></div>
             
         </li>
         
@@ -3640,35 +3638,55 @@ This is the modal dialog that appears on page load.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-161">&#182;</a>
               </div>
-              <p>Function which is called when we select an article to view.</p>
+              <p>Orders each tab and spacing them correctly.</p>
+<p>First the tabs are sorted based on their x position,
+then they are spaced and rerendered.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>			    function getClickClosure(in_datum) {
-				    this.datum = in_datum;
-				    return function() {
-					    var title = in_datum['title'];
-					    $('#page_title').text(title);
-					    WIKIVIZ.init(title);	// Init the visualization with this article.
-					    $('#everything').fadeIn("slow");
-					    $('#diag_article').dialog('close');
-				    }
-			    }
-			
-			    $('#d_article_list').append($('&lt;div&gt;').append($('&lt;button&gt;').attr('id', 'd_article_enter_'+i).text('Go').click(getClickClosure(data[i]))));
-		    }
-		    $('#d_article_list').accordion({
-			    collapsible: true,
-			    active: false,
-			    autoHeight: false,
-			    clearStyle: true
-		    });
-		    $('#d_article_list_loading').remove();
-	    });
-	    */
-	    return this.$el;
-	}
-});</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    order: <span class="keyword">function</span>(){
+        <span class="keyword">this</span>.model.sort();
+        <span class="keyword">var</span> startX = TopTabsView.leftMargin;
+        <span class="keyword">this</span>.model.each(<span class="keyword">function</span>(tab, index){
+            tab.set(<span class="string">'x'</span>, startX, {silent: <span class="literal">true</span>});
+            startX += <span class="keyword">this</span>.$(<span class="string">"#tab_"</span> + tab.cid).outerWidth() + TopTabsView.spacing;
+            <span class="keyword">this</span>.views[index].render();
+        }, <span class="keyword">this</span>);
+    },
+    
+    render: <span class="keyword">function</span>(){
+        _.each(<span class="keyword">this</span>.views, <span class="keyword">function</span>(view){
+            view.remove();
+        });
+        <span class="keyword">this</span>.views = <span class="keyword">new</span> Array();
+        <span class="keyword">this</span>.$el.empty();
+        <span class="keyword">this</span>.model.each(<span class="keyword">function</span>(tab){
+            <span class="keyword">var</span> tabView = <span class="keyword">new</span> TopTabView({model: tab});
+            <span class="keyword">this</span>.$el.append(tabView.render());
+            tabView.$el.draggable({
+                axis: <span class="string">"x"</span>,
+                start: $.proxy(<span class="keyword">function</span>(e, ui){
+                    tabView.$el.css(<span class="string">'z-index'</span>, <span class="number">1000</span>);
+                }, <span class="keyword">this</span>),
+                drag: $.proxy(<span class="keyword">function</span>(e, ui){
+                    tab.set(<span class="string">'x'</span>, parseInt(tabView.$el.css(<span class="string">'left'</span>)));
+                    <span class="keyword">this</span>.order();
+                }, <span class="keyword">this</span>),
+                stop: $.proxy(<span class="keyword">function</span>(){
+                    tabView.$el.css(<span class="string">'z-index'</span>, <span class="number">0</span>);
+                    <span class="keyword">this</span>.order();
+                }, <span class="keyword">this</span>)
+            });
+            <span class="keyword">this</span>.views.push(tabView);
+        }, <span class="keyword">this</span>);
+        <span class="keyword">this</span>.order();
+        <span class="keyword">return</span> <span class="keyword">this</span>.$el;
+    },
+
+});
+
+TopTabsView.leftMargin = <span class="number">15</span>; <span class="comment">// Left margin for first tab</span>
+TopTabsView.spacing = <span class="number">5</span>; <span class="comment">// Spacing between tabs</span></pre></div></div>
             
         </li>
         
@@ -3679,22 +3697,50 @@ This is the modal dialog that appears on page load.</p>
               <div class="pilwrap for-h2">
                 <a class="pilcrow" href="#section-162">&#182;</a>
               </div>
-              <h2>ArticleView</h2>
+              <h2>TopTabView</h2>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>ArticleView = Backbone.View.extend({
-    
+            <div class="content"><div class='highlight'><pre>TopTabView = Backbone.View.extend({
+
+    template: _.template($(<span class="string">"#top_tab_template"</span>).html()),
+
     initialize: <span class="keyword">function</span>(){
-        <span class="keyword">this</span>.template = _.template($(<span class="string">"#main_container_template"</span>).html());
+        <span class="keyword">this</span>.listenTo(<span class="keyword">this</span>.model, <span class="string">'change'</span>, <span class="keyword">this</span>.render);
+    },
+    
+    events: {
+        <span class="string">"click .x"</span>: <span class="string">"close"</span>
+    },
+    
+    close: <span class="keyword">function</span>(){
+        <span class="keyword">var</span> found = <span class="literal">false</span>;
+        _.each(topTabsView.views, <span class="keyword">function</span>(tab){
+            <span class="keyword">if</span>(found){
+                tab.$el.animate({
+                    <span class="string">'left'</span>: tab.model.get(<span class="string">'x'</span>) - <span class="keyword">this</span>.$el.outerWidth() - TopTabsView.spacing
+                }, <span class="number">200</span>);
+            }
+            <span class="keyword">if</span>(tab == <span class="keyword">this</span>){
+                found = <span class="literal">true</span>;
+            }
+        }, <span class="keyword">this</span>);
+        <span class="keyword">this</span>.$el.hide(<span class="string">'slide'</span>, <span class="number">200</span>, $.proxy(<span class="keyword">function</span>(){
+            topTabs.remove(<span class="keyword">this</span>.model);
+        }, <span class="keyword">this</span>));
     },
     
     render: <span class="keyword">function</span>(){
-        <span class="keyword">this</span>.$el.html(<span class="keyword">this</span>.template());
-        WIKIVIZ.init(<span class="keyword">this</span>.model.get(<span class="string">'title'</span>));
+        <span class="keyword">this</span>.$el.html(<span class="keyword">this</span>.template(<span class="keyword">this</span>.model.toJSON()));
+        <span class="keyword">this</span>.$el.addClass(<span class="string">"tab"</span>);
+        <span class="keyword">this</span>.$el.css(<span class="string">'left'</span>, <span class="keyword">this</span>.model.get(<span class="string">'x'</span>));
+        <span class="keyword">this</span>.$el.attr(<span class="string">'id'</span>, <span class="string">"tab_"</span> + <span class="keyword">this</span>.model.cid);
+        <span class="keyword">if</span>(<span class="keyword">this</span>.model.get(<span class="string">'selected'</span>)){
+            <span class="keyword">this</span>.$el.addClass(<span class="string">'selected'</span>);
+        }
         <span class="keyword">return</span> <span class="keyword">this</span>.$el;
     }
-    
+
 });</pre></div></div>
             
         </li>
@@ -3877,6 +3923,9 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
 
 $.ajaxSetup({ cache: <span class="literal">false</span> });
 
+topTabs = <span class="keyword">new</span> TopTabCollection();
+topTabsView = <span class="keyword">new</span> TopTabsView({model: topTabs, el: <span class="string">"#topTabs"</span>});
+
 PageRouter = Backbone.Router.extend({
     routes: {
         <span class="string">"test"</span>: <span class="string">"testRoute"</span>,
@@ -3887,7 +3936,14 @@ PageRouter = Backbone.Router.extend({
         <span class="keyword">var</span> articles = <span class="keyword">new</span> ArticleCollection();
         articles.fetch();
         <span class="keyword">var</span> newArticleView = <span class="keyword">new</span> NewArticleView({el: <span class="string">"#content"</span>, model: articles});
+        topTabsView.render();
         newArticleView.render();
+        topTabs.add(<span class="keyword">new</span> TopTab({title: <span class="string">"+ Tab..."</span>, mainView: newArticleView, selected: <span class="literal">true</span>}));
+        topTabs.add(<span class="keyword">new</span> TopTab({title: <span class="string">"Hello World"</span>, mainView: newArticleView, selected: <span class="literal">false</span>}));
+        topTabs.add(<span class="keyword">new</span> TopTab({title: <span class="string">"Hello World"</span>, mainView: newArticleView, selected: <span class="literal">false</span>}));
+        topTabs.add(<span class="keyword">new</span> TopTab({title: <span class="string">"Hello World"</span>, mainView: newArticleView, selected: <span class="literal">false</span>}));
+        topTabs.add(<span class="keyword">new</span> TopTab({title: <span class="string">"Hello World"</span>, mainView: newArticleView, selected: <span class="literal">false</span>}));
+        topTabs.add(<span class="keyword">new</span> TopTab({title: <span class="string">"Hello World"</span>, mainView: newArticleView, selected: <span class="literal">false</span>}));
     }
     
 });</pre></div></div>

@@ -1510,49 +1510,9 @@ WIKIVIZ.navctl = {
 	}
 }
 
-/*$(document).ready(function() {
-	// Quick 'N dirty way to allow user to select which article to view.
-	// This is the modal dialog that appears on page load.
-	$('body').append($('<div>').attr('id', 'diag_article'));
-	$('#diag_article').append($('<h3>').text('Select an article below:'));
-	$('#diag_article').append($('<div>').attr('id', 'd_article_list'));
-	$('#diag_article').append($('<div>').attr('id', 'd_article_list_loading'));
-	$('#d_article_list_loading').append($('<span>').text('Loading . . .'));
-	$('#diag_article').dialog({
-		resizable: false,
-		width: 'auto',
-		height: 300,
-		autoOpen: true,
-		title: 'Select Article'
-	});
-	// Query the DB to get a listing of the available articles.
-	$.getJSON('dbquery.php?list', function(data) {
-		for (var i = 0; i < data.length; ++i) {
-			$('#d_article_list').append($('<h3>').append($('<a>').append($('<span>').text(data[i]['title'])).append($('<span>').text('('+data[i]['rev_count']+' Revisions)').attr('style','float:right')).attr('href', '#')));
-			
-			// Function which is called when we select an article to view.
-			function getClickClosure(in_datum) {
-				this.datum = in_datum;
-				return function() {
-					var title = in_datum['title'];
-					$('#page_title').text(title);
-					WIKIVIZ.init(title);	// Init the visualization with this article.
-					$('#everything').fadeIn("slow");
-					$('#diag_article').dialog('close');
-				}
-			}
-			
-			$('#d_article_list').append($('<div>').append($('<button>').attr('id', 'd_article_enter_'+i).text('Go').click(getClickClosure(data[i]))));
-		}
-		$('#d_article_list').accordion({
-			collapsible: true,
-			active: false,
-			autoHeight: false,
-			clearStyle: true
-		});
-		$('#d_article_list_loading').remove();
-	});
-});*/
+$(document).ready(function() {
+	
+});
 
 // ## Article
 Article = Backbone.Model.extend({
@@ -1579,12 +1539,57 @@ ArticleCollection = Backbone.Collection.extend({
     
 });
 
+// ## TopTab
+TopTab = Backbone.Model.extend({
+
+    initialize: function(){
+        
+    },
+    
+    defaults: {
+        title: "",
+        selected: false,
+        x: 0,
+        mainView: null
+    }
+
+});
+
+// ## TopTabCollection
+TopTabCollection = Backbone.Collection.extend({
+    
+    comparator: function(tab){
+        return tab.get('x');
+    },
+    
+    model: TopTab 
+    
+});
+
+// ## ArticleView
+ArticleView = Backbone.View.extend({
+    
+    template: _.template($("#main_container_template").html()),
+    
+    initialize: function(){
+        
+    },
+    
+    render: function(){
+        this.$el.html(this.template());
+        WIKIVIZ.init(this.model.get('title'));
+        return this.$el;
+    }
+    
+});
+
 // ## NewArticleView
 NewArticleView = Backbone.View.extend({    
     
+    template: _.template($("#new_article_template").html()),
+    
     initialize: function(){
         this.listenTo(this.model, 'sync', this.render);
-        this.template = _.template($("#new_article_template").html());
     },
     
     events: {
@@ -1645,64 +1650,109 @@ NewArticleView = Backbone.View.extend({
         this.$el.html(this.template(this.model.toJSON()));
         this.renderInitiatives();
         this.renderProjects();
-        /*
-        this.$el.append($('<div>').attr('id', 'diag_article'));
-	    $('#diag_article').append($('<h3>').text('Select an article below:'));
-	    $('#diag_article').append($('<div>').attr('id', 'd_article_list'));
-	    $('#diag_article').append($('<div>').attr('id', 'd_article_list_loading'));
-	    $('#d_article_list_loading').append($('<span>').text('Loading . . .'));
-	    $('#diag_article').dialog({
-		    resizable: false,
-		    width: 'auto',
-		    height: 300,
-		    autoOpen: true,
-		    title: 'Select Article'
-	    });
-	    // Query the DB to get a listing of the available articles.
-	    $.getJSON('dbquery.php?list', function(data) {
-		    for (var i = 0; i < data.length; ++i) {
-			    $('#d_article_list').append($('<h3>').append($('<a>').append($('<span>').text(data[i]['title'])).append($('<span>').text('('+data[i]['rev_count']+' Revisions)').attr('style','float:right')).attr('href', '#')));
-			
-			    // Function which is called when we select an article to view.
-			    function getClickClosure(in_datum) {
-				    this.datum = in_datum;
-				    return function() {
-					    var title = in_datum['title'];
-					    $('#page_title').text(title);
-					    WIKIVIZ.init(title);	// Init the visualization with this article.
-					    $('#everything').fadeIn("slow");
-					    $('#diag_article').dialog('close');
-				    }
-			    }
-			
-			    $('#d_article_list').append($('<div>').append($('<button>').attr('id', 'd_article_enter_'+i).text('Go').click(getClickClosure(data[i]))));
-		    }
-		    $('#d_article_list').accordion({
-			    collapsible: true,
-			    active: false,
-			    autoHeight: false,
-			    clearStyle: true
-		    });
-		    $('#d_article_list_loading').remove();
-	    });
-	    */
 	    return this.$el;
 	}
 });
 
-// ## ArticleView
-ArticleView = Backbone.View.extend({
-    
+// ## TopTabsView
+TopTabsView = Backbone.View.extend({
+
+    views: new Array(),
+
     initialize: function(){
-        this.template = _.template($("#main_container_template").html());
+        this.listenTo(this.model, 'add', this.render);
+        this.listenTo(this.model, 'remove', this.render);
+    },
+    
+    // Orders each tab and spacing them correctly.
+    // 
+    // First the tabs are sorted based on their x position,
+    // then they are spaced and rerendered.
+    order: function(){
+        this.model.sort();
+        var startX = TopTabsView.leftMargin;
+        this.model.each(function(tab, index){
+            tab.set('x', startX, {silent: true});
+            startX += this.$("#tab_" + tab.cid).outerWidth() + TopTabsView.spacing;
+            this.views[index].render();
+        }, this);
     },
     
     render: function(){
-        this.$el.html(this.template());
-        WIKIVIZ.init(this.model.get('title'));
+        _.each(this.views, function(view){
+            view.remove();
+        });
+        this.views = new Array();
+        this.$el.empty();
+        this.model.each(function(tab){
+            var tabView = new TopTabView({model: tab});
+            this.$el.append(tabView.render());
+            tabView.$el.draggable({
+                axis: "x",
+                start: $.proxy(function(e, ui){
+                    tabView.$el.css('z-index', 1000);
+                }, this),
+                drag: $.proxy(function(e, ui){
+                    tab.set('x', parseInt(tabView.$el.css('left')));
+                    this.order();
+                }, this),
+                stop: $.proxy(function(){
+                    tabView.$el.css('z-index', 0);
+                    this.order();
+                }, this)
+            });
+            this.views.push(tabView);
+        }, this);
+        this.order();
+        return this.$el;
+    },
+
+});
+
+TopTabsView.leftMargin = 15; // Left margin for first tab
+TopTabsView.spacing = 5; // Spacing between tabs
+
+// ## TopTabView
+TopTabView = Backbone.View.extend({
+
+    template: _.template($("#top_tab_template").html()),
+
+    initialize: function(){
+        this.listenTo(this.model, 'change', this.render);
+    },
+    
+    events: {
+        "click .x": "close"
+    },
+    
+    close: function(){
+        var found = false;
+        _.each(topTabsView.views, function(tab){
+            if(found){
+                tab.$el.animate({
+                    'left': tab.model.get('x') - this.$el.outerWidth() - TopTabsView.spacing
+                }, 200);
+            }
+            if(tab == this){
+                found = true;
+            }
+        }, this);
+        this.$el.hide('slide', 200, $.proxy(function(){
+            topTabs.remove(this.model);
+        }, this));
+    },
+    
+    render: function(){
+        this.$el.html(this.template(this.model.toJSON()));
+        this.$el.addClass("tab");
+        this.$el.css('left', this.model.get('x'));
+        this.$el.attr('id', "tab_" + this.model.cid);
+        if(this.model.get('selected')){
+            this.$el.addClass('selected');
+        }
         return this.$el;
     }
-    
+
 });
 
 // From http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format
@@ -1788,6 +1838,9 @@ WIKIVIZ.absMax = function(arr, func)
 
 $.ajaxSetup({ cache: false });
 
+topTabs = new TopTabCollection();
+topTabsView = new TopTabsView({model: topTabs, el: "#topTabs"});
+
 PageRouter = Backbone.Router.extend({
     routes: {
         "test": "testRoute",
@@ -1798,7 +1851,14 @@ PageRouter = Backbone.Router.extend({
         var articles = new ArticleCollection();
         articles.fetch();
         var newArticleView = new NewArticleView({el: "#content", model: articles});
+        topTabsView.render();
         newArticleView.render();
+        topTabs.add(new TopTab({title: "+ Tab...", mainView: newArticleView, selected: true}));
+        topTabs.add(new TopTab({title: "Hello World", mainView: newArticleView, selected: false}));
+        topTabs.add(new TopTab({title: "Hello World", mainView: newArticleView, selected: false}));
+        topTabs.add(new TopTab({title: "Hello World", mainView: newArticleView, selected: false}));
+        topTabs.add(new TopTab({title: "Hello World", mainView: newArticleView, selected: false}));
+        topTabs.add(new TopTab({title: "Hello World", mainView: newArticleView, selected: false}));
     }
     
 });
