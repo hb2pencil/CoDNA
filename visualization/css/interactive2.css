@@ -775,8 +775,3 @@ table.new_article button:hover {
     vertical-align: middle;
 }
 
-/* Overrides */
-.ui-widget {
-    font-family: sans-serif;
-}
-
