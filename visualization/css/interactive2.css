@@ -1,6 +1,6 @@
 body {
 	background-color: #aaa;
-	font-family: 'PT Sans', sans-serif;
+	font-family: sans-serif;
 	font-size: 12px;
 }
 
@@ -617,7 +617,7 @@ div#topTabs {
 div#topTabs .tab {
     position: absolute;
     padding: 5px 10px;
-    background: #FFFFFF;
+    background: #EEEEEE;
     display: inline-block;
     font-size: 12px;
     height: 16px;
@@ -630,13 +630,26 @@ div#topTabs .tab {
     -moz-border-radius-topleft: 4px;
     box-shadow: 1px 2px 3px #222;
     
+    -webkit-transition: background 0.16s, border 0.16s ease-in-out;
+    -moz-transition: background 0.16s, border 0.16s ease-in-out;
+    -ms-transition: background 0.16s, border 0.16s ease-in-out;
+    -o-transition: background 0.16s, border 0.16s ease-in-out;
+    
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
-div#topTabs .tab.selected {
+div#topTabs .tab.selected, div#topTabs .tab.selected:hover {
     border-bottom: 1px solid #FFFFFF;
+    background: #FFFFFF;
 }
 
 div#topTabs .tab:hover {
+    background: #CFECAD;
     cursor: pointer;
 }
 
@@ -744,7 +757,7 @@ table.new_article button {
     padding: 15px 25px;
     color: #FFFFFF;
     font-size: 18px;
-    font-family: 'PT Sans';
+    font-family: sans-serif;
 }
 
 table.new_article button:hover {
@@ -759,6 +772,6 @@ table.new_article button:hover {
 
 /* Overrides */
 .ui-widget {
-    font-family: 'PT Sans', sans-serif;
+    font-family: sans-serif;
 }
 

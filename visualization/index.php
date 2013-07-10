@@ -13,7 +13,6 @@
 		<title>Interactive Visualization</title>
 		<meta name="description" content="Interactive visualization of Wikipedia Article edit history." />
 		<meta name="author" content="Henry Brausen, David Turner" />
-		<link type="text/css" rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700,700italic">
 		<link rel="stylesheet" href="css/jquery-ui-1.8.21.custom.css">
 		<link rel="stylesheet" href="css/interactive2.css">
 	</head>

@@ -2,8 +2,13 @@
 NewArticleView = Backbone.View.extend({    
     
     template: _.template($("#new_article_template").html()),
+    firstRender: true,
     
     initialize: function(){
+        var id = _.uniqueId();
+        $("#content").append("<div id='" + id + "'>");
+        this.$el = $("#" + id);
+        this.el = $("#" + id)[0];
         this.listenTo(this.model, 'sync', this.render);
     },
     
@@ -13,6 +18,7 @@ NewArticleView = Backbone.View.extend({
         "click #analyse button": "clickAnalyse"
     },
     
+    // Triggered when one of the options in the initiative list is clicked
     clickInitiative: function(e){
         this.$("#initiative .option").not(e.currentTarget).removeClass('selected');
         $(e.currentTarget).toggleClass('selected');
@@ -30,6 +36,7 @@ NewArticleView = Backbone.View.extend({
         }
     },
     
+    // Triggered when one of the options in the project/contributor list is clicked
     clickProject: function(e){
         this.$("#project .option").not(e.currentTarget).removeClass('selected');
         $(e.currentTarget).toggleClass('selected');
@@ -43,16 +50,23 @@ NewArticleView = Backbone.View.extend({
         }
     },
     
+    // Triggered when the analyse button is clicked
     clickAnalyse: function(e){
         var title = this.$("#project .option.selected .label").text();
-        var articleView = new ArticleView({el: "#content", model: this.model.findWhere({'title': title})});
+        var articleView = new ArticleView({model: this.model.findWhere({'title': title})});
+        topTabs.getSelected().set('title', title);
+        topTabs.getSelected().set('mainView', articleView);
         articleView.render();
+        topTabsView.render();
+        this.remove();
     },
     
+    // Renders the initiatives list
     renderInitiatives: function(){
         this.$("#initiative").tabs();
     },
     
+    // Renders the projects/contributors list
     renderProjects: function(){
         this.$("#project #tabs-project .select").empty();
         this.model.each(function(article){
@@ -62,9 +76,18 @@ NewArticleView = Backbone.View.extend({
     },
     
     render: function(){
-        this.$el.html(this.template(this.model.toJSON()));
-        this.renderInitiatives();
-        this.renderProjects();
+        if(topTabs.getSelected() != null && topTabs.getSelected().get('mainView') == this){
+            this.$el.css('display', 'block');
+        }
+        else{
+            this.$el.css('display', 'none');
+        }
+        if(this.firstRender){
+            this.$el.html(this.template(this.model.toJSON()));
+            this.renderInitiatives();
+            this.renderProjects();
+        }
+        this.firstRender = false;
 	    return this.$el;
 	}
 });

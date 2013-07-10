@@ -1543,14 +1543,34 @@ ArticleCollection = Backbone.Collection.extend({
 TopTab = Backbone.Model.extend({
 
     initialize: function(){
+        this.on('change:selected', function(){
+            this.get('mainView').render();
+        }, this);
+    },
+    
+    defaults: {
+        type: "tab",
+        title: "",
+        selected: false,
+        x: Number.MAX_VALUE/2,
+        mainView: null
+    }
+
+});
+
+// ## NewTopTab (used for a "+" button to create a new tab)
+NewTopTab = TopTab.extend({
+
+    initialize: function(){
         
     },
     
     defaults: {
-        title: "",
+        type: "new",
+        title: "<b>&#10133;</b>",
         selected: false,
-        x: 0,
-        mainView: null
+        x: Number.MAX_VALUE,
+        mainView: null,
     }
 
 });
@@ -1558,11 +1578,21 @@ TopTab = Backbone.Model.extend({
 // ## TopTabCollection
 TopTabCollection = Backbone.Collection.extend({
     
+    // Comparator is the x coordinate of the tab.
+    // Tabs of type 'new' should be treates specially, and always be at the end
     comparator: function(tab){
+        if(tab.get('type') == 'new'){
+            return Number.MAX_VALUE;
+        }
         return tab.get('x');
     },
     
-    model: TopTab 
+    // Returns the currently selected tab
+    getSelected: function(){
+        return this.findWhere({'selected': true});
+    },
+    
+    model: TopTab
     
 });
 
@@ -1570,14 +1600,27 @@ TopTabCollection = Backbone.Collection.extend({
 ArticleView = Backbone.View.extend({
     
     template: _.template($("#main_container_template").html()),
+    firstRender: true,
     
     initialize: function(){
-        
+        var id = _.uniqueId();
+        $("#content").append("<div id='" + id + "'>");
+        this.$el = $("#" + id);
+        this.el = $("#" + id)[0];
     },
     
     render: function(){
-        this.$el.html(this.template());
-        WIKIVIZ.init(this.model.get('title'));
+        if(topTabs.getSelected() != null && topTabs.getSelected().get('mainView') == this){
+            this.$el.css('display', 'block');
+        }
+        else{
+            this.$el.css('display', 'none');
+        }
+        if(this.firstRender){
+            this.$el.html(this.template());
+            WIKIVIZ.init(this.model.get('title'));
+        }
+        this.firstRender = false;
         return this.$el;
     }
     
@@ -1587,8 +1630,13 @@ ArticleView = Backbone.View.extend({
 NewArticleView = Backbone.View.extend({    
     
     template: _.template($("#new_article_template").html()),
+    firstRender: true,
     
     initialize: function(){
+        var id = _.uniqueId();
+        $("#content").append("<div id='" + id + "'>");
+        this.$el = $("#" + id);
+        this.el = $("#" + id)[0];
         this.listenTo(this.model, 'sync', this.render);
     },
     
@@ -1598,6 +1646,7 @@ NewArticleView = Backbone.View.extend({
         "click #analyse button": "clickAnalyse"
     },
     
+    // Triggered when one of the options in the initiative list is clicked
     clickInitiative: function(e){
         this.$("#initiative .option").not(e.currentTarget).removeClass('selected');
         $(e.currentTarget).toggleClass('selected');
@@ -1615,6 +1664,7 @@ NewArticleView = Backbone.View.extend({
         }
     },
     
+    // Triggered when one of the options in the project/contributor list is clicked
     clickProject: function(e){
         this.$("#project .option").not(e.currentTarget).removeClass('selected');
         $(e.currentTarget).toggleClass('selected');
@@ -1628,16 +1678,23 @@ NewArticleView = Backbone.View.extend({
         }
     },
     
+    // Triggered when the analyse button is clicked
     clickAnalyse: function(e){
         var title = this.$("#project .option.selected .label").text();
-        var articleView = new ArticleView({el: "#content", model: this.model.findWhere({'title': title})});
+        var articleView = new ArticleView({model: this.model.findWhere({'title': title})});
+        topTabs.getSelected().set('title', title);
+        topTabs.getSelected().set('mainView', articleView);
         articleView.render();
+        topTabsView.render();
+        this.remove();
     },
     
+    // Renders the initiatives list
     renderInitiatives: function(){
         this.$("#initiative").tabs();
     },
     
+    // Renders the projects/contributors list
     renderProjects: function(){
         this.$("#project #tabs-project .select").empty();
         this.model.each(function(article){
@@ -1647,9 +1704,18 @@ NewArticleView = Backbone.View.extend({
     },
     
     render: function(){
-        this.$el.html(this.template(this.model.toJSON()));
-        this.renderInitiatives();
-        this.renderProjects();
+        if(topTabs.getSelected() != null && topTabs.getSelected().get('mainView') == this){
+            this.$el.css('display', 'block');
+        }
+        else{
+            this.$el.css('display', 'none');
+        }
+        if(this.firstRender){
+            this.$el.html(this.template(this.model.toJSON()));
+            this.renderInitiatives();
+            this.renderProjects();
+        }
+        this.firstRender = false;
 	    return this.$el;
 	}
 });
@@ -1687,20 +1753,22 @@ TopTabsView = Backbone.View.extend({
         this.model.each(function(tab){
             var tabView = new TopTabView({model: tab});
             this.$el.append(tabView.render());
-            tabView.$el.draggable({
-                axis: "x",
-                start: $.proxy(function(e, ui){
-                    tabView.$el.css('z-index', 1000);
-                }, this),
-                drag: $.proxy(function(e, ui){
-                    tab.set('x', parseInt(tabView.$el.css('left')));
-                    this.order();
-                }, this),
-                stop: $.proxy(function(){
-                    tabView.$el.css('z-index', 0);
-                    this.order();
-                }, this)
-            });
+            if(tab.get('type') == 'tab'){
+                tabView.$el.draggable({
+                    axis: "x",
+                    start: $.proxy(function(e, ui){
+                        tabView.$el.css('z-index', 1000);
+                    }, this),
+                    drag: $.proxy(function(e, ui){
+                        tab.set('x', parseInt(tabView.$el.css('left')));
+                        this.order();
+                    }, this),
+                    stop: $.proxy(function(){
+                        tabView.$el.css('z-index', 0);
+                        this.order();
+                    }, this)
+                });
+            }
             this.views.push(tabView);
         }, this);
         this.order();
@@ -1722,9 +1790,46 @@ TopTabView = Backbone.View.extend({
     },
     
     events: {
-        "click .x": "close"
+        "click .x": "close",
+        "click": "click"
     },
     
+    // Triggered when a tab is clicked (clicking the 'x' doesn't count)
+    // 
+    // If a '+' tab was clicked, then a new tab is created and selected, otherwise
+    // the clicked tab is selected, and the previously selected tab is unselected
+    click: function(e){
+        if(this.model.get('type') == 'new'){
+            var tab = new TopTab({title: "New Tab", mainView: new NewArticleView({model: articles})});
+            var beforeX = _.last(topTabsView.views).model.get('x');
+            topTabs.add(tab);
+            topTabsView.order();
+            var selected = topTabs.getSelected();
+            if(selected != null && selected != this.model){
+                selected.set('selected', false);
+            }
+            tab.set('selected', true);
+            $("#tab_" + tab.cid).css('display', 'none');
+            $("#tab_" + tab.cid).show('slide', 200);
+            _.last(topTabsView.views).$el.css('left', beforeX);
+            _.last(topTabsView.views).$el.animate({
+                'left': tab.get('x') + $("#tab_" + tab.cid).outerWidth() + TopTabsView.spacing
+            }, 200);
+        }
+        else{
+            if(!$(e.target).hasClass('x')){
+                var selected = topTabs.getSelected();
+                if(selected != null && selected != this.model){
+                    selected.set('selected', false);
+                }
+                if(!this.model.get('selected')){
+                    this.model.set('selected', true);
+                }
+            }
+        }
+    },
+    
+    // Closes this tab and removes it.  The last tab is then selected
     close: function(){
         var found = false;
         _.each(topTabsView.views, function(tab){
@@ -1737,18 +1842,27 @@ TopTabView = Backbone.View.extend({
                 found = true;
             }
         }, this);
+        this.model.set('selected', false);
+        this.model.get('mainView').remove();
         this.$el.hide('slide', 200, $.proxy(function(){
             topTabs.remove(this.model);
+            if(topTabs.last() != null && topTabs.last().get('type') != 'new'){
+                topTabs.last().set('selected', true);
+            }
         }, this));
     },
     
     render: function(){
         this.$el.html(this.template(this.model.toJSON()));
         this.$el.addClass("tab");
+        this.$el.stop();
         this.$el.css('left', this.model.get('x'));
         this.$el.attr('id', "tab_" + this.model.cid);
         if(this.model.get('selected')){
             this.$el.addClass('selected');
+        }
+        else{
+            this.$el.removeClass('selected');
         }
         return this.$el;
     }
@@ -1838,6 +1952,8 @@ WIKIVIZ.absMax = function(arr, func)
 
 $.ajaxSetup({ cache: false });
 
+articles = new ArticleCollection(); // TODO: Change this.  This should be in NewArticleView, not globally defined
+articles.fetch();
 topTabs = new TopTabCollection();
 topTabsView = new TopTabsView({model: topTabs, el: "#topTabs"});
 
@@ -1848,17 +1964,10 @@ PageRouter = Backbone.Router.extend({
     },
     
     defaultRoute: function(actions){
-        var articles = new ArticleCollection();
-        articles.fetch();
-        var newArticleView = new NewArticleView({el: "#content", model: articles});
+        var newArticleView = new NewArticleView({model: articles});
         topTabsView.render();
-        newArticleView.render();
-        topTabs.add(new TopTab({title: "+ Tab...", mainView: newArticleView, selected: true}));
-        topTabs.add(new TopTab({title: "Hello World", mainView: newArticleView, selected: false}));
-        topTabs.add(new TopTab({title: "Hello World", mainView: newArticleView, selected: false}));
-        topTabs.add(new TopTab({title: "Hello World", mainView: newArticleView, selected: false}));
-        topTabs.add(new TopTab({title: "Hello World", mainView: newArticleView, selected: false}));
-        topTabs.add(new TopTab({title: "Hello World", mainView: newArticleView, selected: false}));
+        topTabs.add(new TopTab({title: "New Tab", mainView: newArticleView, selected: true}));
+        topTabs.add(new NewTopTab());
     }
     
 });
