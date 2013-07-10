@@ -54,8 +54,12 @@ NewArticleView = Backbone.View.extend({
     clickAnalyse: function(e){
         var title = this.$("#project .option.selected .label").text();
         var articleView = new ArticleView({model: this.model.findWhere({'title': title})});
-        topTabs.getSelected().set('title', title);
-        topTabs.getSelected().set('mainView', articleView);
+        topTabs.getSelected().set({
+            'title': title,
+            'mainView': articleView,
+            'color': "#ABD1EB", 
+            'hoverColor':"#9EC0D9"
+        });
         articleView.render();
         topTabsView.render();
         this.remove();

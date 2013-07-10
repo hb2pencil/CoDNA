@@ -1550,6 +1550,8 @@ TopTab = Backbone.Model.extend({
     
     defaults: {
         type: "tab",
+        color: "#CFECAD",
+        hoverColor: "#BDD99E",
         title: "",
         selected: false,
         x: Number.MAX_VALUE/2,
@@ -1682,8 +1684,12 @@ NewArticleView = Backbone.View.extend({
     clickAnalyse: function(e){
         var title = this.$("#project .option.selected .label").text();
         var articleView = new ArticleView({model: this.model.findWhere({'title': title})});
-        topTabs.getSelected().set('title', title);
-        topTabs.getSelected().set('mainView', articleView);
+        topTabs.getSelected().set({
+            'title': title,
+            'mainView': articleView,
+            'color': "#ABD1EB", 
+            'hoverColor':"#9EC0D9"
+        });
         articleView.render();
         topTabsView.render();
         this.remove();
@@ -1791,8 +1797,28 @@ TopTabView = Backbone.View.extend({
     },
     
     events: {
+        "mouseover": "hover",
+        "mouseout": "unhover",
         "click .x": "close",
         "click": "click"
+    },
+    
+    // Triggered when the tab is hovered.  Change hover color etc.
+    hover: function(){
+        if(this.model.get('selected')){
+            this.$el.css('border-bottom', '1px solid #FFFFFF');
+        }
+        this.$el.css('background-color', this.model.get('hoverColor'));
+    },
+    
+    unhover: function(){
+        if(this.model.get('selected')){
+            this.$el.css('border-bottom', '1px solid #FFFFFF');
+        }
+        else{
+            this.$el.css('border-bottom', '1px solid #AAAAAA');
+        }
+        this.$el.css('background-color', this.model.get('color'));
     },
     
     // Triggered when a tab is clicked (clicking the 'x' doesn't count)
@@ -1861,10 +1887,13 @@ TopTabView = Backbone.View.extend({
         this.$el.attr('id', "tab_" + this.model.cid);
         if(this.model.get('selected')){
             this.$el.addClass('selected');
+            this.$el.css('border-bottom', '1px solid #FFFFFF');
         }
         else{
             this.$el.removeClass('selected');
+            this.$el.css('border-bottom', '1px solid #AAAAAA');
         }
+        this.$el.css('background-color', this.model.get('color'));
         return this.$el;
     }
 

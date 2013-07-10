@@ -645,11 +645,14 @@ div#topTabs .tab {
 
 div#topTabs .tab.selected, div#topTabs .tab.selected:hover {
     border-bottom: 1px solid #FFFFFF;
-    background: #FFFFFF;
+    background: linear-gradient(top, rgba(255,255,255,0) 0%, rgba(255,255,255,255) 100%);
+    background: -o-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(255,255,255,255) 100%);
+    background: -moz-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(255,255,255,255) 100%);
+    background: -webkit-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(255,255,255,255) 100%);
+    background: -ms-linear-gradient(top, rgba(255,255,255,0) 0%, #FFFFFF 100%);
 }
 
 div#topTabs .tab:hover {
-    background: #CFECAD;
     cursor: pointer;
 }
 

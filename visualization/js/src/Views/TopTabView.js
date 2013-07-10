@@ -69,8 +69,28 @@ TopTabView = Backbone.View.extend({
     },
     
     events: {
+        "mouseover": "hover",
+        "mouseout": "unhover",
         "click .x": "close",
         "click": "click"
+    },
+    
+    // Triggered when the tab is hovered.  Change hover color etc.
+    hover: function(){
+        if(this.model.get('selected')){
+            this.$el.css('border-bottom', '1px solid #FFFFFF');
+        }
+        this.$el.css('background-color', this.model.get('hoverColor'));
+    },
+    
+    unhover: function(){
+        if(this.model.get('selected')){
+            this.$el.css('border-bottom', '1px solid #FFFFFF');
+        }
+        else{
+            this.$el.css('border-bottom', '1px solid #AAAAAA');
+        }
+        this.$el.css('background-color', this.model.get('color'));
     },
     
     // Triggered when a tab is clicked (clicking the 'x' doesn't count)
@@ -139,10 +159,13 @@ TopTabView = Backbone.View.extend({
         this.$el.attr('id', "tab_" + this.model.cid);
         if(this.model.get('selected')){
             this.$el.addClass('selected');
+            this.$el.css('border-bottom', '1px solid #FFFFFF');
         }
         else{
             this.$el.removeClass('selected');
+            this.$el.css('border-bottom', '1px solid #AAAAAA');
         }
+        this.$el.css('background-color', this.model.get('color'));
         return this.$el;
     }
 

@@ -9,6 +9,8 @@ TopTab = Backbone.Model.extend({
     
     defaults: {
         type: "tab",
+        color: "#CFECAD",
+        hoverColor: "#BDD99E",
         title: "",
         selected: false,
         x: Number.MAX_VALUE/2,

@@ -3467,6 +3467,8 @@ $(document).ready(<span class="keyword">function</span>() {
     
     defaults: {
         type: <span class="string">"tab"</span>,
+        color: <span class="string">"#CFECAD"</span>,
+        hoverColor: <span class="string">"#BDD99E"</span>,
         title: <span class="string">""</span>,
         selected: <span class="literal">false</span>,
         x: Number.MAX_VALUE/<span class="number">2</span>,
@@ -3707,8 +3709,12 @@ Tabs of type &#39;new&#39; should be treates specially, and always be at the end
             <div class="content"><div class='highlight'><pre>    clickAnalyse: <span class="keyword">function</span>(e){
         <span class="keyword">var</span> title = <span class="keyword">this</span>.$(<span class="string">"#project .option.selected .label"</span>).text();
         <span class="keyword">var</span> articleView = <span class="keyword">new</span> ArticleView({model: <span class="keyword">this</span>.model.findWhere({<span class="string">'title'</span>: title})});
-        topTabs.getSelected().set(<span class="string">'title'</span>, title);
-        topTabs.getSelected().set(<span class="string">'mainView'</span>, articleView);
+        topTabs.getSelected().set({
+            <span class="string">'title'</span>: title,
+            <span class="string">'mainView'</span>: articleView,
+            <span class="string">'color'</span>: <span class="string">"#ABD1EB"</span>, 
+            <span class="string">'hoverColor'</span>:<span class="string">"#9EC0D9"</span>
+        });
         articleView.render();
         topTabsView.render();
         <span class="keyword">this</span>.remove();
@@ -3875,6 +3881,8 @@ TopTabsView.spacing = <span class="number">5</span>; <span class="comment">// Sp
     },
     
     events: {
+        <span class="string">"mouseover"</span>: <span class="string">"hover"</span>,
+        <span class="string">"mouseout"</span>: <span class="string">"unhover"</span>,
         <span class="string">"click .x"</span>: <span class="string">"close"</span>,
         <span class="string">"click"</span>: <span class="string">"click"</span>
     },</pre></div></div>
@@ -3887,6 +3895,36 @@ TopTabsView.spacing = <span class="number">5</span>; <span class="comment">// Sp
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-171">&#182;</a>
+              </div>
+              <p>Triggered when the tab is hovered.  Change hover color etc.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    hover: <span class="keyword">function</span>(){
+        <span class="keyword">if</span>(<span class="keyword">this</span>.model.get(<span class="string">'selected'</span>)){
+            <span class="keyword">this</span>.$el.css(<span class="string">'border-bottom'</span>, <span class="string">'1px solid #FFFFFF'</span>);
+        }
+        <span class="keyword">this</span>.$el.css(<span class="string">'background-color'</span>, <span class="keyword">this</span>.model.get(<span class="string">'hoverColor'</span>));
+    },
+    
+    unhover: <span class="keyword">function</span>(){
+        <span class="keyword">if</span>(<span class="keyword">this</span>.model.get(<span class="string">'selected'</span>)){
+            <span class="keyword">this</span>.$el.css(<span class="string">'border-bottom'</span>, <span class="string">'1px solid #FFFFFF'</span>);
+        }
+        <span class="keyword">else</span>{
+            <span class="keyword">this</span>.$el.css(<span class="string">'border-bottom'</span>, <span class="string">'1px solid #AAAAAA'</span>);
+        }
+        <span class="keyword">this</span>.$el.css(<span class="string">'background-color'</span>, <span class="keyword">this</span>.model.get(<span class="string">'color'</span>));
+    },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-172">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-172">&#182;</a>
               </div>
               <p>Triggered when a tab is clicked (clicking the &#39;x&#39; doesn&#39;t count)</p>
 <p>If a &#39;+&#39; tab was clicked, then a new tab is created and selected, otherwise
@@ -3928,11 +3966,11 @@ the clicked tab is selected, and the previously selected tab is unselected</p>
         </li>
         
         
-        <li id="section-172">
+        <li id="section-173">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-172">&#182;</a>
+                <a class="pilcrow" href="#section-173">&#182;</a>
               </div>
               <p>Closes this tab and removes it.  The last tab is then selected</p>
 
@@ -3968,10 +4006,13 @@ the clicked tab is selected, and the previously selected tab is unselected</p>
         <span class="keyword">this</span>.$el.attr(<span class="string">'id'</span>, <span class="string">"tab_"</span> + <span class="keyword">this</span>.model.cid);
         <span class="keyword">if</span>(<span class="keyword">this</span>.model.get(<span class="string">'selected'</span>)){
             <span class="keyword">this</span>.$el.addClass(<span class="string">'selected'</span>);
+            <span class="keyword">this</span>.$el.css(<span class="string">'border-bottom'</span>, <span class="string">'1px solid #FFFFFF'</span>);
         }
         <span class="keyword">else</span>{
             <span class="keyword">this</span>.$el.removeClass(<span class="string">'selected'</span>);
+            <span class="keyword">this</span>.$el.css(<span class="string">'border-bottom'</span>, <span class="string">'1px solid #AAAAAA'</span>);
         }
+        <span class="keyword">this</span>.$el.css(<span class="string">'background-color'</span>, <span class="keyword">this</span>.model.get(<span class="string">'color'</span>));
         <span class="keyword">return</span> <span class="keyword">this</span>.$el;
     }
 
@@ -3980,11 +4021,11 @@ the clicked tab is selected, and the previously selected tab is unselected</p>
         </li>
         
         
-        <li id="section-173">
+        <li id="section-174">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-173">&#182;</a>
+                <a class="pilcrow" href="#section-174">&#182;</a>
               </div>
               <p>From <a href="http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format">http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format</a>
 Sort of like Python&#39;s new string formatting method. Handy when one wants to do some large string substitutions.</p>
@@ -4004,11 +4045,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-174">
+        <li id="section-175">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-174">&#182;</a>
+                <a class="pilcrow" href="#section-175">&#182;</a>
               </div>
               <p>Takes in a javascript date object and pretty-prints it to a string which is returned.</p>
 
@@ -4026,11 +4067,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-175">
+        <li id="section-176">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-175">&#182;</a>
+                <a class="pilcrow" href="#section-176">&#182;</a>
               </div>
               <p>for the quick fix for hours, minutes and seconds!</p>
 
@@ -4041,11 +4082,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-176">
+        <li id="section-177">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-176">&#182;</a>
+                <a class="pilcrow" href="#section-177">&#182;</a>
               </div>
               <p>Build a sorting key for the sorttable library to sort the date field used in the table view.</p>
 
@@ -4060,11 +4101,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-177">
+        <li id="section-178">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-177">&#182;</a>
+                <a class="pilcrow" href="#section-178">&#182;</a>
               </div>
               <p>Take two lists, interpret as sets, and return true if subset_l is a subset of superset_l</p>
 
@@ -4086,11 +4127,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-178">
+        <li id="section-179">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-178">&#182;</a>
+                <a class="pilcrow" href="#section-179">&#182;</a>
               </div>
               <p>Generate a string describing a given article revisions&#39; edit categories</p>
 
@@ -4113,11 +4154,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-179">
+        <li id="section-180">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-179">&#182;</a>
+                <a class="pilcrow" href="#section-180">&#182;</a>
               </div>
               <p>Generate a string describing a given talk page revision entry&#39;s revision categories.</p>
 
@@ -4135,11 +4176,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-180">
+        <li id="section-181">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-180">&#182;</a>
+                <a class="pilcrow" href="#section-181">&#182;</a>
               </div>
               <p>Return absolute max (disregarding sign) of func(arr[i])</p>
 
@@ -4180,11 +4221,11 @@ PageRouter = Backbone.Router.extend({
         </li>
         
         
-        <li id="section-181">
+        <li id="section-182">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-181">&#182;</a>
+                <a class="pilcrow" href="#section-182">&#182;</a>
               </div>
               <p>Initiate the router</p>
 
@@ -4195,11 +4236,11 @@ PageRouter = Backbone.Router.extend({
         </li>
         
         
-        <li id="section-182">
+        <li id="section-183">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-182">&#182;</a>
+                <a class="pilcrow" href="#section-183">&#182;</a>
               </div>
               <p>Start Backbone history a necessary step for bookmarkable URL&#39;s</p>
 
