@@ -731,6 +731,8 @@ table.new_article .select > .option:hover {
 
 table.new_article .select > .option.selected {
     background: #80CC28;
+    color: #FFFFFF;
+    font-weight: bold;
 }
 
 table.new_article .select > .option > .label {
@@ -751,7 +753,7 @@ table.new_article button {
     -ms-transition: background 0.20s ease-in-out;
     -o-transition: background 0.20s ease-in-out;
     background: #80CC28;
-    border: 1px solid #425922;
+    border: none;
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
     -khtml-border-radius: 5px;
