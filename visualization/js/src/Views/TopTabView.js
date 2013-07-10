@@ -44,6 +44,7 @@ TopTabsView = Backbone.View.extend({
                     stop: $.proxy(function(){
                         tabView.$el.css('z-index', 0);
                         this.order();
+                        this.render();
                     }, this)
                 });
             }
@@ -124,8 +125,8 @@ TopTabView = Backbone.View.extend({
         this.model.get('mainView').remove();
         this.$el.hide('slide', 200, $.proxy(function(){
             topTabs.remove(this.model);
-            if(topTabs.last() != null && topTabs.last().get('type') != 'new'){
-                topTabs.last().set('selected', true);
+            if(topTabs.at(topTabs.length-2)){
+                topTabs.at(topTabs.length-2).set('selected', true);
             }
         }, this));
     },
