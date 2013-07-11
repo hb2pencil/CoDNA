@@ -175,8 +175,8 @@ WIKIVIZ.load = function(art_title) {
 	}, function(data) {	// Function which updates the UI when async. response is received.
 		WIKIVIZ.augment(data);	// Augment data with log of lev. distance and weighted classification for display purposes.
 		WIKIVIZ.data = data;
-		
 		// Populate user list in the 'select users' dialog.
+		
 		var userMap = {};
 		var revdata = data['revisions'];
 		var totalLev = 0;

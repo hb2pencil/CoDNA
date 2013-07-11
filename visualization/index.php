@@ -236,11 +236,13 @@
 	        <!-- Models -->
 	        <script type="text/javascript" src="js/src/Models/TopTab.js"></script>
 	        <script type="text/javascript" src="js/src/Models/Article.js"></script>
+	        <script type="text/javascript" src="js/src/Models/WikiViz.js"></script>
 	        
 	        <!-- Views -->
 	        <script type="text/javascript" src="js/src/Views/TopTabView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/NewArticleView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/ArticleView.js"></script>
+	        <script type="text/javascript" src="js/src/Views/NavCtlView.js"></script>
 	        
 	        <!-- Other -->
 	        <script type="text/javascript" src="js/src/router.js"></script>
