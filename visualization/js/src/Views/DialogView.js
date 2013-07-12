@@ -4,6 +4,7 @@ DialogView = Backbone.View.extend({
     dialog: null, // Reference to the jQueryUI Dialog
     options: null, // Options object for the dialog
     onCreate: function(){}, // Function to be called after the dialog is created
+    firstRender: true,
 
     initialize: function(options){
         this.template = _.template($("#" + options.template).html());
@@ -24,9 +25,12 @@ DialogView = Backbone.View.extend({
     },
     
     render: function(){
-        this.$el.html(this.template());  
-        this.dialog = this.$el.children().dialog(this.options);
-        this.onCreate(this.dialog);
+        if(this.firstRender){
+            this.$el.html(this.template());  
+            this.dialog = this.$el.children().dialog(this.options);
+            this.onCreate(this.dialog);
+        }
+        this.firstRender = false;
         return this.$el; 
     }
 

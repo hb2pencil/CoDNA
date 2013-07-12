@@ -15,10 +15,26 @@ TopTabsView = Backbone.View.extend({
     order: function(){
         this.model.sort();
         var startX = TopTabsView.leftMargin;
+        var widthEstimate = ((1000-30-30-TopTabsView.spacing)/(this.model.length-1)) - 25 - 10 - TopTabsView.spacing;
+        var widthSum = 0;
+        var actualSum = 0;
         this.model.each(function(tab, index){
+            var before = tab.get('x');
             tab.set('x', startX, {silent: true});
-            startX += this.$("#tab_" + tab.cid).outerWidth() + TopTabsView.spacing;
-            this.views[index].render();
+            var extraWidth = 0;
+            if(tab.get('type') != 'new'){
+                widthSum += widthEstimate + 25 + 10 + 5;
+                actualSum += Math.max(5, Math.min(150, Math.round(widthEstimate))) + 25 + 10 + 5;
+                var diff = widthSum - actualSum;
+                actualSum += diff;
+                console.log(widthSum, actualSum);
+                // TODO: This isn't perfect, some rounding problems still exist
+                this.$("#tab_" + tab.cid).css('max-width', Math.max(5, Math.min(150, Math.round(widthEstimate) + diff)));
+            }
+            startX += Math.round(this.$("#tab_" + tab.cid).outerWidth()) + TopTabsView.spacing;
+            if(before != tab.get('x')){
+                this.views[index].updatePosition();
+            }
         }, this);
     },
     
@@ -38,7 +54,7 @@ TopTabsView = Backbone.View.extend({
                         tabView.$el.css('z-index', 1000);
                     }, this),
                     drag: $.proxy(function(e, ui){
-                        tab.set('x', parseInt(tabView.$el.css('left')));
+                        tab.set('x', parseInt(tabView.$el.css('left')), {silent: true});
                         this.order();
                     }, this),
                     stop: $.proxy(function(){
@@ -151,11 +167,19 @@ TopTabView = Backbone.View.extend({
         }, this));
     },
     
+    // Updates the left coordinate of the tab
+    updatePosition: function(){
+        this.$el.css('left', this.model.get('x'));
+    },
+    
     render: function(){
         this.$el.html(this.template(this.model.toJSON()));
+        if(this.model.get('type') == 'new'){
+            this.$el.addClass('tab_new');
+        }
         this.$el.addClass("tab");
         this.$el.stop();
-        this.$el.css('left', this.model.get('x'));
+        this.updatePosition();
         this.$el.attr('id', "tab_" + this.model.cid);
         if(this.model.get('selected')){
             this.$el.addClass('selected');

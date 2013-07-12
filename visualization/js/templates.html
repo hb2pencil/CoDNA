@@ -113,7 +113,7 @@
 </script>
 
 <script type="text/template" id="diag_cursor_template"></>
-    <div id="diag_cursor" title="Cursor Type">
+    <div id="<%= _.uniqueId('diag_cursor') %>" title="Cursor Type">
         <h3>Choose a Cursor Type Below</h3>
         <table>
             <tr><td><input type="radio" name="cursor" id="cursor0" checked/></td><td><label for="cursor0">Panning Cursor</label></td></tr>
@@ -124,13 +124,13 @@
 </script>
 
 <script type="text/template" id="diag_options_template"></>
-    <div id="diag_options" title="Options">
+    <div id="<%= _.uniqueId('diag_options') %>" title="Options">
         
     </div>
 </script>
 
 <script type="text/template" id="diag_select_template"></>
-    <div id="diag_select" title="Contributors">
+    <div id="<%= _.uniqueId('diag_select') %>" title="Contributors">
         <div id="d_select_tabs">
             <ul>
                 <li><a href="#users_select">Users</a></li>
@@ -175,7 +175,7 @@
 </script>
 
 <script type="text/template" id="diag_info_template"></>
-    <div id="diag_info" title="Selection Information">
+    <div id="<%= _.uniqueId('diag_info') %>" title="Selection Information">
         <h3>Information on Current Selection:</h3>
         <em id="d_info_noselection">Nothing is selected. Make a selection using the cursor or through the "Select Users" dialog.</em>
         <div id="d_info_selection">
@@ -185,13 +185,13 @@
 </script>
 
 <script type="text/template" id="diag_data_template"></>
-    <div id="diag_data" title="Article Revision Details">
+    <div id="<%= _.uniqueId('diag_data') %>" title="Article Revision Details">
         
     </div>
 </script>
 
 <script type="text/template" id="diag_talk_template"></>
-    <div id="diag_talk" title="Talk Page Revision Categories">
+    <div id="<%= _.uniqueId('diag_talk') %>" title="Talk Page Revision Categories">
         <div id="d_talk_accordion" class="d_checkable">
             <h3>
                 <a href="#" class="leganchor">
@@ -238,7 +238,7 @@
 </script>
 
 <script type="text/template" id="diag_legend_template"></>
-    <div id="diag_legend" title="Article Revision Categories">
+    <div id="<%= _.uniqueId('diag_legend') %>" title="Article Revision Categories">
         <div id="d_legend_accordion" class="d_checkable">
             <h3>
                 <a href="#" class="leganchor">

@@ -1074,11 +1074,12 @@ ArticleView = Backbone.View.extend({
     },
     
     render: function(){
+        //this.container = this.$("#maincontainer");
         if(topTabs.getSelected() != null && topTabs.getSelected().get('mainView') == this){
-            this.$el.css('display', 'block');
+            this.$el.html(this.contents);
         }
         else{
-            this.$el.css('display', 'none');
+            this.contents = this.$el.children().detach();
         }
         if(this.firstRender){
             this.$el.html(this.template());
