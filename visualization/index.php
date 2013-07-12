@@ -228,12 +228,6 @@
 		<?php if($environment == "prod"){ ?>
 	        <script type="text/javascript" src="js/build/codna.min.js"></script>
 		<?php } else if($environment == "dev"){ ?>
-	        <script type="text/javascript" src="js/src/state.js"></script>
-	        <script type="text/javascript" src="js/src/helpers.js"></script>
-	        <script type="text/javascript" src="js/src/ui.js"></script>
-	        <script type="text/javascript" src="js/src/visualization.js"></script>
-	        <script type="text/javascript" src="js/src/main.js"></script>
-	        
 	        <!-- Models -->
 	        <script type="text/javascript" src="js/src/Models/TopTab.js"></script>
 	        <script type="text/javascript" src="js/src/Models/Article.js"></script>
@@ -247,6 +241,7 @@
 	        <script type="text/javascript" src="js/src/Views/NavCtlView.js"></script>
 	        
 	        <!-- Other -->
+	        <script type="text/javascript" src="js/src/helpers.js"></script>
 	        <script type="text/javascript" src="js/src/router.js"></script>
 		<?php } ?>
 	</body>

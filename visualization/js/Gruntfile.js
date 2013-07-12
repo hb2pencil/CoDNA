@@ -18,11 +18,6 @@ module.exports = function(grunt) {
     concat: {
       dist: {
         src: [
-          'src/state.js',
-          'src/ui.js',
-          'src/visualization.js',
-          'src/main.js',
-          
           'src/Models/*.js',
           'src/Views/*.js',
           'src/helpers.js',

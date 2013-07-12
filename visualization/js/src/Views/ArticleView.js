@@ -88,7 +88,7 @@ ArticleView = Backbone.View.extend({
                             // Use choices to generate selection in Select By User
                             // User names are stored in the "value" property of the options in the select element.
                             $('#userselect option', dialog).each(function(i, e) {
-                                if (WIKIVIZ.isSubset([wikiviz.getGroupsByName($(e).val())], filt)) {
+                                if (Helper.isSubset([wikiviz.getGroupsByName($(e).val())], filt)) {
                                     $(e).attr('selected', true);
                                 } else {
                                     $(e).attr('selected', false);
@@ -518,7 +518,7 @@ ArticleView = Backbone.View.extend({
         var barWidth = this.calcBarWidth();
         var revdata = this.wikiviz.get('data').get('revisions');
         var blankThreshold = 10;    // Min. additional width of month box required to display text.
-        //WIKIVIZ.view.body.select('.bg').selectAll('.month').data([]).exit().remove();
+        //Helper.view.body.select('.bg').selectAll('.month').data([]).exit().remove();
         var data = [];
         var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
@@ -573,7 +573,7 @@ ArticleView = Backbone.View.extend({
         var mts_e = this.wikiviz.get('view').body.select('.bg').selectAll('.month').data(data, function(d, i) { return i; }).enter();
         var mts_g = mts_e.append('g').attr('class', 'month').attr('transform', function(d) { return 'translate(' + d.l + ',0)'; });
         mts_g.append('rect').attr('height', String(this.wikiviz.get('height'))).attr('width', function(d) { return (d.r-d.l); })
-            .attr('class', function(d, i) { return (i%2 === 0)?('m_odd'):('m_even');}).attr('y', String(-WIKIVIZ.height/2));
+            .attr('class', function(d, i) { return (i%2 === 0)?('m_odd'):('m_even');}).attr('y', String(-this.wikiviz.get('height')/2));
         mts_g.append('text').attr('class', 'mtext').text(function(d) { return months[d.m]; }).attr('transform', $.proxy(function(d) { return 'translate(5,' + (this.wikiviz.get('height')/2 - 15) + ')scale(1,-1)';}, this)).attr('opacity', 1).filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) < blankThreshold;}).attr('opacity', 0);
         mts_g.append('text').attr('class', 'ytext').text(function(d) { return String(d.y); }).attr('transform', $.proxy(function(d) { return 'translate(5,' + (this.wikiviz.get('height')/2 - 30) + ')scale(1,-1)';}, this)).attr('opacity', 1).filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) < blankThreshold;}).attr('opacity', 0);
     
@@ -615,7 +615,7 @@ ArticleView = Backbone.View.extend({
     
         // Generate the tooltip for this element.
         parent.append('title').text(function(d) {
-            return 'User: ' + d.contributor + '\n' + WIKIVIZ.formatDate(d.date) + '\n' + 'Revision Categories: ' + WIKIVIZ.toTalkClassString(d) + '\n' + 'Revision Size: ' + d.lev;
+            return 'User: ' + d.contributor + '\n' + Helper.formatDate(d.date) + '\n' + 'Revision Categories: ' + Helper.toTalkClassString(d) + '\n' + 'Revision Size: ' + d.lev;
         });
     
         // Generate the path that defines the shape of the callout.
@@ -887,7 +887,7 @@ ArticleView = Backbone.View.extend({
         // Set up x and y ranges for the visualization. The x-range is designed so that x(n) gives the x-position of the nth bar's left edge.
         view.x.range([0, barWidth]);
         view.y.range([0, this.wikiviz.get('height')/2 - 50]);    // Leave a little bit of room.
-        view.y.domain([0, WIKIVIZ.absMax(this.wikiviz.get('data').get('revisions'), function(elem) { return elem.loglev; })]);    // Y domain determined using largest magnitude y-value
+        view.y.domain([0, Helper.absMax(this.wikiviz.get('data').get('revisions'), function(elem) { return elem.loglev; })]);    // Y domain determined using largest magnitude y-value
     
         // Group to contain horizontal rules for the visualization
         view.rules = view.sview.append('g').attr('class', 'rules');
@@ -901,7 +901,7 @@ ArticleView = Backbone.View.extend({
         negrules.selectAll('g.rule').data(view.y.ticks(5)).enter().append('g').attr('class', 'rule').attr('transform', function(d) { return 'translate(0,' + (-view.y(d)) + ')'; });
     
         // Append lines to rules (i.e. visual representation of rules)
-        view.rules.selectAll('.rule').append('line').attr('x2', WIKIVIZ.width);
+        view.rules.selectAll('.rule').append('line').attr('x2', Helper.width);
     
         // Append visualization body group. This group contains the actual visualization. By transforming this group, we transform all the bars and annotations of the visualization.
         view.body = view.sview.append('g').attr('class', 'body').attr('transform', 'translate(0,0)');
@@ -935,7 +935,7 @@ ArticleView = Backbone.View.extend({
     
         var datum = data.selectAll('.datum').data(this.wikiviz.get('data').get('revisions')).enter().append('g').attr('class', 'datum').attr('transform', $.proxy(function(d) { return 'translate(' + view.x(this.wikiviz.index(d)) + ', 0)'; }, this)).attr('opacity', 1);
         datum.append('title').text(function(d) {
-            return d.group + ': ' + d.user + '\n' + WIKIVIZ.formatDate(new Date(d.timestamp)) + '\n' + 'Revision Categories: ' + WIKIVIZ.toClassString(d.class) + '\n' + 'Revision Size: ' + d.lev;
+            return d.group + ': ' + d.user + '\n' + Helper.formatDate(new Date(d.timestamp)) + '\n' + 'Revision Categories: ' + Helper.toClassString(d.class) + '\n' + 'Revision Size: ' + d.lev;
         });
         var bars = datum.append('g').attr('class', 'bars');
         this.buildBars(bars, barWidth);
@@ -1049,14 +1049,14 @@ ArticleView = Backbone.View.extend({
         rows.append('td').text(function(d) { return 1+d.id; });
         rows.append('td').text(function (d) { return d.user; });
         rows.append('td').text(function (d) { return d.group; });
-        rows.append('td').text(function (d) { return WIKIVIZ.formatDate(d.date); })
-            .attr('sorttable_customkey', function(d) { return WIKIVIZ.getDateSortKey(d.date); });
+        rows.append('td').text(function (d) { return Helper.formatDate(d.date); })
+            .attr('sorttable_customkey', function(d) { return Helper.getDateSortKey(d.date); });
         rows.append('td').text(function (d) { return d.lev; });
         rows.append('td').text(function (d) {
             if (d.type === 'art') {
-	            return WIKIVIZ.toClassString(d.class);
+	            return Helper.toClassString(d.class);
             } else if (d.type === 'talk') {
-	            return WIKIVIZ.toTalkClassString(d);
+	            return Helper.toTalkClassString(d);
             } else {
 	            return 'Undefined';
             }
@@ -1084,7 +1084,7 @@ ArticleView = Backbone.View.extend({
             this.$el.html(this.template());
             this.init(this.model.get('title'));
             // TODO: Remove this when everything is working:
-            // WIKIVIZ.init(this.model.get('title'));
+            // Helper.init(this.model.get('title'));
         }
         this.firstRender = false;
         return this.$el;
