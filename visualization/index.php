@@ -224,6 +224,7 @@
 		<script type="text/javascript" src="js/vendor/jquery_svg/jquery.svgdom.js"></script>
 		<script type="text/javascript" src="js/vendor/underscore/underscore.min.js"></script>
 		<script type="text/javascript" src="js/vendor/backbone/backbone.min.js"></script>
+		<script type="text/javascript" src="js/vendor/backbone/backbone.subviews.js"></script>
 		<?php if($environment == "prod"){ ?>
 	        <script type="text/javascript" src="js/build/codna.min.js"></script>
 		<?php } else if($environment == "dev"){ ?>
@@ -239,6 +240,7 @@
 	        <script type="text/javascript" src="js/src/Models/WikiViz.js"></script>
 	        
 	        <!-- Views -->
+	        <script type="text/javascript" src="js/src/Views/DialogView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/TopTabView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/NewArticleView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/ArticleView.js"></script>

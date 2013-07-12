@@ -619,7 +619,7 @@ div#topTabs .tab {
     padding: 5px 10px;
     background: #EEEEEE;
     display: inline-block;
-    font-size: 12px;
+    font-size: 13px;
     height: 16px;
     border-bottom: 1px solid #AAAAAA;
     border-top-right-radius: 4px;
@@ -775,3 +775,7 @@ table.new_article button:hover {
     vertical-align: middle;
 }
 
+/* Article View */
+#dialogs {
+    display: none;
+}

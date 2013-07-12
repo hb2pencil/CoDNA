@@ -97,7 +97,7 @@ NavCtlView = Backbone.View.extend({
 		    return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*(this.article.wikiviz.get('data').get('revisions').length*this.article.calcBarWidth());
 	    }
 	    else if (this.mode == 'adj' && this.article.wikiviz.get('view').mode == 'talk') {
-		    return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*(this.article.wikiviz.get('data').get('talk').length*this.calcTalkWidth());
+		    return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*(this.article.wikiviz.get('data').get('talk').length*this.article.calcTalkWidth());
 	    }
 	    else if (this.mode == 'time') {
 		    return this.article.wikiviz.get('view').timeX(this.xscale.invert(this.sdim.x0));

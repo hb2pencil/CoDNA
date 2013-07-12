@@ -1,3 +1,7 @@
+subview = function(subviewName){
+    return "<div data-subview='" + subviewName + "'></div>";
+};
+
 // From http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format
 // Sort of like Python's new string formatting method. Handy when one wants to do some large string substitutions.
 String.prototype.format = function() {
