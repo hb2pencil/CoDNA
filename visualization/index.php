@@ -238,6 +238,7 @@
 	        <script type="text/javascript" src="js/src/Views/TopTabView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/NewArticleView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/ArticleView.js"></script>
+	        <script type="text/javascript" src="js/src/Views/ArticleInfoView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/NavCtlView.js"></script>
 	        
 	        <!-- Other -->

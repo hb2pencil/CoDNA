@@ -18,15 +18,20 @@ String.prototype.format = function() {
 Helper = function() {};
 
 // Takes in a javascript date object and pretty-prints it to a string which is returned.
-Helper.formatDate = function(dt) {
-	return ['January', 'February', 'March',
+Helper.formatDate = function(dt, time) {
+    if(time == undefined) time = true;
+	var string = ['January', 'February', 'March',
 		'April', 'May', 'June',
 		'July', 'August', 'September',
 		'October', 'November', 'December'][dt.getMonth()] +
-		' ' + dt.getDate() + ', ' + dt.getFullYear() + '   ' +
+		' ' + dt.getDate() + ', ' + dt.getFullYear();
+    if(time){
+        string += '   ' +
 		('0'+dt.getHours()).substr(-2,2) + ':' +
 		('0'+dt.getMinutes()).substr(-2,2);	// Thanks to http://stackoverflow.com/questions/5250244/jquery-date-formatting
-							// for the quick fix for hours, minutes and seconds!
+							// for the quick fix for hours, minutes and seconds
+	}
+	return string;
 };
 
 // Build a sorting key for the sorttable library to sort the date field used in the table view.

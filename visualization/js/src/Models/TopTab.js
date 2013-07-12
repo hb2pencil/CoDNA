@@ -3,8 +3,14 @@ TopTab = Backbone.Model.extend({
 
     initialize: function(){
         this.on('change:selected', function(){
-            this.get('mainView').render();
+            if(topTabs.getSelected() == this){
+                this.get('mainView').$el.html(this.contents);
+            }
+            else{
+                this.contents = this.get('mainView').$el.children().detach();
+            }
         }, this);
+        this.get('mainView').render();
     },
     
     defaults: {

@@ -59,7 +59,8 @@
 <script type="text/template" id="main_container_template"></>
     <div id="maincontainer">
         <div id="left">
-            <div id="toolbar_wrapper" class="ui-corner-bottom">
+            <%= subview("article_info") %>
+            <div id="toolbar_wrapper" class="ui-corner-all">
                 <div id="toolbar" class="ui-corner-all">
                     <div id="toolbar_top" class="ui-corner-top"></div>
                     <!--
@@ -84,7 +85,7 @@
                     <li><a href="#artview">Article View</a></li>
                     <li><a href="#talkview">Talk Page View</a></li>
                     <li><a href="#hybridview">Hybrid View</a></li>
-                    <div id="page_title" style="float: right;">Lagrangian_mechanics</div>
+                    <div id="page_title" style="float: right;"><%= title %></div>
                 </ul>
                 <div id="artview">
                     <div id="view" class="view ui-corner-all">
@@ -100,15 +101,26 @@
                 </div>
             </div>
         </div>
-    <div id="navctl"></div>
-    <div id="dialogs">
-        <%= subview("diag_cursor") %>
-        <%= subview("diag_options") %>
-        <%= subview("diag_select") %>
-        <%= subview("diag_info") %>
-        <%= subview("diag_data") %>
-        <%= subview("diag_legend") %>
-        <%= subview("diag_talk") %>
+        <div id="navctl"></div>
+        <div id="dialogs">
+            <%= subview("diag_cursor") %>
+            <%= subview("diag_options") %>
+            <%= subview("diag_select") %>
+            <%= subview("diag_info") %>
+            <%= subview("diag_data") %>
+            <%= subview("diag_legend") %>
+            <%= subview("diag_talk") %>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="article_info_template"></>
+    <h3 class="article_title"><%= title.replace(/_/g, ' ') %></h3>
+    <h4 class="article_subTitle">Wikipedia Project</h4>
+    <b>Key Statistics</b>
+    <div>
+        <%= _.size(data.get('revisions')) %> edits by <%= _.size(data.get('users')) %> contributors<br />
+        <% if(_.size(data.get('revisions')) > 0){ %>Article Created: <%= Helper.formatDate(new Date(_.first(data.get('revisions')).timestamp), false) %><% } %>
     </div>
 </script>
 

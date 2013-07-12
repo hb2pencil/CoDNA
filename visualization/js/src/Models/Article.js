@@ -8,8 +8,8 @@ Article = Backbone.Model.extend({
     urlRoot: "",
     
     defaults: {
-        'title': "",
-        'rev_count': 0
+        title: "",
+        rev_count: 0
     }
 
 });

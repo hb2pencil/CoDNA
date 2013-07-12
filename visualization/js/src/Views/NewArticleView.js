@@ -2,7 +2,6 @@
 NewArticleView = Backbone.View.extend({    
     
     template: _.template($("#new_article_template").html()),
-    firstRender: true,
     
     initialize: function(){
         var id = _.uniqueId();
@@ -54,6 +53,7 @@ NewArticleView = Backbone.View.extend({
     clickAnalyse: function(e){
         var title = this.$("#project .option.selected .label").text();
         var articleView = new ArticleView({model: this.model.findWhere({'title': title})});
+        aView = articleView;
         topTabs.getSelected().set({
             'title': title,
             'mainView': articleView,
@@ -80,18 +80,9 @@ NewArticleView = Backbone.View.extend({
     },
     
     render: function(){
-        if(topTabs.getSelected() != null && topTabs.getSelected().get('mainView') == this){
-            this.$el.css('display', 'block');
-        }
-        else{
-            this.$el.css('display', 'none');
-        }
-        if(this.firstRender){
-            this.$el.html(this.template(this.model.toJSON()));
-            this.renderInitiatives();
-            this.renderProjects();
-        }
-        this.firstRender = false;
+        this.$el.html(this.template(this.model.toJSON()));
+        this.renderInitiatives();
+        this.renderProjects();
 	    return this.$el;
 	}
 });

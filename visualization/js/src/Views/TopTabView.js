@@ -15,7 +15,7 @@ TopTabsView = Backbone.View.extend({
     order: function(){
         this.model.sort();
         var startX = TopTabsView.leftMargin;
-        var widthEstimate = ((1000-30-30-TopTabsView.spacing)/(this.model.length-1)) - 25 - 10 - TopTabsView.spacing;
+        var widthEstimate = (($("#content").outerWidth()-30-30-TopTabsView.spacing)/(this.model.length-1)) - 25 - 10 - TopTabsView.spacing;
         var widthSum = 0;
         var actualSum = 0;
         this.model.each(function(tab, index){
@@ -27,7 +27,6 @@ TopTabsView = Backbone.View.extend({
                 actualSum += Math.max(5, Math.min(150, Math.round(widthEstimate))) + 25 + 10 + 5;
                 var diff = widthSum - actualSum;
                 actualSum += diff;
-                console.log(widthSum, actualSum);
                 // TODO: This isn't perfect, some rounding problems still exist
                 this.$("#tab_" + tab.cid).css('max-width', Math.max(5, Math.min(150, Math.round(widthEstimate) + diff)));
             }

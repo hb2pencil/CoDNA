@@ -36,6 +36,7 @@ header h1 {
 	position: relative;
 	float: left;
 	height: 100%;
+	width: 268px;
 }
 
 #right {
@@ -47,7 +48,7 @@ header h1 {
 #content {
 	float: center;
 	margin: 0 auto;
-	width: 1000px;
+	width: 1200px;
 	height: 630px;
 	/*border: 1px solid #000;*/
 	box-shadow: 1px 2px 5px #222;
@@ -59,14 +60,31 @@ header h1 {
 
 }
 
+#article_info {
+    position: absolute;
+    left: 10px;
+    top: 20px;
+    width: 200px;
+}
+
+.article_title {
+    text-transform: capitalize;
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+.article_subTitle {
+    margin-top: 0;
+}
+
 #toolbar_wrapper {
 	width: 52px;
 	height: 502px;
 	text-align: center;
 	background-color: #777;
 	position: absolute;
-	bottom: 0px;
-	left: 10px;
+	bottom: 0;
+	right: 5px;
 }
 
 #toolbar {
@@ -607,7 +625,7 @@ rect.sd {
 
 div#topTabs {
     margin: 0 auto;
-    width: 1000px;
+    width: 1200px;
     height: 27px;
     position:relative;
     z-index: 1;

@@ -2,7 +2,6 @@
 ArticleView = Backbone.View.extend({
     
     template: _.template($("#main_container_template").html()),
-    firstRender: true,
     wikiviz: null,
     navctl: null,
     
@@ -18,6 +17,9 @@ ArticleView = Backbone.View.extend({
     },
     
     subviewCreators : {
+        "article_info": function(){
+            return new ArticleInfoView({model: this.wikiviz});
+        },
         "diag_cursor" : function(){
             return new DialogView({
                 template: "diag_cursor_template",
@@ -1073,21 +1075,13 @@ ArticleView = Backbone.View.extend({
         $('.talkrow', dialog).addClass('invisible');
     },
     
+    _onSubviewsRendered: function() {
+        
+    },
+    
     render: function(){
-        //this.container = this.$("#maincontainer");
-        if(topTabs.getSelected() != null && topTabs.getSelected().get('mainView') == this){
-            this.$el.html(this.contents);
-        }
-        else{
-            this.contents = this.$el.children().detach();
-        }
-        if(this.firstRender){
-            this.$el.html(this.template());
-            this.init(this.model.get('title'));
-            // TODO: Remove this when everything is working:
-            // Helper.init(this.model.get('title'));
-        }
-        this.firstRender = false;
+        this.$el.html(this.template(this.model.toJSON()));
+        this.init(this.model.get('title'));
         return this.$el;
     }
     

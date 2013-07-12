@@ -15,8 +15,8 @@ Article = Backbone.Model.extend({
     urlRoot: "",
     
     defaults: {
-        'title': "",
-        'rev_count': 0
+        title: "",
+        rev_count: 0
     }
 
 });
@@ -35,8 +35,14 @@ TopTab = Backbone.Model.extend({
 
     initialize: function(){
         this.on('change:selected', function(){
-            this.get('mainView').render();
+            if(topTabs.getSelected() == this){
+                this.get('mainView').$el.html(this.contents);
+            }
+            else{
+                this.contents = this.get('mainView').$el.children().detach();
+            }
         }, this);
+        this.get('mainView').render();
     },
     
     defaults: {
@@ -287,16 +293,33 @@ WikiVizData = Backbone.Model.extend({
     
     defaults: {
         title: "",
-        wikiviz: null
+        wikiviz: null,
+        users: [],
+        revisions: []
     }
     
+});
+
+ArticleInfoView = Backbone.View.extend({
+
+    initialize: function(){
+        this.listenTo(this.model, "sync", this.render);
+        this.listenTo(this.model.get('data'), "sync", this.render);
+        this.template = _.template($("#article_info_template").html());
+    },
+    
+    render: function(){
+        this.$el.html(this.template(this.model.toJSON()));
+        this.$el.attr('id', "article_info");
+        return this.$el;
+    }
+
 });
 
 // ## ArticleView
 ArticleView = Backbone.View.extend({
     
     template: _.template($("#main_container_template").html()),
-    firstRender: true,
     wikiviz: null,
     navctl: null,
     
@@ -312,6 +335,9 @@ ArticleView = Backbone.View.extend({
     },
     
     subviewCreators : {
+        "article_info": function(){
+            return new ArticleInfoView({model: this.wikiviz});
+        },
         "diag_cursor" : function(){
             return new DialogView({
                 template: "diag_cursor_template",
@@ -1367,21 +1393,13 @@ ArticleView = Backbone.View.extend({
         $('.talkrow', dialog).addClass('invisible');
     },
     
+    _onSubviewsRendered: function() {
+        
+    },
+    
     render: function(){
-        //this.container = this.$("#maincontainer");
-        if(topTabs.getSelected() != null && topTabs.getSelected().get('mainView') == this){
-            this.$el.html(this.contents);
-        }
-        else{
-            this.contents = this.$el.children().detach();
-        }
-        if(this.firstRender){
-            this.$el.html(this.template());
-            this.init(this.model.get('title'));
-            // TODO: Remove this when everything is working:
-            // Helper.init(this.model.get('title'));
-        }
-        this.firstRender = false;
+        this.$el.html(this.template(this.model.toJSON()));
+        this.init(this.model.get('title'));
         return this.$el;
     }
     
@@ -1700,7 +1718,6 @@ NavCtlView = Backbone.View.extend({
 NewArticleView = Backbone.View.extend({    
     
     template: _.template($("#new_article_template").html()),
-    firstRender: true,
     
     initialize: function(){
         var id = _.uniqueId();
@@ -1752,6 +1769,7 @@ NewArticleView = Backbone.View.extend({
     clickAnalyse: function(e){
         var title = this.$("#project .option.selected .label").text();
         var articleView = new ArticleView({model: this.model.findWhere({'title': title})});
+        aView = articleView;
         topTabs.getSelected().set({
             'title': title,
             'mainView': articleView,
@@ -1778,18 +1796,9 @@ NewArticleView = Backbone.View.extend({
     },
     
     render: function(){
-        if(topTabs.getSelected() != null && topTabs.getSelected().get('mainView') == this){
-            this.$el.css('display', 'block');
-        }
-        else{
-            this.$el.css('display', 'none');
-        }
-        if(this.firstRender){
-            this.$el.html(this.template(this.model.toJSON()));
-            this.renderInitiatives();
-            this.renderProjects();
-        }
-        this.firstRender = false;
+        this.$el.html(this.template(this.model.toJSON()));
+        this.renderInitiatives();
+        this.renderProjects();
 	    return this.$el;
 	}
 });
@@ -1811,7 +1820,7 @@ TopTabsView = Backbone.View.extend({
     order: function(){
         this.model.sort();
         var startX = TopTabsView.leftMargin;
-        var widthEstimate = ((1000-30-30-TopTabsView.spacing)/(this.model.length-1)) - 25 - 10 - TopTabsView.spacing;
+        var widthEstimate = (($("#content").outerWidth()-30-30-TopTabsView.spacing)/(this.model.length-1)) - 25 - 10 - TopTabsView.spacing;
         var widthSum = 0;
         var actualSum = 0;
         this.model.each(function(tab, index){
@@ -1823,7 +1832,6 @@ TopTabsView = Backbone.View.extend({
                 actualSum += Math.max(5, Math.min(150, Math.round(widthEstimate))) + 25 + 10 + 5;
                 var diff = widthSum - actualSum;
                 actualSum += diff;
-                console.log(widthSum, actualSum);
                 // TODO: This isn't perfect, some rounding problems still exist
                 this.$("#tab_" + tab.cid).css('max-width', Math.max(5, Math.min(150, Math.round(widthEstimate) + diff)));
             }
@@ -2011,15 +2019,20 @@ String.prototype.format = function() {
 Helper = function() {};
 
 // Takes in a javascript date object and pretty-prints it to a string which is returned.
-Helper.formatDate = function(dt) {
-	return ['January', 'February', 'March',
+Helper.formatDate = function(dt, time) {
+    if(time == undefined) time = true;
+	var string = ['January', 'February', 'March',
 		'April', 'May', 'June',
 		'July', 'August', 'September',
 		'October', 'November', 'December'][dt.getMonth()] +
-		' ' + dt.getDate() + ', ' + dt.getFullYear() + '   ' +
+		' ' + dt.getDate() + ', ' + dt.getFullYear();
+    if(time){
+        string += '   ' +
 		('0'+dt.getHours()).substr(-2,2) + ':' +
 		('0'+dt.getMinutes()).substr(-2,2);	// Thanks to http://stackoverflow.com/questions/5250244/jquery-date-formatting
-							// for the quick fix for hours, minutes and seconds!
+							// for the quick fix for hours, minutes and seconds
+	}
+	return string;
 };
 
 // Build a sorting key for the sorttable library to sort the date field used in the table view.
