@@ -3087,16 +3087,7 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
             <div class="content"><div class='highlight'><pre>        $(<span class="string">'.talkrow'</span>, dialog).addClass(<span class="string">'invisible'</span>);
     },
     
-    render: <span class="keyword">function</span>(){
-        <span class="keyword">if</span>(topTabs.getSelected() != <span class="literal">null</span> &amp;&amp; topTabs.getSelected().get(<span class="string">'mainView'</span>) == <span class="keyword">this</span>){
-            <span class="keyword">this</span>.$el.css(<span class="string">'display'</span>, <span class="string">'block'</span>);
-        }
-        <span class="keyword">else</span>{
-            <span class="keyword">this</span>.$el.css(<span class="string">'display'</span>, <span class="string">'none'</span>);
-        }
-        <span class="keyword">if</span>(<span class="keyword">this</span>.firstRender){
-            <span class="keyword">this</span>.$el.html(<span class="keyword">this</span>.template());
-            <span class="keyword">this</span>.init(<span class="keyword">this</span>.model.get(<span class="string">'title'</span>));</pre></div></div>
+    render: <span class="keyword">function</span>(){</pre></div></div>
             
         </li>
         
@@ -3106,6 +3097,29 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-140">&#182;</a>
+              </div>
+              <p>this.container = this.$(&quot;#maincontainer&quot;);</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="keyword">if</span>(topTabs.getSelected() != <span class="literal">null</span> &amp;&amp; topTabs.getSelected().get(<span class="string">'mainView'</span>) == <span class="keyword">this</span>){
+            <span class="keyword">this</span>.$el.html(<span class="keyword">this</span>.contents);
+        }
+        <span class="keyword">else</span>{
+            <span class="keyword">this</span>.contents = <span class="keyword">this</span>.$el.children().detach();
+        }
+        <span class="keyword">if</span>(<span class="keyword">this</span>.firstRender){
+            <span class="keyword">this</span>.$el.html(<span class="keyword">this</span>.template());
+            <span class="keyword">this</span>.init(<span class="keyword">this</span>.model.get(<span class="string">'title'</span>));</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-141">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-141">&#182;</a>
               </div>
               <p>TODO: Remove this when everything is working:
 Helper.init(this.model.get(&#39;title&#39;));</p>
@@ -3122,11 +3136,11 @@ Helper.init(this.model.get(&#39;title&#39;));</p>
         </li>
         
         
-        <li id="section-141">
+        <li id="section-142">
             <div class="annotation">
               
               <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-141">&#182;</a>
+                <a class="pilcrow" href="#section-142">&#182;</a>
               </div>
               <h2>DialogView</h2>
 
@@ -3137,6 +3151,7 @@ Helper.init(this.model.get(&#39;title&#39;));</p>
     dialog: <span class="literal">null</span>, <span class="comment">// Reference to the jQueryUI Dialog</span>
     options: <span class="literal">null</span>, <span class="comment">// Options object for the dialog</span>
     onCreate: <span class="keyword">function</span>(){}, <span class="comment">// Function to be called after the dialog is created</span>
+    firstRender: <span class="literal">true</span>,
 
     initialize: <span class="keyword">function</span>(options){
         <span class="keyword">this</span>.template = _.template($(<span class="string">"#"</span> + options.template).html());
@@ -3149,11 +3164,11 @@ Helper.init(this.model.get(&#39;title&#39;));</p>
         </li>
         
         
-        <li id="section-142">
+        <li id="section-143">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-142">&#182;</a>
+                <a class="pilcrow" href="#section-143">&#182;</a>
               </div>
               <p>Displays the dialog</p>
 
@@ -3166,11 +3181,11 @@ Helper.init(this.model.get(&#39;title&#39;));</p>
         </li>
         
         
-        <li id="section-143">
+        <li id="section-144">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-143">&#182;</a>
+                <a class="pilcrow" href="#section-144">&#182;</a>
               </div>
               <p>Closes the dialog</p>
 
@@ -3181,9 +3196,12 @@ Helper.init(this.model.get(&#39;title&#39;));</p>
     },
     
     render: <span class="keyword">function</span>(){
-        <span class="keyword">this</span>.$el.html(<span class="keyword">this</span>.template());  
-        <span class="keyword">this</span>.dialog = <span class="keyword">this</span>.$el.children().dialog(<span class="keyword">this</span>.options);
-        <span class="keyword">this</span>.onCreate(<span class="keyword">this</span>.dialog);
+        <span class="keyword">if</span>(<span class="keyword">this</span>.firstRender){
+            <span class="keyword">this</span>.$el.html(<span class="keyword">this</span>.template());  
+            <span class="keyword">this</span>.dialog = <span class="keyword">this</span>.$el.children().dialog(<span class="keyword">this</span>.options);
+            <span class="keyword">this</span>.onCreate(<span class="keyword">this</span>.dialog);
+        }
+        <span class="keyword">this</span>.firstRender = <span class="literal">false</span>;
         <span class="keyword">return</span> <span class="keyword">this</span>.$el; 
     }
 
@@ -3192,11 +3210,11 @@ Helper.init(this.model.get(&#39;title&#39;));</p>
         </li>
         
         
-        <li id="section-144">
+        <li id="section-145">
             <div class="annotation">
               
               <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-144">&#182;</a>
+                <a class="pilcrow" href="#section-145">&#182;</a>
               </div>
               <h2>NavCtlView</h2>
 
@@ -3213,11 +3231,11 @@ Helper.init(this.model.get(&#39;title&#39;));</p>
         </li>
         
         
-        <li id="section-145">
+        <li id="section-146">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-145">&#182;</a>
+                <a class="pilcrow" href="#section-146">&#182;</a>
               </div>
               <p>Adjust the slider when we switch to time-spaced mode.
 Use a new time-spaced scale for display.</p>
@@ -3233,11 +3251,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-146">
+        <li id="section-147">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-146">&#182;</a>
+                <a class="pilcrow" href="#section-147">&#182;</a>
               </div>
               <p>Todo: domain of talk entries may exceed revisions</p>
 
@@ -3270,11 +3288,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-147">
+        <li id="section-148">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-147">&#182;</a>
+                <a class="pilcrow" href="#section-148">&#182;</a>
               </div>
               <p>When we switch to adjacent-spaced mode, switch back to using a linear scale for display.</p>
 
@@ -3314,11 +3332,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-148">
+        <li id="section-149">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-148">&#182;</a>
+                <a class="pilcrow" href="#section-149">&#182;</a>
               </div>
               <p>Slide the view when we slide the slider.</p>
 
@@ -3340,11 +3358,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-149">
+        <li id="section-150">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-149">&#182;</a>
+                <a class="pilcrow" href="#section-150">&#182;</a>
               </div>
               <p>The multiplier 0.9 is a quick fix for getting the rightmost bars in TS mode visible.</p>
 
@@ -3358,11 +3376,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-150">
+        <li id="section-151">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-150">&#182;</a>
+                <a class="pilcrow" href="#section-151">&#182;</a>
               </div>
               <p>Map slider motion to an offset by which to pan the main view. Behaves differently for time and adjacent spaced modes.</p>
 
@@ -3394,11 +3412,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-151">
+        <li id="section-152">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-151">&#182;</a>
+                <a class="pilcrow" href="#section-152">&#182;</a>
               </div>
               <p>Scrollbar dimensions</p>
 
@@ -3411,11 +3429,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-152">
+        <li id="section-153">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-152">&#182;</a>
+                <a class="pilcrow" href="#section-153">&#182;</a>
               </div>
               <p>Create the SVG element for the scrollbar</p>
 
@@ -3428,11 +3446,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-153">
+        <li id="section-154">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-153">&#182;</a>
+                <a class="pilcrow" href="#section-154">&#182;</a>
               </div>
               <p>Create handles (semi-circles)</p>
 
@@ -3466,11 +3484,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-154">
+        <li id="section-155">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-154">&#182;</a>
+                <a class="pilcrow" href="#section-155">&#182;</a>
               </div>
               <p>Slider group</p>
 
@@ -3504,11 +3522,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-155">
+        <li id="section-156">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-155">&#182;</a>
+                <a class="pilcrow" href="#section-156">&#182;</a>
               </div>
               <p>Draw talk page entries, need to manually keep this in sync with appendCallout for now</p>
 
@@ -3521,11 +3539,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-156">
+        <li id="section-157">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-156">&#182;</a>
+                <a class="pilcrow" href="#section-157">&#182;</a>
               </div>
               <p>Max circle radius</p>
 
@@ -3537,11 +3555,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-157">
+        <li id="section-158">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-157">&#182;</a>
+                <a class="pilcrow" href="#section-158">&#182;</a>
               </div>
               <p>Append circle to our element. Cap the circle size and re-style the circle if it has reached the cap.</p>
 
@@ -3557,11 +3575,11 @@ Use a new time-spaced scale for display.</p>
         </li>
         
         
-        <li id="section-158">
+        <li id="section-159">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-158">&#182;</a>
+                <a class="pilcrow" href="#section-159">&#182;</a>
               </div>
               <p>Event handlers for the slider
 The slider &quot;dragging&quot; state is stored as a CSS class.</p>
@@ -3587,11 +3605,11 @@ The slider &quot;dragging&quot; state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-159">
+        <li id="section-160">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-159">&#182;</a>
+                <a class="pilcrow" href="#section-160">&#182;</a>
               </div>
               <p>More event handlers. These deal with dragging the slider.</p>
 
@@ -3644,11 +3662,11 @@ The slider &quot;dragging&quot; state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-160">
+        <li id="section-161">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-160">&#182;</a>
+                <a class="pilcrow" href="#section-161">&#182;</a>
               </div>
               <p>Once the mouse is released, reset the slider &quot;dragging&quot; state.</p>
 
@@ -3665,11 +3683,11 @@ The slider &quot;dragging&quot; state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-161">
+        <li id="section-162">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-161">&#182;</a>
+                <a class="pilcrow" href="#section-162">&#182;</a>
               </div>
               <p>Call these to update the slider for the first time.</p>
 
@@ -3683,11 +3701,11 @@ The slider &quot;dragging&quot; state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-162">
+        <li id="section-163">
             <div class="annotation">
               
               <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-162">&#182;</a>
+                <a class="pilcrow" href="#section-163">&#182;</a>
               </div>
               <h2>NewArticleView</h2>
 
@@ -3715,11 +3733,11 @@ The slider &quot;dragging&quot; state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-163">
+        <li id="section-164">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-163">&#182;</a>
+                <a class="pilcrow" href="#section-164">&#182;</a>
               </div>
               <p>Triggered when one of the options in the initiative list is clicked</p>
 
@@ -3745,11 +3763,11 @@ The slider &quot;dragging&quot; state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-164">
+        <li id="section-165">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-164">&#182;</a>
+                <a class="pilcrow" href="#section-165">&#182;</a>
               </div>
               <p>Triggered when one of the options in the project/contributor list is clicked</p>
 
@@ -3771,11 +3789,11 @@ The slider &quot;dragging&quot; state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-165">
+        <li id="section-166">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-165">&#182;</a>
+                <a class="pilcrow" href="#section-166">&#182;</a>
               </div>
               <p>Triggered when the analyse button is clicked</p>
 
@@ -3798,11 +3816,11 @@ The slider &quot;dragging&quot; state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-166">
+        <li id="section-167">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-166">&#182;</a>
+                <a class="pilcrow" href="#section-167">&#182;</a>
               </div>
               <p>Renders the initiatives list</p>
 
@@ -3815,11 +3833,11 @@ The slider &quot;dragging&quot; state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-167">
+        <li id="section-168">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-167">&#182;</a>
+                <a class="pilcrow" href="#section-168">&#182;</a>
               </div>
               <p>Renders the projects/contributors list</p>
 
@@ -3853,11 +3871,11 @@ The slider &quot;dragging&quot; state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-168">
+        <li id="section-169">
             <div class="annotation">
               
               <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-168">&#182;</a>
+                <a class="pilcrow" href="#section-169">&#182;</a>
               </div>
               <h2>TopTabsView</h2>
 
@@ -3875,11 +3893,11 @@ The slider &quot;dragging&quot; state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-169">
+        <li id="section-170">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-169">&#182;</a>
+                <a class="pilcrow" href="#section-170">&#182;</a>
               </div>
               <p>Orders each tab and spacing them correctly.</p>
 <p>First the tabs are sorted based on their x position,
@@ -3890,10 +3908,39 @@ then they are spaced and rerendered.</p>
             <div class="content"><div class='highlight'><pre>    order: <span class="keyword">function</span>(){
         <span class="keyword">this</span>.model.sort();
         <span class="keyword">var</span> startX = TopTabsView.leftMargin;
+        <span class="keyword">var</span> widthEstimate = ((<span class="number">1000</span>-<span class="number">30</span>-<span class="number">30</span>-TopTabsView.spacing)/(<span class="keyword">this</span>.model.length-<span class="number">1</span>)) - <span class="number">25</span> - <span class="number">10</span> - TopTabsView.spacing;
+        <span class="keyword">var</span> widthSum = <span class="number">0</span>;
+        <span class="keyword">var</span> actualSum = <span class="number">0</span>;
         <span class="keyword">this</span>.model.each(<span class="keyword">function</span>(tab, index){
+            <span class="keyword">var</span> before = tab.get(<span class="string">'x'</span>);
             tab.set(<span class="string">'x'</span>, startX, {silent: <span class="literal">true</span>});
-            startX += <span class="keyword">this</span>.$(<span class="string">"#tab_"</span> + tab.cid).outerWidth() + TopTabsView.spacing;
-            <span class="keyword">this</span>.views[index].render();
+            <span class="keyword">var</span> extraWidth = <span class="number">0</span>;
+            <span class="keyword">if</span>(tab.get(<span class="string">'type'</span>) != <span class="string">'new'</span>){
+                widthSum += widthEstimate + <span class="number">25</span> + <span class="number">10</span> + <span class="number">5</span>;
+                actualSum += Math.max(<span class="number">5</span>, Math.min(<span class="number">150</span>, Math.round(widthEstimate))) + <span class="number">25</span> + <span class="number">10</span> + <span class="number">5</span>;
+                <span class="keyword">var</span> diff = widthSum - actualSum;
+                actualSum += diff;
+                console.log(widthSum, actualSum);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-171">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-171">&#182;</a>
+              </div>
+              <p>TODO: This isn&#39;t perfect, some rounding problems still exist</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="keyword">this</span>.$(<span class="string">"#tab_"</span> + tab.cid).css(<span class="string">'max-width'</span>, Math.max(<span class="number">5</span>, Math.min(<span class="number">150</span>, Math.round(widthEstimate) + diff)));
+            }
+            startX += Math.round(<span class="keyword">this</span>.$(<span class="string">"#tab_"</span> + tab.cid).outerWidth()) + TopTabsView.spacing;
+            <span class="keyword">if</span>(before != tab.get(<span class="string">'x'</span>)){
+                <span class="keyword">this</span>.views[index].updatePosition();
+            }
         }, <span class="keyword">this</span>);
     },
     
@@ -3913,7 +3960,7 @@ then they are spaced and rerendered.</p>
                         tabView.$el.css(<span class="string">'z-index'</span>, <span class="number">1000</span>);
                     }, <span class="keyword">this</span>),
                     drag: $.proxy(<span class="keyword">function</span>(e, ui){
-                        tab.set(<span class="string">'x'</span>, parseInt(tabView.$el.css(<span class="string">'left'</span>)));
+                        tab.set(<span class="string">'x'</span>, parseInt(tabView.$el.css(<span class="string">'left'</span>)), {silent: <span class="literal">true</span>});
                         <span class="keyword">this</span>.order();
                     }, <span class="keyword">this</span>),
                     stop: $.proxy(<span class="keyword">function</span>(){
@@ -3937,11 +3984,11 @@ TopTabsView.spacing = <span class="number">5</span>; <span class="comment">// Sp
         </li>
         
         
-        <li id="section-170">
+        <li id="section-172">
             <div class="annotation">
               
               <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-170">&#182;</a>
+                <a class="pilcrow" href="#section-172">&#182;</a>
               </div>
               <h2>TopTabView</h2>
 
@@ -3965,11 +4012,11 @@ TopTabsView.spacing = <span class="number">5</span>; <span class="comment">// Sp
         </li>
         
         
-        <li id="section-171">
+        <li id="section-173">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-171">&#182;</a>
+                <a class="pilcrow" href="#section-173">&#182;</a>
               </div>
               <p>Triggered when the tab is hovered.  Change hover color etc.</p>
 
@@ -3995,11 +4042,11 @@ TopTabsView.spacing = <span class="number">5</span>; <span class="comment">// Sp
         </li>
         
         
-        <li id="section-172">
+        <li id="section-174">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-172">&#182;</a>
+                <a class="pilcrow" href="#section-174">&#182;</a>
               </div>
               <p>Triggered when a tab is clicked (clicking the &#39;x&#39; doesn&#39;t count)</p>
 <p>If a &#39;+&#39; tab was clicked, then a new tab is created and selected, otherwise
@@ -4041,11 +4088,11 @@ the clicked tab is selected, and the previously selected tab is unselected</p>
         </li>
         
         
-        <li id="section-173">
+        <li id="section-175">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-173">&#182;</a>
+                <a class="pilcrow" href="#section-175">&#182;</a>
               </div>
               <p>Closes this tab and removes it.  The last tab is then selected</p>
 
@@ -4071,13 +4118,33 @@ the clicked tab is selected, and the previously selected tab is unselected</p>
                 topTabs.at(topTabs.length-<span class="number">2</span>).set(<span class="string">'selected'</span>, <span class="literal">true</span>);
             }
         }, <span class="keyword">this</span>));
+    },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-176">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-176">&#182;</a>
+              </div>
+              <p>Updates the left coordinate of the tab</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    updatePosition: <span class="keyword">function</span>(){
+        <span class="keyword">this</span>.$el.css(<span class="string">'left'</span>, <span class="keyword">this</span>.model.get(<span class="string">'x'</span>));
     },
     
     render: <span class="keyword">function</span>(){
         <span class="keyword">this</span>.$el.html(<span class="keyword">this</span>.template(<span class="keyword">this</span>.model.toJSON()));
+        <span class="keyword">if</span>(<span class="keyword">this</span>.model.get(<span class="string">'type'</span>) == <span class="string">'new'</span>){
+            <span class="keyword">this</span>.$el.addClass(<span class="string">'tab_new'</span>);
+        }
         <span class="keyword">this</span>.$el.addClass(<span class="string">"tab"</span>);
         <span class="keyword">this</span>.$el.stop();
-        <span class="keyword">this</span>.$el.css(<span class="string">'left'</span>, <span class="keyword">this</span>.model.get(<span class="string">'x'</span>));
+        <span class="keyword">this</span>.updatePosition();
         <span class="keyword">this</span>.$el.attr(<span class="string">'id'</span>, <span class="string">"tab_"</span> + <span class="keyword">this</span>.model.cid);
         <span class="keyword">if</span>(<span class="keyword">this</span>.model.get(<span class="string">'selected'</span>)){
             <span class="keyword">this</span>.$el.addClass(<span class="string">'selected'</span>);
@@ -4100,11 +4167,11 @@ subview = <span class="keyword">function</span>(subviewName){
         </li>
         
         
-        <li id="section-174">
+        <li id="section-177">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-174">&#182;</a>
+                <a class="pilcrow" href="#section-177">&#182;</a>
               </div>
               <p>From <a href="http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format">http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format</a>
 Sort of like Python&#39;s new string formatting method. Handy when one wants to do some large string substitutions.</p>
@@ -4124,11 +4191,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-175">
+        <li id="section-178">
             <div class="annotation">
               
               <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-175">&#182;</a>
+                <a class="pilcrow" href="#section-178">&#182;</a>
               </div>
               <h2>Helper</h2>
 
@@ -4139,11 +4206,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-176">
+        <li id="section-179">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-176">&#182;</a>
+                <a class="pilcrow" href="#section-179">&#182;</a>
               </div>
               <p>Takes in a javascript date object and pretty-prints it to a string which is returned.</p>
 
@@ -4161,11 +4228,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-177">
+        <li id="section-180">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-177">&#182;</a>
+                <a class="pilcrow" href="#section-180">&#182;</a>
               </div>
               <p>for the quick fix for hours, minutes and seconds!</p>
 
@@ -4176,11 +4243,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-178">
+        <li id="section-181">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-178">&#182;</a>
+                <a class="pilcrow" href="#section-181">&#182;</a>
               </div>
               <p>Build a sorting key for the sorttable library to sort the date field used in the table view.</p>
 
@@ -4195,11 +4262,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-179">
+        <li id="section-182">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-179">&#182;</a>
+                <a class="pilcrow" href="#section-182">&#182;</a>
               </div>
               <p>Take two lists, interpret as sets, and return true if subset_l is a subset of superset_l</p>
 
@@ -4221,11 +4288,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-180">
+        <li id="section-183">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-180">&#182;</a>
+                <a class="pilcrow" href="#section-183">&#182;</a>
               </div>
               <p>Generate a string describing a given article revisions&#39; edit categories</p>
 
@@ -4247,11 +4314,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-181">
+        <li id="section-184">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-181">&#182;</a>
+                <a class="pilcrow" href="#section-184">&#182;</a>
               </div>
               <p>Generate a string describing a given talk page revision entry&#39;s revision categories.</p>
 
@@ -4269,11 +4336,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-182">
+        <li id="section-185">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-182">&#182;</a>
+                <a class="pilcrow" href="#section-185">&#182;</a>
               </div>
               <p>Return absolute max (disregarding sign) of func(arr[i])</p>
 
@@ -4313,11 +4380,11 @@ PageRouter = Backbone.Router.extend({
         </li>
         
         
-        <li id="section-183">
+        <li id="section-186">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-183">&#182;</a>
+                <a class="pilcrow" href="#section-186">&#182;</a>
               </div>
               <p>Initiate the router</p>
 
@@ -4328,11 +4395,11 @@ PageRouter = Backbone.Router.extend({
         </li>
         
         
-        <li id="section-184">
+        <li id="section-187">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-184">&#182;</a>
+                <a class="pilcrow" href="#section-187">&#182;</a>
               </div>
               <p>Start Backbone history a necessary step for bookmarkable URL&#39;s</p>
 
