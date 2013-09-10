@@ -72,6 +72,23 @@
     }
     
     /**
+     * Determines which user owns the sentence (must own more than 50%)
+     * @param array $words The sentence's words
+     * @return mixed The name of the owner, or false if there is no user
+     */
+    function determineOwner($words){
+        $users = array();
+        $nWords = count($words);
+        foreach($words as $word){
+            @$users[$word['user']] += 1;
+            if($users[$word['user']] > $nWords/2){
+                return $word['user'];
+            }
+        }
+        return false;
+    }
+    
+    /**
      * Iterates through each word to look for insertions/deletions and tags each word by user
      * @param string $user The user who made the revision
      * @param array $sentence The last revision sentence
@@ -82,7 +99,7 @@
         $finalWords = array();
         if(isset($sentence)){
             $lastWords = array();
-            foreach($sentence as $word){
+            foreach($sentence['words'] as $word){
                 $lastWords[] = $word['word'];
             }
             $wordDiff = diff($lastWords, $words);
@@ -100,7 +117,7 @@
                 else{
                     // No Words Change
                     $finalWords[] = array('word' => $word,
-                                          'user' => $sentence[$wi]['user']);
+                                          'user' => $sentence['words'][$wi]['user']);
                     $wi++;
                 }
             }
@@ -132,8 +149,13 @@
             if(is_array($sentence)){
                 $insertion = $sentence['i'];
                 $deletion = $sentence['d'];
-                foreach($insertion as $ins){
-                    $finalSentences[] = processWords($user, @$lastRevSentences[$i], getWords($ins));
+                if(count($insertion) > 0){
+                    // Insertion
+                    foreach($insertion as $ins){
+                        $words = processWords($user, @$lastRevSentences[$i], getWords($ins));
+                        $finalSentences[] = array('words' => $words,
+                                                  'user' => determineOwner($words));
+                    }
                 }
                 $i += count($deletion);
             }
@@ -204,14 +226,7 @@
         foreach($users as $u){
             $sentenceCount = 0;
             foreach($finalSentences as $sentence){
-                $nWords = count($sentence);
-                $wordCount = 0;
-                foreach($sentence as $word){
-                    if($word['user'] == $u){
-                        $wordCount++;
-                    }
-                }
-                if($wordCount > $nWords/2){
+                if($sentence['user'] == $u){
                     $sentenceCount++;
                 }
             }
