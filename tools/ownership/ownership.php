@@ -121,6 +121,9 @@
             $json = json_decode(file_get_contents($cache));
         }
         else{
+            if(!is_dir("cache")){
+                mkdir("cache");
+            }
             $json = file_get_contents("http://en.wikipedia.org/w/api.php?action=parse&prop=text&page=$article&oldid=$revid&format=json");
             file_put_contents($cache, $json);
             $json = json_decode($json);
