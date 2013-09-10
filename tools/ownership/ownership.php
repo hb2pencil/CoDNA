@@ -26,13 +26,7 @@
     
     // Returns an array of words from a sentence
     function getWords($sentence){
-        $words = preg_split('/[^a-zA-Z0-9]/i', $sentence);
-        $finalWords = array();
-        foreach($words as $word){
-            if($word != "" && $word != " "){
-                $finalWords[] = $word;           }
-        }
-        return $finalWords;
+        return preg_split('/[^a-zA-Z0-9]/i', $sentence, -1, PREG_SPLIT_NO_EMPTY);
     }
     
     // Returns an array of sentences, where the sentences are arrays of words
@@ -68,19 +62,90 @@
         }
         $finalSentences = array();
         foreach($sentences as $sentence){
-            $words = array();
-            $words_tmp = getWords($sentence);
-            foreach($words_tmp as $word){
-                if($word != ""){
-                    $words[] = $word;
-                }
-            }
+            $words = getWords($sentence);
             $wc = count($words);
             if($wc >= $minWC){
                 $finalSentences[] = $words;
             }
         }
         return $sentences;
+    }
+    
+    /**
+     * Iterates through each word to look for insertions/deletions and tags each word by user
+     * @param string $user The user who made the revision
+     * @param array $sentence The last revision sentence
+     * @param array $words The words array for process
+     * @return array The array of words
+     */
+    function processWords($user, $sentence, $words){
+        $finalWords = array();
+        if(isset($sentence)){
+            $lastWords = array();
+            foreach($sentence as $word){
+                $lastWords[] = $word['word'];
+            }
+            $wordDiff = diff($lastWords, $words);
+            $wi = 0;
+            foreach($wordDiff as $word){
+                if(is_array($word)){
+                    $wInsertion = $word['i'];
+                    $wDeletion = $word['d'];
+                    foreach($wInsertion as $wik => $wins){
+                        $finalWords[] = array('word' => $wins,
+                                              'user' => $user);
+                    }
+                    $wi += count($wDeletion);
+                }
+                else{
+                    // No Words Change
+                    $finalWords[] = array('word' => $word,
+                                          'user' => $sentence[$wi]['user']);
+                    $wi++;
+                }
+            }
+            $words = $finalWords;
+        }
+        else{
+            foreach($words as $wKey => $word){
+                $words[$wKey] = array('word' => $word,
+                                      'user' => $user);
+            }
+        }
+        return $words;
+    }
+    
+    /**
+     * Iterates through each sentence to and looks for insertions/deletions
+     * @param string $user The user who made the revision
+     * @param array $previousSentences The array of sentences for the previous revision
+     * @param array $lastRevSentences The array of sentences (split up into words) for the previous revision
+     * @param array $sentences The array of sentences for the current revision.
+     * @return array The final array of sentences split up into words
+     */
+    function processSentences($user, &$previousSentences, &$lastRevSentences, $sentences){
+        $finalSentences = array();
+        $diff = diff($previousSentences, $sentences);
+        $nInserts = 0;
+        $i = 0;
+        foreach($diff as $sentence){
+            if(is_array($sentence)){
+                $insertion = $sentence['i'];
+                $deletion = $sentence['d'];
+                foreach($insertion as $ins){
+                    $finalSentences[] = processWords($user, @$lastRevSentences[$i], getWords($ins));
+                }
+                $i += count($deletion);
+            }
+            else{
+                // No Sentence Change
+                $finalSentences[] = $lastRevSentences[$i];
+                $i++;
+            }
+        }
+        $lastRevSentences = $finalSentences;
+        $previousSentences = $sentences;
+        return $finalSentences;
     }
     
     $rev_history = json_decode(file_get_contents("https://en.wikipedia.org/w/api.php?action=query&prop=revisions&titles=$article&rvlimit=max&rvprop=user|ids|timestamp&format=json&rvdir=newer"));
@@ -114,7 +179,6 @@
     foreach($revisions as $timestamp => $rev){
         $users[$rev->user] = $rev->user;
         $revid = $rev->revid;
-        $finalSentences = array();
         $user = $rev->user;
         $cache = "cache/{$article}_{$revid}";
         if(file_exists($cache)){
@@ -132,72 +196,9 @@
         $str = $text['*'];
         $sentences = getSentences($str);
 
-        $diff = diff($previousSentences, $sentences);
-        $nInserts = 0;
-        $i = 0;
-        foreach($diff as $sentence){
-            if(is_array($sentence)){
-                $insertion = $sentence['i'];
-                $deletion = $sentence['d'];
-                foreach($insertion as $ik => $ins){
-                    $words = getWords($ins);
-                    $finalWords = array();
-                    if(isset($lastRevSentences[$i])){
-                        $lastWords = array();
-                        foreach($lastRevSentences[$i] as $word){
-                            $lastWords[] = $word['word'];
-                        }
-                        $wordDiff = diff($lastWords, $words);
-                        $wi = 0;
-                        foreach($wordDiff as $key => $word){
-                            if(is_array($word)){
-                                $wInsertion = $word['i'];
-                                $wDeletion = $word['d'];
-                                foreach($wInsertion as $wik => $wins){
-                                    $finalWords[] = array('word' => $wins,
-                                                          'user' => $user);
-                                }
-                                foreach($wDeletion as $del){
-                                    $wi++;
-                                }
-                            }
-                            else{
-                                // No Words Change
-                                $finalWords[] = array('word' => $word,
-                                                      'user' => $lastRevSentences[$i][$wi]['user']);
-                                $wi++;
-                            }
-                        }
-                        $words = $finalWords;
-                    }
-                    else{
-                        foreach($words as $wKey => $word){
-                            $words[$wKey] = array('word' => $word,
-                                                  'user' => $user);
-                        }
-                    }
-                    $finalSentences[] = $words;
-                }
-                foreach($deletion as $del){
-                    $i++;
-                }
-            }
-            else{
-                // No Sentence Change
-                $words = getWords($sentence);
-                foreach($words as $wKey => $word){
-                    $words[$wKey] = array('word' => $word, 
-                                          'user' => $lastRevSentences[$i][$wKey]['user']);
-                }
-                $finalSentences[] = $words;
-                $i++;
-            }
-        }
-        
+        // Process the sentences
+        $finalSentences = processSentences($user, $previousSentences, $lastRevSentences, $sentences);
 
-        $lastRevSentences = $finalSentences;
-        $previousSentences = $sentences;
-        
         echo "== REVID $revid - $timestamp ==\n";
         $ownership = array();
         foreach($users as $u){
