@@ -5,7 +5,8 @@
 		<title>Edit Listing</title>
 	</head>
 	<?php
-		require_once('config.inc.php');
+		require_once("../../visualization/lib/config.inc.php");
+        require_once("../../visualization/lib/DBConnection.inc.php");
 		$title = $_REQUEST['page_title'];
 		$limit = $_REQUEST['limit'];
 		$startid = $_REQUEST['startid'];

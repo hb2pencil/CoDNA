@@ -8,7 +8,8 @@
 		<?php
 			error_reporting(E_ALL);
 			ini_set('display_errors', '1');
-			require_once('config.inc.php');
+			require_once("../../visualization/lib/config.inc.php");
+            require_once("../../visualization/lib/DBConnection.inc.php");
 			$par = $_REQUEST['par_id'];
 			$to = $_REQUEST['rev_id'];
 			$title = $_REQUEST['page_title'];
