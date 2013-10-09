@@ -1,7 +1,7 @@
 <?php
 
     $minWC = 5;
-    $memoryFactor = 0.95;
+    $memoryFactor = 0.00;
     
     $revisions = array();
     $previousSentences = array();
@@ -34,9 +34,11 @@
                        'text' => $sections[0]);
         if(isset($matches[0])){
             foreach($matches[0] as $key => $match){
+                if(isset($sections[$key+1])){
                     $title = $match;
                     $ret[] = array('title' => $title,
                                    'text' => $sections[$key+1]);
+                }
             }
         }
         return $ret;

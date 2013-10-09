@@ -1,9 +1,12 @@
 // ## DialogView
 DialogView = Backbone.View.extend({
     
-    dialog: null, // Reference to the jQueryUI Dialog
-    options: null, // Options object for the dialog
-    onCreate: function(){}, // Function to be called after the dialog is created
+    // Reference to the jQueryUI Dialog
+    dialog: null,
+    // Options object for the dialog
+    options: null,
+    // Function to be called after the dialog is created
+    onCreate: function(){},
     firstRender: true,
 
     initialize: function(options){

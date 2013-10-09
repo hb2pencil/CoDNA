@@ -6,6 +6,7 @@ TopTabsView = Backbone.View.extend({
     initialize: function(){
         this.listenTo(this.model, 'add', this.render);
         this.listenTo(this.model, 'remove', this.render);
+        $(window).resize($.proxy(this.render, this));
     },
     
     // Orders each tab and spacing them correctly.
@@ -71,8 +72,10 @@ TopTabsView = Backbone.View.extend({
 
 });
 
-TopTabsView.leftMargin = 15; // Left margin for first tab
-TopTabsView.spacing = 5; // Spacing between tabs
+// Left margin for first tab
+TopTabsView.leftMargin = 15;
+// Spacing between tabs
+TopTabsView.spacing = 5;
 
 // ## TopTabView
 TopTabView = Backbone.View.extend({

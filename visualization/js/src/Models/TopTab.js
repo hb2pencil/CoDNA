@@ -4,11 +4,13 @@ TopTab = Backbone.Model.extend({
     initialize: function(){
         this.on('change:selected', function(){
             if(topTabs.getSelected() == this){
-                this.get('mainView').$el.html(this.contents);
+                $("#content").html(this.content);
             }
             else{
-                this.contents = this.get('mainView').$el.children().detach();
+                this.content = this.get('mainView').$el.detach();
             }
+            // Close any dialogs which are open
+            $(".ui-dialog-content").dialog('close');
         }, this);
         this.get('mainView').render();
     },
@@ -25,7 +27,8 @@ TopTab = Backbone.Model.extend({
 
 });
 
-// ## NewTopTab (used for a "+" button to create a new tab)
+// ## NewTopTab 
+// (used for a "+" button to create a new tab)
 NewTopTab = TopTab.extend({
 
     initialize: function(){

@@ -9,7 +9,9 @@ Article = Backbone.Model.extend({
     
     defaults: {
         title: "",
-        rev_count: 0
+        rev_count: 0,
+        set: 1,
+        display: true
     }
 
 });
@@ -19,6 +21,8 @@ ArticleCollection = Backbone.Collection.extend({
     
     model: Article,
     
-    url: "dbquery.php?list"
+    url: function(){
+        return "dbquery.php?list";
+    }
     
 });

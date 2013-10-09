@@ -1,12 +1,12 @@
-// ## ArticleView
-ArticleView = Backbone.View.extend({
+// ## UserView
+UserView = Backbone.View.extend({
     
-    template: _.template($("#article_container_template").html()),
+    template: _.template($("#user_container_template").html()),
     wikiviz: null,
     navctl: null,
     
     initialize: function(){
-        this.wikiviz = new WikiViz({title: this.model.get('title')});
+        this.wikiviz = new WikiViz({user: this.model.get('name')});
         var id = _.uniqueId();
         $("#content").append("<div id='" + id + "'>");
         this.$el = $("#" + id);
@@ -15,11 +15,11 @@ ArticleView = Backbone.View.extend({
     },
     
     subviewCreators : {
-        "article_info": function(){
-            return new ArticleInfoView({model: this.wikiviz, article: this.model});
+        "user_info": function(){
+            return new UserInfoView({model: this.wikiviz, user: this.model});
         },
         "toolbar": function(){
-            return new ToolbarView({model: {'buttons': ['select','data','legend','deselect','talk']}, view: this});
+            return new ToolbarView({model: {'buttons': ['articles','data','legend','deselect','talk']}, view: this});
         }
     },
     

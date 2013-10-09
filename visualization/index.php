@@ -217,8 +217,8 @@
 		<?php include("js/templates.html"); ?>
 		<script type="text/javascript" src="js/vendor/jquery-1.7.2.min.js"></script>
 		<script type="text/javascript" src="js/vendor/jquery-ui-1.8.20.custom.min.js"></script>
-		<script type="text/javascript" src="js/buttonsetv.js"></script>
-		<script type="text/javascript" src="js/vendor/d3.v2.min.js"></script>
+
+		<script type="text/javascript" src="js/vendor/d3.v3.min.js"></script>
 		<script type="text/javascript" src="js/sorttable.js"></script>
 		<script type="text/javascript" src="js/vendor/jquery_svg/jquery.svg.js"></script>
 		<script type="text/javascript" src="js/vendor/jquery_svg/jquery.svgdom.js"></script>
@@ -229,16 +229,23 @@
 	        <script type="text/javascript" src="js/build/codna.min.js"></script>
 		<?php } else if($environment == "dev"){ ?>
 	        <!-- Models -->
+	        <script type="text/javascript" src="js/src/Models/User.js"></script>
+	        <script type="text/javascript" src="js/src/Models/UserSet.js"></script>
 	        <script type="text/javascript" src="js/src/Models/TopTab.js"></script>
 	        <script type="text/javascript" src="js/src/Models/Article.js"></script>
+	        <script type="text/javascript" src="js/src/Models/ArticleSet.js"></script>
 	        <script type="text/javascript" src="js/src/Models/WikiViz.js"></script>
 	        
 	        <!-- Views -->
 	        <script type="text/javascript" src="js/src/Views/DialogView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/TopTabView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/NewArticleView.js"></script>
+	        <script type="text/javascript" src="js/src/Views/WikiVizView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/ArticleView.js"></script>
+	        <script type="text/javascript" src="js/src/Views/UserView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/ArticleInfoView.js"></script>
+	        <script type="text/javascript" src="js/src/Views/UserInfoView.js"></script>
+	        <script type="text/javascript" src="js/src/Views/ToolbarView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/NavCtlView.js"></script>
 	        
 	        <!-- Other -->

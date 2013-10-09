@@ -1,6 +1,7 @@
+// ## router.js
 $.ajaxSetup({ cache: false });
 
-articles = new ArticleCollection(); // TODO: Change this.  This should be in NewArticleView, not globally defined
+articles = new ArticleCollection();
 articles.fetch();
 topTabs = new TopTabCollection();
 topTabsView = new TopTabsView({model: topTabs, el: "#topTabs"});
