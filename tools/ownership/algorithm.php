@@ -1,7 +1,7 @@
 <?php
 
     $minWC = 5;
-    $memoryFactor = 0.00;
+    $memoryFactor = 1.00;
     
     $revisions = array();
     $previousSentences = array();

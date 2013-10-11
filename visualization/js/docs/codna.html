@@ -114,6 +114,7 @@ Released under GPLv2 License</code></pre>
         id: <span class="literal">null</span>,
         name: <span class="string">""</span>,
         url: <span class="string">""</span>,
+        count: <span class="number">0</span>
     }
 
 });</pre></div></div>
@@ -363,6 +364,7 @@ Tabs of type &#39;new&#39; should be treates specially, and always be at the end
         id: <span class="literal">null</span>,
         name: <span class="string">""</span>,
         url: <span class="string">""</span>,
+        count: <span class="number">0</span>
     }
 
 });</pre></div></div>
@@ -976,7 +978,9 @@ In short, this function generates and attaches additional descriptive data to th
         user: <span class="string">""</span>,
         wikiviz: <span class="literal">null</span>,
         users: [],
-        revisions: []
+        revisions: [],
+        quality: [],
+        events: []
     }
     
 });
@@ -1320,7 +1324,8 @@ Use a new time-spaced scale for display.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    onSlide: <span class="keyword">function</span>() {
-        d3.select(<span class="keyword">this</span>.viz.$(<span class="string">'g.body'</span>)[<span class="number">0</span>]).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + -Math.round(<span class="keyword">this</span>.getPanOffset()) + <span class="string">',0)'</span>)
+        d3.select(<span class="keyword">this</span>.viz.$(<span class="string">'g.body'</span>)[<span class="number">0</span>]).attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + -Math.round(<span class="keyword">this</span>.getPanOffset()) + <span class="string">',0)'</span>);
+        <span class="keyword">this</span>.viz.repositionBar();
     },</pre></div></div>
             
         </li>
@@ -1381,15 +1386,18 @@ Use a new time-spaced scale for display.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    getPanOffset: <span class="keyword">function</span>() {
-        <span class="keyword">if</span> (!<span class="keyword">this</span>.viz.model.get(<span class="string">'isTimeSpaced'</span>) &amp;&amp; <span class="keyword">this</span>.viz.model.get(<span class="string">'mode'</span>) == <span class="string">'art'</span>) {
-            <span class="keyword">return</span> ((<span class="keyword">this</span>.sdim.x0) / (<span class="keyword">this</span>.dim.w - <span class="number">2</span>*<span class="keyword">this</span>.handleWidth))*(<span class="keyword">this</span>.viz.model.get(<span class="string">'data'</span>).get(<span class="string">'revisions'</span>).length*<span class="keyword">this</span>.viz.calcBarWidth());
+        <span class="keyword">try</span>{
+            <span class="keyword">if</span> (!<span class="keyword">this</span>.viz.model.get(<span class="string">'isTimeSpaced'</span>) &amp;&amp; <span class="keyword">this</span>.viz.model.get(<span class="string">'mode'</span>) == <span class="string">'art'</span>) {
+                <span class="keyword">return</span> ((<span class="keyword">this</span>.sdim.x0) / (<span class="keyword">this</span>.dim.w - <span class="number">2</span>*<span class="keyword">this</span>.handleWidth))*(<span class="keyword">this</span>.viz.model.get(<span class="string">'data'</span>).get(<span class="string">'revisions'</span>).length*<span class="keyword">this</span>.viz.calcBarWidth());
+            }
+            <span class="keyword">else</span> <span class="keyword">if</span> (!<span class="keyword">this</span>.viz.model.get(<span class="string">'isTimeSpaced'</span>) &amp;&amp; <span class="keyword">this</span>.viz.model.get(<span class="string">'mode'</span>) == <span class="string">'talk'</span>) {
+                <span class="keyword">return</span> ((<span class="keyword">this</span>.sdim.x0) / (<span class="keyword">this</span>.dim.w - <span class="number">2</span>*<span class="keyword">this</span>.handleWidth))*(<span class="keyword">this</span>.viz.model.get(<span class="string">'data'</span>).get(<span class="string">'talk'</span>).length*<span class="keyword">this</span>.viz.calcTalkWidth());
+            }
+            <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">this</span>.viz.model.get(<span class="string">'isTimeSpaced'</span>)) {
+                <span class="keyword">return</span> <span class="keyword">this</span>.viz.model.timeX(<span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0));
+            }
         }
-        <span class="keyword">else</span> <span class="keyword">if</span> (!<span class="keyword">this</span>.viz.model.get(<span class="string">'isTimeSpaced'</span>) &amp;&amp; <span class="keyword">this</span>.viz.model.get(<span class="string">'mode'</span>) == <span class="string">'talk'</span>) {
-            <span class="keyword">return</span> ((<span class="keyword">this</span>.sdim.x0) / (<span class="keyword">this</span>.dim.w - <span class="number">2</span>*<span class="keyword">this</span>.handleWidth))*(<span class="keyword">this</span>.viz.model.get(<span class="string">'data'</span>).get(<span class="string">'talk'</span>).length*<span class="keyword">this</span>.viz.calcTalkWidth());
-        }
-        <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">this</span>.viz.model.get(<span class="string">'isTimeSpaced'</span>)) {
-            <span class="keyword">return</span> <span class="keyword">this</span>.viz.model.timeX(<span class="keyword">this</span>.xscale.invert(<span class="keyword">this</span>.sdim.x0));
-        }
+        <span class="keyword">catch</span>(e){}
         <span class="keyword">return</span> <span class="number">0</span>;
     },
 
@@ -1731,19 +1739,15 @@ The slider &quot;dragging&quot; state is stored as a CSS class.</p>
         <span class="keyword">this</span>.users = <span class="keyword">new</span> UserCollection();
         <span class="keyword">this</span>.articles = <span class="keyword">new</span> ArticleCollection();
         
-        <span class="keyword">this</span>.users.fetch();
-        <span class="keyword">this</span>.articles.fetch();
-        <span class="keyword">this</span>.articleSets.fetch();
-        <span class="keyword">this</span>.userSets.fetch();
+        $.when(<span class="keyword">this</span>.users.fetch(),
+               <span class="keyword">this</span>.articles.fetch(),
+               <span class="keyword">this</span>.articleSets.fetch(),
+               <span class="keyword">this</span>.userSets.fetch()).then($.proxy(<span class="keyword">function</span>(){<span class="keyword">this</span>.render();}, <span class="keyword">this</span>));
         
         <span class="keyword">var</span> id = _.uniqueId();
         $(<span class="string">"#content"</span>).append(<span class="string">"&lt;div id='"</span> + id + <span class="string">"'&gt;"</span>);
         <span class="keyword">this</span>.$el = $(<span class="string">"#"</span> + id);
         <span class="keyword">this</span>.el = $(<span class="string">"#"</span> + id)[<span class="number">0</span>];
-        <span class="keyword">this</span>.listenTo(<span class="keyword">this</span>.articles, <span class="string">'sync'</span>, <span class="keyword">this</span>.render);
-        <span class="keyword">this</span>.listenTo(<span class="keyword">this</span>.users, <span class="string">'sync'</span>, <span class="keyword">this</span>.render);
-        <span class="keyword">this</span>.listenTo(<span class="keyword">this</span>.articleSets, <span class="string">'sync'</span>, <span class="keyword">this</span>.render);
-        <span class="keyword">this</span>.listenTo(<span class="keyword">this</span>.userSets, <span class="string">'sync'</span>, <span class="keyword">this</span>.render);
     },
     
     events: {
@@ -3306,6 +3310,9 @@ UserInfoView = Backbone.View.extend({
             
             <div class="content"><div class='highlight'><pre>WikiVizView = Backbone.View.extend({
 
+    mouseX: <span class="number">0</span>,
+    mouseY: <span class="number">0</span>,
+
     initialize: <span class="keyword">function</span>(options){
         <span class="keyword">this</span>.listenTo(<span class="keyword">this</span>.model.get(<span class="string">'data'</span>), <span class="string">"sync"</span>, <span class="keyword">this</span>.initViz);
         <span class="keyword">this</span>.navctl = <span class="keyword">new</span> NavCtlView({viz: <span class="keyword">this</span>});
@@ -3316,6 +3323,15 @@ UserInfoView = Backbone.View.extend({
         <span class="keyword">this</span>.listenTo(<span class="keyword">this</span>.model, <span class="string">"change:numBars"</span>, <span class="keyword">this</span>.updateBars);
         <span class="keyword">this</span>.listenTo(<span class="keyword">this</span>.model, <span class="string">"change:mode"</span>, <span class="keyword">this</span>.updateMode);
         <span class="keyword">this</span>.listenTo(<span class="keyword">this</span>.model, <span class="string">"change:isTimeSpaced"</span>, <span class="keyword">this</span>.updateSpacing);
+        <span class="keyword">this</span>.$el.click($.proxy(<span class="keyword">function</span>(e){
+            <span class="keyword">if</span>($(e.target).closest(<span class="string">".tooltip"</span>).length == <span class="number">0</span>){
+                <span class="keyword">this</span>.$(<span class="string">".tooltip"</span>).hide();
+            }
+        }, <span class="keyword">this</span>));
+        <span class="keyword">this</span>.$(<span class="string">"#view"</span>).mousemove($.proxy(<span class="keyword">function</span>(e){
+            <span class="keyword">this</span>.mouseX = e.offsetX;
+            <span class="keyword">this</span>.mouseY = e.offsetY;
+        }, <span class="keyword">this</span>));
         $(window).resize($.proxy(<span class="keyword">function</span>(){
             <span class="keyword">if</span>(<span class="keyword">this</span>.$(<span class="string">"#view"</span>).width() &gt; <span class="number">0</span>){
                 <span class="keyword">this</span>.model.set(<span class="string">'width'</span>, <span class="keyword">this</span>.$(<span class="string">"#view"</span>).width());
@@ -4144,8 +4160,8 @@ Currently called by the slider element when a mode change event occurs.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>        _.each(posFields, <span class="keyword">function</span>(v, i) {
-            barsGroup.filter(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d.wclass[v] &gt; <span class="number">0.0001</span>; }).append(<span class="string">'rect'</span>).attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> y(sums[index(d)]); })
-                .attr(<span class="string">'width'</span>, barWidth).attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> y(d.wclass[v]); }).attr(<span class="string">'class'</span>, v)
+            barsGroup.filter(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d.wclass[v] &gt; <span class="number">0.0001</span>; }).append(<span class="string">'rect'</span>).attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> y(sums[index(d)])*<span class="number">0.85</span>; })
+                .attr(<span class="string">'width'</span>, barWidth).attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> y(d.wclass[v])*<span class="number">0.85</span>; }).attr(<span class="string">'class'</span>, v)
                 .attr(<span class="string">'desc'</span>, index).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);</pre></div></div>
             
         </li>
@@ -4194,8 +4210,8 @@ Currently called by the slider element when a mode change event occurs.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>        _.each(negFields, <span class="keyword">function</span>(v, i) {
-            barsGroup.filter(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d.wclass[v] &gt; <span class="number">0.0001</span>; }).append(<span class="string">'rect'</span>).attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> -y(d.wclass[v]+sums[index(d)]); }).attr(<span class="string">'width'</span>, barWidth)
-                .attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> y(d.wclass[v]); }).attr(<span class="string">'class'</span>, v).attr(<span class="string">'desc'</span>, index).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);</pre></div></div>
+            barsGroup.filter(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d.wclass[v] &gt; <span class="number">0.0001</span>; }).append(<span class="string">'rect'</span>).attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> -y(d.wclass[v]+sums[index(d)])*<span class="number">0.85</span>; }).attr(<span class="string">'width'</span>, barWidth)
+                .attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> y(d.wclass[v])*<span class="number">0.85</span>; }).attr(<span class="string">'class'</span>, v).attr(<span class="string">'desc'</span>, index).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);</pre></div></div>
             
         </li>
         
@@ -4231,7 +4247,9 @@ We need to build these to the correct scale so that they line up with the correc
             
             <div class="content"><div class='highlight'><pre>    buildMonths: <span class="function"><span class="keyword">function</span> <span class="params">()</span>{</span>
         <span class="keyword">var</span> barWidth = <span class="keyword">this</span>.calcBarWidth();
-        <span class="keyword">var</span> revdata = <span class="keyword">this</span>.model.get(<span class="string">'data'</span>).get(<span class="string">'revisions'</span>);</pre></div></div>
+        <span class="keyword">var</span> revdata = <span class="keyword">this</span>.model.get(<span class="string">'data'</span>).get(<span class="string">'revisions'</span>);
+        <span class="keyword">var</span> qualityData = Array();
+        <span class="keyword">var</span> eventsData = Array();</pre></div></div>
             
         </li>
         
@@ -4300,6 +4318,7 @@ We do this by scanning through our bar graph data and appending to the month dat
             </div>
             
             <div class="content"><div class='highlight'><pre>                curDate = <span class="keyword">new</span> Date(revdata[i].timestamp);
+                
                 <span class="keyword">if</span> (curDate.getMonth() !== lastDate.getMonth() || curDate.getYear() !== lastDate.getYear()) {</pre></div></div>
             
         </li>
@@ -4316,12 +4335,25 @@ var right = (i-1) </em> barWidth;</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                    <span class="keyword">var</span> left = <span class="keyword">this</span>.getOffset(lastIndex);
+            <div class="content"><div class='highlight'><pre>                    
+                    <span class="keyword">var</span> left = <span class="keyword">this</span>.getOffset(lastIndex);
                     <span class="keyword">var</span> right = <span class="keyword">this</span>.getOffset(i);
                     <span class="keyword">if</span> (left === right) <span class="keyword">continue</span>;
                     data.push({l: left, r:right, m:lastDate.getMonth(), y:lastDate.getFullYear()});
                     lastDate = curDate;
                     lastIndex = i;
+                    _.each(<span class="keyword">this</span>.model.get(<span class="string">'data'</span>).get(<span class="string">'quality'</span>), $.proxy(<span class="keyword">function</span>(quality){
+                        <span class="keyword">var</span> cutoff = <span class="keyword">new</span> Date(quality.cutoff);
+                        <span class="keyword">if</span>(curDate.getMonth() == cutoff.getMonth() &amp;&amp; curDate.getYear() == cutoff.getYear()){
+                            qualityData.push({l: <span class="keyword">this</span>.getOffset(lastIndex), q: quality});
+                        }
+                    }, <span class="keyword">this</span>));
+                    _.each(<span class="keyword">this</span>.model.get(<span class="string">'data'</span>).get(<span class="string">'events'</span>), $.proxy(<span class="keyword">function</span>(event){
+                        <span class="keyword">var</span> time = <span class="keyword">new</span> Date(event.timestamp);
+                        <span class="keyword">if</span>(curDate.getMonth() == time.getMonth() &amp;&amp; curDate.getYear() == time.getYear()){
+                            eventsData.push({l: <span class="keyword">this</span>.getOffset(lastIndex), e: event});
+                        }
+                    }, <span class="keyword">this</span>));
                 }
             }
         
@@ -4362,15 +4394,26 @@ We use the timeX scale to find the left and right boundaries.</p>
                 data.push({l: timeX(lastMonth), r: timeX(curMonth), m: lastMonth.getMonth(), y: lastMonth.getFullYear()});
                 lastMonth = curMonth;
             }
+            
+            _.each(<span class="keyword">this</span>.model.get(<span class="string">'data'</span>).get(<span class="string">'quality'</span>), <span class="keyword">function</span>(quality){
+                <span class="keyword">var</span> cutoff = <span class="keyword">new</span> Date(quality.cutoff);
+                qualityData.push({l: timeX(cutoff), q: quality});
+            });
+            _.each(<span class="keyword">this</span>.model.get(<span class="string">'data'</span>).get(<span class="string">'events'</span>), <span class="keyword">function</span>(event){
+                <span class="keyword">var</span> time = <span class="keyword">new</span> Date(event.timestamp);
+                eventsData.push({l: timeX(time), e: event});
+            });
         }
     
-        <span class="keyword">var</span> mts_e = <span class="keyword">this</span>.model.get(<span class="string">'view'</span>).body.select(<span class="string">'.bg'</span>).selectAll(<span class="string">'.month'</span>).data(data, <span class="keyword">function</span>(d, i) { <span class="keyword">return</span> i; }).enter();
+        <span class="keyword">var</span> bg = <span class="keyword">this</span>.model.get(<span class="string">'view'</span>).body.select(<span class="string">'.bg'</span>);
+        
+    
+        <span class="keyword">var</span> mts_e = bg.selectAll(<span class="string">'.month'</span>).data(data, <span class="keyword">function</span>(d, i) { <span class="keyword">return</span> i; }).enter();
         <span class="keyword">var</span> mts_g = mts_e.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'month'</span>).attr(<span class="string">'transform'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="string">'translate('</span> + d.l + <span class="string">',0)'</span>; });
         mts_g.append(<span class="string">'rect'</span>).attr(<span class="string">'height'</span>, String(<span class="keyword">this</span>.model.get(<span class="string">'height'</span>))).attr(<span class="string">'width'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> (d.r-d.l); })
             .attr(<span class="string">'class'</span>, <span class="keyword">function</span>(d, i) { <span class="keyword">return</span> (i%<span class="number">2</span> === <span class="number">0</span>)?(<span class="string">'m_odd'</span>):(<span class="string">'m_even'</span>);}).attr(<span class="string">'y'</span>, String(-<span class="keyword">this</span>.model.get(<span class="string">'height'</span>)/<span class="number">2</span>));
         mts_g.append(<span class="string">'text'</span>).attr(<span class="string">'class'</span>, <span class="string">'mtext'</span>).text(<span class="keyword">function</span>(d) { <span class="keyword">return</span> months[d.m]; }).attr(<span class="string">'transform'</span>, $.proxy(<span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="string">'translate(5,'</span> + (<span class="keyword">this</span>.model.get(<span class="string">'height'</span>)/<span class="number">2</span> - <span class="number">15</span>) + <span class="string">')scale(1,-1)'</span>;}, <span class="keyword">this</span>)).attr(<span class="string">'opacity'</span>, <span class="number">1</span>).filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> ((d.r-d.l) - <span class="keyword">this</span>.getComputedTextLength()) &lt; blankThreshold;}).attr(<span class="string">'opacity'</span>, <span class="number">0</span>);
         mts_g.append(<span class="string">'text'</span>).attr(<span class="string">'class'</span>, <span class="string">'ytext'</span>).text(<span class="keyword">function</span>(d) { <span class="keyword">return</span> String(d.y); }).attr(<span class="string">'transform'</span>, $.proxy(<span class="keyword">function</span>(d) { <span class="keyword">return</span> <span class="string">'translate(5,'</span> + (<span class="keyword">this</span>.model.get(<span class="string">'height'</span>)/<span class="number">2</span> - <span class="number">30</span>) + <span class="string">')scale(1,-1)'</span>;}, <span class="keyword">this</span>)).attr(<span class="string">'opacity'</span>, <span class="number">1</span>).filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> ((d.r-d.l) - <span class="keyword">this</span>.getComputedTextLength()) &lt; blankThreshold;}).attr(<span class="string">'opacity'</span>, <span class="number">0</span>);
-    
     
         mts = <span class="keyword">this</span>.model.get(<span class="string">'view'</span>).body.selectAll(<span class="string">'.month'</span>).data(data, <span class="keyword">function</span>(d, i) { <span class="keyword">return</span> i; });
         <span class="keyword">var</span> mts_t = mts;
@@ -4384,8 +4427,72 @@ We use the timeX scale to find the left and right boundaries.</p>
         mts.select(<span class="string">'text.ytext'</span>).filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> ((d.r-d.l) - <span class="keyword">this</span>.getComputedTextLength()) &lt; blankThreshold;}).attr(<span class="string">'opacity'</span>, <span class="number">0</span>);
         mts.select(<span class="string">'text.ytext'</span>).filter(<span class="keyword">function</span>(d) { <span class="keyword">return</span> ((d.r-d.l) - <span class="keyword">this</span>.getComputedTextLength()) &gt;= blankThreshold;}).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
     
+        bg.selectAll(<span class="string">'.bar'</span>).remove();
+        <span class="keyword">var</span> bar_g = bg.append(<span class="string">'g'</span>).attr(<span class="string">'class'</span>, <span class="string">'bar'</span>);
+        bar_g.append(<span class="string">'rect'</span>).attr(<span class="string">'class'</span>, <span class="string">'bar_bg'</span>)
+                            .attr(<span class="string">'width'</span>, <span class="string">'100%'</span>)
+                            .attr(<span class="string">'height'</span>, <span class="number">35</span>)
+                            .attr(<span class="string">'fill'</span>, <span class="string">'#F2E4CB'</span>);
+        <span class="keyword">this</span>.repositionBar();
+        <span class="keyword">var</span> r = <span class="number">8</span>;
+        _.each(qualityData, $.proxy(<span class="keyword">function</span>(d){
+            <span class="keyword">var</span> text = <span class="string">"&lt;table&gt;"</span>;
+            _.each(d.q.description, <span class="keyword">function</span>(val, i){
+                text += <span class="string">"&lt;tr&gt;&lt;td align='right'&gt;"</span> + i + <span class="string">":&amp;nbsp;&lt;/td&gt;&lt;td&gt;"</span> + val + <span class="string">"&lt;/td&gt;&lt;/tr&gt;"</span>;
+            });
+            text += <span class="string">"&lt;tr&gt;&lt;td align='right'&gt;Avg Score:&amp;nbsp;&lt;/td&gt;&lt;td&gt;"</span> + d.q.score + <span class="string">"&lt;/td&gt;&lt;/tr&gt;"</span>;
+            
+            <span class="keyword">if</span>(d.q.metric == <span class="string">'CoDNA'</span>){
+                text += <span class="string">"&lt;tr&gt;&lt;td colspan='2'&gt;&lt;a style='float:right;' href='http://dl.acm.org/citation.cfm?id=2069609' target='_blank'&gt;Source&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;"</span>;
+            }
+            text += <span class="string">"&lt;/table&gt;"</span>;
+            <span class="keyword">var</span> clone = $(_.template($(<span class="string">"#tooltip_template"</span>).html(), {
+                title: d.q.metric + <span class="string">" Ranking"</span>,
+                text: text
+            }));
+            <span class="keyword">this</span>.$(<span class="string">'#view'</span>).append(clone);
+            bar_g.append(<span class="string">'circle'</span>).attr(<span class="string">'r'</span>, r)
+                                  .attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (d.l) + <span class="string">',-'</span> + (<span class="keyword">this</span>.model.get(<span class="string">'height'</span>)/<span class="number">2</span> - r*<span class="number">2</span>) + <span class="string">')'</span>)
+                                  .attr(<span class="string">'fill'</span>, <span class="string">'#2C5C7D'</span>);
+            $(<span class="string">".bar circle"</span>).last().click($.proxy(<span class="keyword">function</span>(){
+                _.defer($.proxy(<span class="keyword">function</span>(){
+                    $(<span class="string">".tooltip"</span>).not(clone).fadeOut();
+                    clone.fadeToggle();
+                    <span class="keyword">var</span> height = $(clone[<span class="number">1</span>]).height();
+                    clone.css(<span class="string">'left'</span>, <span class="keyword">this</span>.mouseX + r*<span class="number">2</span>)
+                         .css(<span class="string">'top'</span>, <span class="keyword">this</span>.mouseY - r*<span class="number">2</span> - height);
+                }, <span class="keyword">this</span>));
+            }, <span class="keyword">this</span>));
+        }, <span class="keyword">this</span>));
+        _.each(eventsData, $.proxy(<span class="keyword">function</span>(d){
+            <span class="keyword">var</span> clone = $(_.template($(<span class="string">"#tooltip_template"</span>).html(), {
+                title: d.e.title,
+                text: d.e.description + <span class="string">"&lt;br /&gt;Date:&amp;nbsp;"</span> + Helper.formatDate(<span class="keyword">new</span> Date(d.e.timestamp), <span class="literal">false</span>),
+            }));
+            <span class="keyword">this</span>.$(<span class="string">'#view'</span>).append(clone);
+            bar_g.append(<span class="string">'circle'</span>).attr(<span class="string">'r'</span>, r)
+                                  .attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + (d.l) + <span class="string">',-'</span> + (<span class="keyword">this</span>.model.get(<span class="string">'height'</span>)/<span class="number">2</span> - r*<span class="number">2</span>) + <span class="string">')'</span>)
+                                  .attr(<span class="string">'fill'</span>, <span class="string">'#8B2C0D'</span>);
+            $(<span class="string">".bar circle"</span>).last().click($.proxy(<span class="keyword">function</span>(){
+                _.defer($.proxy(<span class="keyword">function</span>(){
+                    $(<span class="string">".tooltip"</span>).not(clone).fadeOut();
+                    clone.fadeToggle();
+                    <span class="keyword">var</span> height = $(clone[<span class="number">1</span>]).height();
+                    clone.css(<span class="string">'left'</span>, <span class="keyword">this</span>.mouseX + r*<span class="number">2</span>)
+                         .css(<span class="string">'top'</span>, <span class="keyword">this</span>.mouseY - r*<span class="number">2</span> - height);
+                }, <span class="keyword">this</span>));
+            }, <span class="keyword">this</span>));
+        }, <span class="keyword">this</span>));
+    
         <span class="keyword">var</span> mts_x = mts.exit();
         mts_x.attr(<span class="string">'opacity'</span>, <span class="number">0</span>).remove();
+    },
+    
+    repositionBar: <span class="keyword">function</span>(){
+        <span class="keyword">this</span>.$(<span class="string">".tooltip"</span>).hide();
+        <span class="keyword">var</span> bg = <span class="keyword">this</span>.model.get(<span class="string">'view'</span>).body.select(<span class="string">'.bg'</span>);
+        <span class="keyword">var</span> bar_g = bg.selectAll(<span class="string">'.bar_bg'</span>);
+        bar_g.attr(<span class="string">'transform'</span>, <span class="string">'translate('</span> + <span class="keyword">this</span>.navctl.getPanOffset() + <span class="string">',-'</span> + (<span class="keyword">this</span>.model.get(<span class="string">'height'</span>)/<span class="number">2</span>) + <span class="string">')'</span>);
     },</pre></div></div>
             
         </li>

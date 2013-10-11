@@ -1,6 +1,9 @@
 // ## WikiVizView
 WikiVizView = Backbone.View.extend({
 
+    mouseX: 0,
+    mouseY: 0,
+
     initialize: function(options){
         this.listenTo(this.model.get('data'), "sync", this.initViz);
         this.navctl = new NavCtlView({viz: this});
@@ -11,6 +14,15 @@ WikiVizView = Backbone.View.extend({
         this.listenTo(this.model, "change:numBars", this.updateBars);
         this.listenTo(this.model, "change:mode", this.updateMode);
         this.listenTo(this.model, "change:isTimeSpaced", this.updateSpacing);
+        this.$el.click($.proxy(function(e){
+            if($(e.target).closest(".tooltip").length == 0){
+                this.$(".tooltip").hide();
+            }
+        }, this));
+        this.$("#view").mousemove($.proxy(function(e){
+            this.mouseX = e.offsetX;
+            this.mouseY = e.offsetY;
+        }, this));
         $(window).resize($.proxy(function(){
             if(this.$("#view").width() > 0){
                 this.model.set('width', this.$("#view").width());
@@ -265,8 +277,8 @@ WikiVizView = Backbone.View.extend({
         for (var i = 0; i < this.model.get('data').get('revisions').length; ++i) { sums[i] = 0; }
         // Build up the stacked bars. The sums array stores the sum of the last few stacked values' heights so that we can stack them properly
         _.each(posFields, function(v, i) {
-            barsGroup.filter(function (d) { return d.wclass[v] > 0.0001; }).append('rect').attr('y', function(d) { return y(sums[index(d)]); })
-                .attr('width', barWidth).attr('height', function(d) { return y(d.wclass[v]); }).attr('class', v)
+            barsGroup.filter(function (d) { return d.wclass[v] > 0.0001; }).append('rect').attr('y', function(d) { return y(sums[index(d)])*0.85; })
+                .attr('width', barWidth).attr('height', function(d) { return y(d.wclass[v])*0.85; }).attr('class', v)
                 .attr('desc', index).attr('opacity', 1);
             // Collect the sums of what we've seen so far so as to stack the bars properly
             for (var ind = 0; ind < this.model.get('data').get('revisions').length; ++ind) { sums[ind] += this.model.get('data').get('revisions')[ind].wclass[v]; }
@@ -278,8 +290,8 @@ WikiVizView = Backbone.View.extend({
         for (var i = 0; i < this.model.get('data').get('revisions').length; ++i) { sums[i] = 0; }
         // Build up the stacked bars. The sums array stores the sum of the last few stacked values' heights so that we can stack them properly
         _.each(negFields, function(v, i) {
-            barsGroup.filter(function (d) { return d.wclass[v] > 0.0001; }).append('rect').attr('y', function(d) { return -y(d.wclass[v]+sums[index(d)]); }).attr('width', barWidth)
-                .attr('height', function(d) { return y(d.wclass[v]); }).attr('class', v).attr('desc', index).attr('opacity', 1);
+            barsGroup.filter(function (d) { return d.wclass[v] > 0.0001; }).append('rect').attr('y', function(d) { return -y(d.wclass[v]+sums[index(d)])*0.85; }).attr('width', barWidth)
+                .attr('height', function(d) { return y(d.wclass[v])*0.85; }).attr('class', v).attr('desc', index).attr('opacity', 1);
             // Collect the sums of what we've seen so far so as to stack the bars properly
             for (var ind = 0; ind < this.model.get('data').get('revisions').length; ++ind) { sums[ind] += this.model.get('data').get('revisions')[ind].wclass[v]; }
         }, this);
@@ -291,6 +303,8 @@ WikiVizView = Backbone.View.extend({
     buildMonths: function (){
         var barWidth = this.calcBarWidth();
         var revdata = this.model.get('data').get('revisions');
+        var qualityData = Array();
+        var eventsData = Array();
         // Min. additional width of month box required to display text.
         var blankThreshold = 10;
         //Helper.view.body.select('.bg').selectAll('.month').data([]).exit().remove();
@@ -308,15 +322,29 @@ WikiVizView = Backbone.View.extend({
                 // We need to build width and offset positions for the various month groups
                 // We do this by scanning through our bar graph data and appending to the month data as we go.
                 curDate = new Date(revdata[i].timestamp);
+                
                 if (curDate.getMonth() !== lastDate.getMonth() || curDate.getYear() !== lastDate.getYear()) {
                     //var left = lastIndex * barWidth;
                     //var right = (i-1) * barWidth;
+                    
                     var left = this.getOffset(lastIndex);
                     var right = this.getOffset(i);
                     if (left === right) continue;
                     data.push({l: left, r:right, m:lastDate.getMonth(), y:lastDate.getFullYear()});
                     lastDate = curDate;
                     lastIndex = i;
+                    _.each(this.model.get('data').get('quality'), $.proxy(function(quality){
+                        var cutoff = new Date(quality.cutoff);
+                        if(curDate.getMonth() == cutoff.getMonth() && curDate.getYear() == cutoff.getYear()){
+                            qualityData.push({l: this.getOffset(lastIndex), q: quality});
+                        }
+                    }, this));
+                    _.each(this.model.get('data').get('events'), $.proxy(function(event){
+                        var time = new Date(event.timestamp);
+                        if(curDate.getMonth() == time.getMonth() && curDate.getYear() == time.getYear()){
+                            eventsData.push({l: this.getOffset(lastIndex), e: event});
+                        }
+                    }, this));
                 }
             }
         
@@ -344,15 +372,26 @@ WikiVizView = Backbone.View.extend({
                 data.push({l: timeX(lastMonth), r: timeX(curMonth), m: lastMonth.getMonth(), y: lastMonth.getFullYear()});
                 lastMonth = curMonth;
             }
+            
+            _.each(this.model.get('data').get('quality'), function(quality){
+                var cutoff = new Date(quality.cutoff);
+                qualityData.push({l: timeX(cutoff), q: quality});
+            });
+            _.each(this.model.get('data').get('events'), function(event){
+                var time = new Date(event.timestamp);
+                eventsData.push({l: timeX(time), e: event});
+            });
         }
     
-        var mts_e = this.model.get('view').body.select('.bg').selectAll('.month').data(data, function(d, i) { return i; }).enter();
+        var bg = this.model.get('view').body.select('.bg');
+        
+    
+        var mts_e = bg.selectAll('.month').data(data, function(d, i) { return i; }).enter();
         var mts_g = mts_e.append('g').attr('class', 'month').attr('transform', function(d) { return 'translate(' + d.l + ',0)'; });
         mts_g.append('rect').attr('height', String(this.model.get('height'))).attr('width', function(d) { return (d.r-d.l); })
             .attr('class', function(d, i) { return (i%2 === 0)?('m_odd'):('m_even');}).attr('y', String(-this.model.get('height')/2));
         mts_g.append('text').attr('class', 'mtext').text(function(d) { return months[d.m]; }).attr('transform', $.proxy(function(d) { return 'translate(5,' + (this.model.get('height')/2 - 15) + ')scale(1,-1)';}, this)).attr('opacity', 1).filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) < blankThreshold;}).attr('opacity', 0);
         mts_g.append('text').attr('class', 'ytext').text(function(d) { return String(d.y); }).attr('transform', $.proxy(function(d) { return 'translate(5,' + (this.model.get('height')/2 - 30) + ')scale(1,-1)';}, this)).attr('opacity', 1).filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) < blankThreshold;}).attr('opacity', 0);
-    
     
         mts = this.model.get('view').body.selectAll('.month').data(data, function(d, i) { return i; });
         var mts_t = mts;
@@ -366,8 +405,72 @@ WikiVizView = Backbone.View.extend({
         mts.select('text.ytext').filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) < blankThreshold;}).attr('opacity', 0);
         mts.select('text.ytext').filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) >= blankThreshold;}).attr('opacity', 1);
     
+        bg.selectAll('.bar').remove();
+        var bar_g = bg.append('g').attr('class', 'bar');
+        bar_g.append('rect').attr('class', 'bar_bg')
+                            .attr('width', '100%')
+                            .attr('height', 35)
+                            .attr('fill', '#F2E4CB');
+        this.repositionBar();
+        var r = 8;
+        _.each(qualityData, $.proxy(function(d){
+            var text = "<table>";
+            _.each(d.q.description, function(val, i){
+                text += "<tr><td align='right'>" + i + ":&nbsp;</td><td>" + val + "</td></tr>";
+            });
+            text += "<tr><td align='right'>Avg Score:&nbsp;</td><td>" + d.q.score + "</td></tr>";
+            
+            if(d.q.metric == 'CoDNA'){
+                text += "<tr><td colspan='2'><a style='float:right;' href='http://dl.acm.org/citation.cfm?id=2069609' target='_blank'>Source</a></td></tr>";
+            }
+            text += "</table>";
+            var clone = $(_.template($("#tooltip_template").html(), {
+                title: d.q.metric + " Ranking",
+                text: text
+            }));
+            this.$('#view').append(clone);
+            bar_g.append('circle').attr('r', r)
+                                  .attr('transform', 'translate(' + (d.l) + ',-' + (this.model.get('height')/2 - r*2) + ')')
+                                  .attr('fill', '#2C5C7D');
+            $(".bar circle").last().click($.proxy(function(){
+                _.defer($.proxy(function(){
+                    $(".tooltip").not(clone).fadeOut();
+                    clone.fadeToggle();
+                    var height = $(clone[1]).height();
+                    clone.css('left', this.mouseX + r*2)
+                         .css('top', this.mouseY - r*2 - height);
+                }, this));
+            }, this));
+        }, this));
+        _.each(eventsData, $.proxy(function(d){
+            var clone = $(_.template($("#tooltip_template").html(), {
+                title: d.e.title,
+                text: d.e.description + "<br />Date:&nbsp;" + Helper.formatDate(new Date(d.e.timestamp), false),
+            }));
+            this.$('#view').append(clone);
+            bar_g.append('circle').attr('r', r)
+                                  .attr('transform', 'translate(' + (d.l) + ',-' + (this.model.get('height')/2 - r*2) + ')')
+                                  .attr('fill', '#8B2C0D');
+            $(".bar circle").last().click($.proxy(function(){
+                _.defer($.proxy(function(){
+                    $(".tooltip").not(clone).fadeOut();
+                    clone.fadeToggle();
+                    var height = $(clone[1]).height();
+                    clone.css('left', this.mouseX + r*2)
+                         .css('top', this.mouseY - r*2 - height);
+                }, this));
+            }, this));
+        }, this));
+    
         var mts_x = mts.exit();
         mts_x.attr('opacity', 0).remove();
+    },
+    
+    repositionBar: function(){
+        this.$(".tooltip").hide();
+        var bg = this.model.get('view').body.select('.bg');
+        var bar_g = bg.selectAll('.bar_bg');
+        bar_g.attr('transform', 'translate(' + this.navctl.getPanOffset() + ',-' + (this.model.get('height')/2) + ')');
     },
     
     // Append the callouts that correspond to the talk-page entries for our article to the given element.

@@ -86,7 +86,8 @@ NavCtlView = Backbone.View.extend({
 
     // Slide the view when we slide the slider.
     onSlide: function() {
-        d3.select(this.viz.$('g.body')[0]).attr('transform', 'translate(' + -Math.round(this.getPanOffset()) + ',0)')
+        d3.select(this.viz.$('g.body')[0]).attr('transform', 'translate(' + -Math.round(this.getPanOffset()) + ',0)');
+        this.viz.repositionBar();
     },
 
     // Increase/Decrease the range of the chart
@@ -111,15 +112,18 @@ NavCtlView = Backbone.View.extend({
 
     // Map slider motion to an offset by which to pan the main view. Behaves differently for time and adjacent spaced modes.
     getPanOffset: function() {
-        if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'art') {
-            return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*(this.viz.model.get('data').get('revisions').length*this.viz.calcBarWidth());
+        try{
+            if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'art') {
+                return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*(this.viz.model.get('data').get('revisions').length*this.viz.calcBarWidth());
+            }
+            else if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'talk') {
+                return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*(this.viz.model.get('data').get('talk').length*this.viz.calcTalkWidth());
+            }
+            else if (this.viz.model.get('isTimeSpaced')) {
+                return this.viz.model.timeX(this.xscale.invert(this.sdim.x0));
+            }
         }
-        else if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'talk') {
-            return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*(this.viz.model.get('data').get('talk').length*this.viz.calcTalkWidth());
-        }
-        else if (this.viz.model.get('isTimeSpaced')) {
-            return this.viz.model.timeX(this.xscale.invert(this.sdim.x0));
-        }
+        catch(e){}
         return 0;
     },
 

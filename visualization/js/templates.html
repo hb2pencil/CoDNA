@@ -7,8 +7,8 @@
         <thead>
             <tr>
                 <th width="19%">&#x2776; Select Initiative</th>
-                <th width="31%">&#x2777; Select Data Set</th>
-                <th width="33%">&#x2778; Select Project/Contributor</th>
+                <th width="32%">&#x2777; Select Data Set</th>
+                <th width="32%">&#x2778; Select Project/Contributor</th>
                 <th width="17%" style="text-align:center;">&#x2779; Analyse&nbsp;&nbsp;&nbsp;</th>
             </tr>
         </thead>
@@ -35,11 +35,13 @@
                             <li><a href="#tabs-contributor">Contributor</a></li>
                         </ul>
                         <div id="tabs-project">
+                            <div class="header"><span class="label"><b>Data Set</b></span><span class="count"><b>#Projects</b></span></div>
                             <div class="select">
                             </div>
                             <img src="img/green_arrow.png" class="green_arrow" />
                         </div>
                         <div id="tabs-contributor">
+                            <div class="header"><span class="label"><b>Data Set</b></span><span class="count"><b>#Users</b></span></div>
                             <div class="select">
                             </div>
                             <img src="img/green_arrow.png" class="green_arrow" />
@@ -74,7 +76,7 @@
 </script>
 
 <script type="text/template" id="dataset_option_template"></>
-    <span name="<%= id %>"><%= name %> <% if(url != ""){ %><a href="<%= url %>" target="_blank"><img src="img/source.png" /></a><% } %></span>
+    <span class="label" name="<%= id %>"><%= name %> <% if(url != ""){ %><a href="<%= url %>" target="_blank"><img src="img/source.png" /></a><% } %></span><span class="count"><%= count %></span>
 </script>
 
 <script type="text/template" id="article_option_template"></>
@@ -478,5 +480,11 @@
 <script type="text/template" id="big_throbber_template"></>
     <div style="width:100%; text-align:center;">
         <img style="margin-right:3px;margin-top:25px;" src="img/big_throbber.gif" alt="Loading" />
+    </div>
+</script>
+<script type="text/template" id="tooltip_template"></>
+    <div style='display:none;' class='tooltip'>
+        <div class='title'><%= title %></div>
+        <div class='body'><%= text %></div>
     </div>
 </script>

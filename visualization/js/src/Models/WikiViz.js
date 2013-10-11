@@ -226,7 +226,9 @@ WikiVizData = Backbone.Model.extend({
         user: "",
         wikiviz: null,
         users: [],
-        revisions: []
+        revisions: [],
+        quality: [],
+        events: []
     }
     
 });

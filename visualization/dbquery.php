@@ -6,6 +6,7 @@
      * also transforms the more refined classification in the database into the
      * more general classification scheme.
      */
+    session_write_close();
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
     require_once('lib/WikiRevision.inc.php');
@@ -76,7 +77,42 @@
                         'inf' => $inf, 'att' => $att));
         }
         
-        $response = array('revisions' => $revdata, 'users' => $userdata, 'talk' => $talk);
+        // Fetch quality stats
+        $quality = array();
+        $stmt->close();
+        $stmt = $mysqli->prepare("SELECT q.cutoff, q.metric, q.score, q.description
+                                  FROM articles_quality q, articles a
+                                  WHERE q.article_id = a.id
+                                  AND a.page_title =?");
+        $stmt->bind_param("s", $article);
+        $stmt->execute();
+        $stmt->bind_result($cutoff, $metric, $score, $description);
+        while($stmt->fetch()){
+            $quality[] = array('cutoff' => $cutoff,
+                               'metric' => $metric,
+                               'score' => $score,
+                               'description' => json_decode($description));
+        }
+        $stmt->close();
+        $events = array();
+        $stmt = $mysqli->prepare("SELECT e.timestamp, e.title, e.description
+                                  FROM articles_events e, articles a
+                                  WHERE e.article_id = a.id
+                                  AND a.page_title =?");
+        $stmt->bind_param("s", $article);
+        $stmt->execute();
+        $stmt->bind_result($timestamp, $title, $description);
+        while($stmt->fetch()){
+            $events[] = array('timestamp' => $timestamp,
+                              'title' => $title,
+                              'description' => $description);
+        }
+        $stmt->close();
+        $response = array('revisions' => $revdata, 
+                          'users' => $userdata, 
+                          'quality' => $quality,
+                          'events' => $events,
+                          'talk' => $talk);
         echo json_encode($response);
     } else if(isset($_REQUEST['user'])){ // Client is requesting article/revision data
         $user = $_REQUEST['user'];
@@ -161,15 +197,17 @@
         // Grab DB Handle
         $mysqli = DBConnection::get()->handle();
         
-        $stmt = $mysqli->prepare("SELECT `id`, `name`, `url`
-                                  FROM `articles_sets`");
+        $stmt = $mysqli->prepare("SELECT `id`, `name`, `url`, (SELECT COUNT(*) FROM `articles` WHERE `set` = s.`id`) as count
+                                  FROM `articles_sets` s
+                                  WHERE `name` != 'Others'");
         $stmt->execute();
-        $stmt->bind_result($id, $name, $url);
+        $stmt->bind_result($id, $name, $url, $count);
         $list = array();
         while ($stmt->fetch()) {
             $titlelist[] = array('id' => $id, 
                                  'name' => $name,
-                                 'url' => $url);
+                                 'url' => $url,
+                                 'count' => $count);
         }
         $stmt->close();
         echo json_encode($titlelist);
@@ -178,15 +216,16 @@
         // Grab DB Handle
         $mysqli = DBConnection::get()->handle();
         
-        $stmt = $mysqli->prepare("SELECT `id`, `name`, `url`
-                                  FROM `users_sets`");
+        $stmt = $mysqli->prepare("SELECT `id`, `name`, `url`, (SELECT COUNT(*) FROM `users` WHERE `set` = s.`id`) as count
+                                  FROM `users_sets` s");
         $stmt->execute();
-        $stmt->bind_result($id, $name, $url);
+        $stmt->bind_result($id, $name, $url, $count);
         $list = array();
         while ($stmt->fetch()) {
             $titlelist[] = array('id' => $id, 
                                  'name' => $name,
-                                 'url' => $url);
+                                 'url' => $url,
+                                 'count' => $count);
         }
         $stmt->close();
         echo json_encode($titlelist);

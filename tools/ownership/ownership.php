@@ -7,18 +7,23 @@
     
     $mysqli = DBConnection::get()->handle();
 
-    $sql = "SELECT `page_title` as `article` FROM `articles`";
+    $sql = "SELECT `page_title` as `article` FROM `articles` WHERE `set` = '1'";
     $articles = $mysqli->query($sql);
     
     //$sum = 0;
     while ($art = $articles->fetch_object()) {
         $article = $art->article;
-        $rev_history = json_decode(file_get_contents("https://en.wikipedia.org/w/api.php?action=query&prop=revisions&titles=".urlencode($article)."&rvlimit=max&rvprop=user|ids|timestamp&format=json&rvdir=newer"));
-        $pages = (array)$rev_history->query->pages;
+        //$rev_history = json_decode(file_get_contents("https://en.wikipedia.org/w/api.php?action=query&prop=revisions&titles=".urlencode($article)."&rvlimit=max&rvprop=user|ids|timestamp&format=json&rvdir=newer"));
+        //$pages = (array)$rev_history->query->pages;
         $done = false;
         $lastrevid = 0; 
         $revisions = array(); 
-        while(!$done){
+        $sql = "SELECT * FROM `articles_data` WHERE `page_title` = '$article'";
+        $data = $mysqli->query($sql);
+        while($rev = $data->fetch_object()){
+            $revisions[$rev->timestamp] = $rev;
+        }
+        /*while(!$done){
             foreach($pages as $page){
                 if(isset($page->revisions)){
                     foreach($page->revisions as $rev){
@@ -35,7 +40,7 @@
                 $rev_history = json_decode(file_get_contents("https://en.wikipedia.org/w/api.php?action=query&prop=revisions&titles=".urlencode($article)."&rvlimit=max&rvprop=user|ids|timestamp&format=json&rvdir=newer&rvstartid=".($lastrevid+1)));
                 $pages = (array)$rev_history->query->pages;
             }
-        }
+        }*/
         ksort($revisions);
         $previousSentences = array();
         $users = array();
@@ -49,10 +54,11 @@
                 WHERE `page_title` = '".$mysqli->escape_string($article)."'
                 AND `set` = '1'";
         $result = $mysqli->query($sql);
-        if(!$result){
+        $obj = $result->fetch_object();
+        if(!$result || $obj == null){
             continue;
         }
-        $articleId = $result->fetch_object()->id;
+        $articleId = $obj->id;
         $sql = "DELETE FROM `ownership_sentences`
                 WHERE `article` = '".$mysqli->escape_string($articleId)."';";
         $sql2 = "DELETE FROM `ownership_results`
@@ -66,7 +72,7 @@
         
         foreach($revisions as $timestamp => $rev){
             $users[$rev->user] = $rev->user;
-            $revid = $rev->revid;
+            $revid = $rev->rev_id;
             $user = $rev->user;
             $cache = "cache/{$article}_{$revid}";
             if(file_exists($cache)){
@@ -79,6 +85,10 @@
                 $json = file_get_contents("http://en.wikipedia.org/w/api.php?action=parse&prop=text&page=".urlencode($article)."&oldid=$revid&format=json");
                 file_put_contents($cache, $json);
                 $json = json_decode($json);
+            }
+            if(!isset($json->parse)){
+                // Page must be deleted
+                continue;
             }
             $text = (array)$json->parse->text;
             $str = $text['*'];

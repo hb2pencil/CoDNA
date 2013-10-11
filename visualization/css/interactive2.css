@@ -658,6 +658,13 @@ rect.ymask {
 	text-antialising: true;
 }
 
+.bar {
+    stroke: none;
+    font-size: 10px;
+    font-family: sans-serif;
+    text-antialiasing: true;
+}
+
 .m_odd {
 	fill: #777;
 	opacity: 0.2;
@@ -788,7 +795,7 @@ table.new_article .ui-tabs {
     border: none !important;
 }
 
-table.new_article #project {
+table.new_article #project, table.new_article #set {
     height: 260px;
 }
 
@@ -966,4 +973,31 @@ table.new_article button:hover {
 /* Article View */
 #dialogs {
     display: none;
+}
+
+.bar circle {
+    cursor: pointer;
+}
+
+.tooltip {
+    position: absolute;
+    padding: 6px;
+    background: #111111;
+    color: #FFFFFF;
+    font-weight: bold;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -khtml-border-radius: 5px;
+    border-radius: 5px;
+    z-index: 1000;
+}
+
+.tooltip > .title {
+    font-size: 1.25em;
+    margin-bottom: 3px;
+    text-align: center;
+}
+
+.tooltip a {
+    color: #33AAFF;
 }

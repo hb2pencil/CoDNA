@@ -11,6 +11,7 @@ UserSet = Backbone.Model.extend({
         id: null,
         name: "",
         url: "",
+        count: 0
     }
 
 });

@@ -10,19 +10,15 @@ NewArticleView = Backbone.View.extend({
         this.users = new UserCollection();
         this.articles = new ArticleCollection();
         
-        this.users.fetch();
-        this.articles.fetch();
-        this.articleSets.fetch();
-        this.userSets.fetch();
+        $.when(this.users.fetch(),
+               this.articles.fetch(),
+               this.articleSets.fetch(),
+               this.userSets.fetch()).then($.proxy(function(){this.render();}, this));
         
         var id = _.uniqueId();
         $("#content").append("<div id='" + id + "'>");
         this.$el = $("#" + id);
         this.el = $("#" + id)[0];
-        this.listenTo(this.articles, 'sync', this.render);
-        this.listenTo(this.users, 'sync', this.render);
-        this.listenTo(this.articleSets, 'sync', this.render);
-        this.listenTo(this.userSets, 'sync', this.render);
     },
     
     events: {
