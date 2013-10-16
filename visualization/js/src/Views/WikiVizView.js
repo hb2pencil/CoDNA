@@ -277,8 +277,8 @@ WikiVizView = Backbone.View.extend({
         for (var i = 0; i < this.model.get('data').get('revisions').length; ++i) { sums[i] = 0; }
         // Build up the stacked bars. The sums array stores the sum of the last few stacked values' heights so that we can stack them properly
         _.each(posFields, function(v, i) {
-            barsGroup.filter(function (d) { return d.wclass[v] > 0.0001; }).append('rect').attr('y', function(d) { return y(sums[index(d)])*0.85; })
-                .attr('width', barWidth).attr('height', function(d) { return y(d.wclass[v])*0.85; }).attr('class', v)
+            barsGroup.filter(function (d) { return d.wclass[v] > 0.0001; }).append('rect').attr('y', function(d) { return y(sums[index(d)])*0.80; })
+                .attr('width', barWidth).attr('height', function(d) { return y(d.wclass[v])*0.80; }).attr('class', v)
                 .attr('desc', index).attr('opacity', 1);
             // Collect the sums of what we've seen so far so as to stack the bars properly
             for (var ind = 0; ind < this.model.get('data').get('revisions').length; ++ind) { sums[ind] += this.model.get('data').get('revisions')[ind].wclass[v]; }
@@ -290,8 +290,8 @@ WikiVizView = Backbone.View.extend({
         for (var i = 0; i < this.model.get('data').get('revisions').length; ++i) { sums[i] = 0; }
         // Build up the stacked bars. The sums array stores the sum of the last few stacked values' heights so that we can stack them properly
         _.each(negFields, function(v, i) {
-            barsGroup.filter(function (d) { return d.wclass[v] > 0.0001; }).append('rect').attr('y', function(d) { return -y(d.wclass[v]+sums[index(d)])*0.85; }).attr('width', barWidth)
-                .attr('height', function(d) { return y(d.wclass[v])*0.85; }).attr('class', v).attr('desc', index).attr('opacity', 1);
+            barsGroup.filter(function (d) { return d.wclass[v] > 0.0001; }).append('rect').attr('y', function(d) { return -y(d.wclass[v]+sums[index(d)])*0.80; }).attr('width', barWidth)
+                .attr('height', function(d) { return y(d.wclass[v])*0.80; }).attr('class', v).attr('desc', index).attr('opacity', 1);
             // Collect the sums of what we've seen so far so as to stack the bars properly
             for (var ind = 0; ind < this.model.get('data').get('revisions').length; ++ind) { sums[ind] += this.model.get('data').get('revisions')[ind].wclass[v]; }
         }, this);
