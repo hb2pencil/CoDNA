@@ -10,7 +10,7 @@
 		Remove this if you use the .htaccess -->
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 
-		<title>Interactive Visualization</title>
+		<title>Collaboration DNA</title>
 		<meta name="description" content="Interactive visualization of Wikipedia Article edit history." />
 		<meta name="author" content="Henry Brausen, David Turner" />
 		<link rel="stylesheet" href="css/jquery-ui-1.8.21.custom.css">

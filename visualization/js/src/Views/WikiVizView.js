@@ -384,7 +384,6 @@ WikiVizView = Backbone.View.extend({
         }
     
         var bg = this.model.get('view').body.select('.bg');
-        
     
         var mts_e = bg.selectAll('.month').data(data, function(d, i) { return i; }).enter();
         var mts_g = mts_e.append('g').attr('class', 'month').attr('transform', function(d) { return 'translate(' + d.l + ',0)'; });
@@ -436,8 +435,9 @@ WikiVizView = Backbone.View.extend({
                 _.defer($.proxy(function(){
                     $(".tooltip").not(clone).fadeOut();
                     clone.fadeToggle();
-                    var height = $(clone[1]).height();
-                    clone.css('left', this.mouseX + r*2)
+                    var height = $(clone[1]).outerHeight();
+                    var width = $(clone[1]).outerWidth();
+                    clone.css('left', this.mouseX - width/2)
                          .css('top', this.mouseY - r*2 - height);
                 }, this));
             }, this));
@@ -455,8 +455,9 @@ WikiVizView = Backbone.View.extend({
                 _.defer($.proxy(function(){
                     $(".tooltip").not(clone).fadeOut();
                     clone.fadeToggle();
-                    var height = $(clone[1]).height();
-                    clone.css('left', this.mouseX + r*2)
+                    var height = $(clone[1]).outerHeight();
+                    var width = $(clone[1]).outerWidth();
+                    clone.css('left', this.mouseX - width/2)
                          .css('top', this.mouseY - r*2 - height);
                 }, this));
             }, this));
@@ -844,15 +845,19 @@ WikiVizView = Backbone.View.extend({
         // Use d3 to populate the "Content Details" dialog
         var dtable = d3.select(dialog[0]).append('table').attr('class', 'sortable');
         // Need to specify CSS classes for sorttable
-        dtable.append('thead').append('tr').selectAll('th').data([
-            //['Rev. Type', 'sorttable_alpha'],
-            ['Revision Id', 'sorttable_numeric'],
-            ['User', 'sorttable_alpha'],
-            ['User Group', 'sorttable_alpha'],
-            ['Revision Date', 'sorttable_alpha'],
-            ['Revision Size', 'sorttable_numeric'],
-            ['Revision Categories', 'sorttable_alpha'],
-            ])
+        var headers = Array();
+        if(this.model.get('data').get('user') != ""){
+            headers.push(['Article Title', 'sorttable_alpha']);
+        }
+        headers.push(['Revision Id', 'sorttable_numeric']);
+        if(this.model.get('data').get('title') != ""){
+            headers.push(['User', 'sorttable_alpha']);
+        }
+        headers.push(['User Group', 'sorttable_alpha']);
+        headers.push(['Revision Date', 'sorttable_alpha']);
+        headers.push(['Revision Size', 'sorttable_numeric']);
+        headers.push(['Revision Categories', 'sorttable_alpha']);
+        dtable.append('thead').append('tr').selectAll('th').data(headers)
             .enter().append('th').text(function (d) { return d[0]; }).attr('class', function (d) { return d[1]; });
 
         // Merge article and talk page revision data for the table.
@@ -890,8 +895,13 @@ WikiVizView = Backbone.View.extend({
             //return (d.type === 'art')?('A'):('TP');
         //});
         //rows.append('td').text(function(d) { return 1+d.id; });
+        if(this.model.get('data').get('user') != ""){
+            rows.append('td').text(function (d) { return d.page_title; });
+        }
         rows.append('td').text(function (d) { return d.revid; });
-        rows.append('td').text(function (d) { return d.user; });
+        if(this.model.get('data').get('title') != ""){
+            rows.append('td').text(function (d) { return d.user; });
+        }
         rows.append('td').text(function (d) { return d.group; });
         rows.append('td').text(function (d) { return Helper.formatDate(d.date); })
             .attr('sorttable_customkey', function(d) { return Helper.getDateSortKey(d.date); });

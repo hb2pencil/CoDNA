@@ -146,7 +146,24 @@
                 $articles[$title] = true;
             }
         }
-        $response = array('revisions' => $revdata, 'articles' => array_keys($articles), 'talk' => $talk);
+        $stmt->close();
+        $events = array();
+        $stmt = $mysqli->prepare("SELECT a.timestamp, a.title, a.type
+                                  FROM users_awards a
+                                  WHERE a.user =?");
+        $stmt->bind_param("s", $user);
+        $stmt->execute();
+        $stmt->bind_result($timestamp, $title, $type);
+        while($stmt->fetch()){
+            $events[] = array('timestamp' => $timestamp,
+                              'title' => $title,
+                              'description' => "Type: $type");
+        }
+        $stmt->close();
+        $response = array('revisions' => $revdata, 
+                          'articles' => array_keys($articles), 
+                          'talk' => $talk,
+                          'events' => $events);
         echo json_encode($response);
     } else if(isset($_REQUEST['users'])) {   // Client is requesting users list
         // Grab DB Handle

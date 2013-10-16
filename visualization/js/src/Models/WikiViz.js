@@ -193,16 +193,16 @@ WikiVizData = Backbone.Model.extend({
                     wclass[c] = wclass[c] * Math.log(+rev.lev+1) / wsum;
                 }
             }
-        
+            
             if (wsum === 0) {
                 wclass.unsure = Math.log(rev.lev + 1);
             }
             rev.revid = rev.rev_id;
-        
+            
             rev.wclass = wclass;
             rev.loglev = Math.log(+rev.lev + 1);
             rev.date = new Date(rev.timestamp);
-        
+            
             // Add the time-dependent user-class classification
             rev.group = this.get('wikiviz').getRevisionGroup(rev);
         
