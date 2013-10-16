@@ -170,14 +170,14 @@
                if(_.contains(buttons, 'select')){ %>
                 <div id="t_select" class="t_button">Contributors</div>
             <% }
-               if(_.contains(buttons, 'section')){ %>
-                <div id="t_section" class="t_button">Page Section</div>
-            <% }
                if(_.contains(buttons, 'legend')){ %>
                 <div id="t_legend" class="t_button">Article Revision Categories</div>
             <% }
                if(_.contains(buttons, 'talk')){ %>
                 <div id="t_talk" class="t_button">Talk Page Revision Categories</div>
+            <% } 
+                if(_.contains(buttons, 'sections')){ %>
+                <div id="t_sections" class="t_button">Page Section</div>
             <% } %>
             <hr>
             <% if(_.contains(buttons, 'deselect')){ %>
@@ -201,6 +201,9 @@
         <% }
            if(_.contains(buttons, 'articles')){ %>
             <%= subview("diag_articles") %>
+        <% }
+            if(_.contains(buttons, 'sections')){ %>
+            <%= subview("diag_sections") %>
         <% }
            if(_.contains(buttons, 'info')){ %>
             <%= subview("diag_info") %>
@@ -298,6 +301,12 @@
                 </div>
             </div>
         </div>
+    </div>
+</script>
+
+<script type="text/template" id="diag_sections_template"></>
+    <div id="<%= _.uniqueId('diag_sections') %>" title="Page Sections">
+        
     </div>
 </script>
 

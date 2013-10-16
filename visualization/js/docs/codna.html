@@ -1035,7 +1035,7 @@ ArticleInfoView = Backbone.View.extend({
             <span class="keyword">return</span> <span class="keyword">new</span> ArticleInfoView({model: <span class="keyword">this</span>.wikiviz, article: <span class="keyword">this</span>.model});
         },
         <span class="string">"toolbar"</span>: <span class="keyword">function</span>(){
-            <span class="keyword">return</span> <span class="keyword">new</span> ToolbarView({model: {<span class="string">'buttons'</span>: [<span class="string">'select'</span>,<span class="string">'data'</span>,<span class="string">'legend'</span>,<span class="string">'deselect'</span>,<span class="string">'talk'</span>]}, view: <span class="keyword">this</span>});
+            <span class="keyword">return</span> <span class="keyword">new</span> ToolbarView({model: {<span class="string">'buttons'</span>: [<span class="string">'select'</span>,<span class="string">'sections'</span>,<span class="string">'data'</span>,<span class="string">'legend'</span>,<span class="string">'deselect'</span>,<span class="string">'talk'</span>]}, view: <span class="keyword">this</span>});
         }
     },
     
@@ -2568,6 +2568,16 @@ User names are stored in the &quot;value&quot; property of the options in the se
                 }
             });
         },
+        <span class="string">"diag_sections"</span>: <span class="keyword">function</span>(){
+            <span class="keyword">return</span> <span class="keyword">new</span> DialogView({
+                template: <span class="string">"diag_sections_template"</span>,
+                options: {
+                    autoOpen: <span class="literal">false</span>,
+                    width: <span class="number">400</span>,
+                    resizable: <span class="literal">false</span>
+                }
+            });
+        },
         <span class="string">"diag_info"</span>: <span class="keyword">function</span>(){
             <span class="keyword">return</span> <span class="keyword">new</span> DialogView({
                 template: <span class="string">"diag_info_template"</span>,
@@ -2859,6 +2869,12 @@ TODO: Make the &quot;callouts&quot; fade out if all of the contained elements ar
             },
             text: <span class="literal">false</span>
         });
+        <span class="keyword">this</span>.$(<span class="string">'#t_sections'</span>).button({
+            icons: {
+                primary: <span class="string">'icon-sections'</span>
+            },
+            text: <span class="literal">false</span>
+        });
         $(<span class="string">'#t_info'</span>).button({
             icons: {
                 primary: <span class="string">'ui-icon-info'</span>
@@ -2899,6 +2915,7 @@ TODO: Make the &quot;callouts&quot; fade out if all of the contained elements ar
         <span class="string">"click #t_options"</span>: <span class="keyword">function</span>(){<span class="keyword">this</span>.subviews.diag_options.open();},
         <span class="string">"click #t_select"</span>:  <span class="keyword">function</span>(){<span class="keyword">this</span>.subviews.diag_select.open();},
         <span class="string">"click #t_articles"</span>:<span class="keyword">function</span>(){<span class="keyword">this</span>.subviews.diag_articles.open();},
+        <span class="string">"click #t_sections"</span>:<span class="keyword">function</span>(){<span class="keyword">this</span>.subviews.diag_sections.open();},
         <span class="string">"click #t_info"</span>:    <span class="keyword">function</span>(){<span class="keyword">this</span>.subviews.diag_info.open();},
         <span class="string">"click #t_data"</span>:    <span class="keyword">function</span>(){<span class="keyword">this</span>.subviews.diag_data.open();},
         <span class="string">"click #t_legend"</span>:  <span class="keyword">function</span>(){<span class="keyword">this</span>.subviews.diag_legend.open();},

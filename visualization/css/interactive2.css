@@ -138,12 +138,10 @@ header h1 {
 }
 
 #toolbar hr {
-	border: none;
-	border-top: 1px #BBB solid;
-	border-bottom: 1px #FFF solid;
+	border: 1px #777777 solid;
+	width: 100%;
 	position: relative;
 	clear: both;
-	width: 80%;
 }
 
 #toolbar_top {
@@ -289,6 +287,13 @@ table.new_article .ui-tabs-selected {
 
 #t_articles {
 	background-image: url("../img/icon_articles.png");
+	background-repeat: no-repeat;
+	width: 24px;
+	height: 24px;
+}
+
+#t_sections {
+	background-image: url("../img/icon_sections.png");
 	background-repeat: no-repeat;
 	width: 24px;
 	height: 24px;

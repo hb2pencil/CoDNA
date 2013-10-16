@@ -463,7 +463,7 @@ ArticleView = Backbone.View.extend({
             return new ArticleInfoView({model: this.wikiviz, article: this.model});
         },
         "toolbar": function(){
-            return new ToolbarView({model: {'buttons': ['select','data','legend','deselect','talk']}, view: this});
+            return new ToolbarView({model: {'buttons': ['select','sections','data','legend','deselect','talk']}, view: this});
         }
     },
     
@@ -1263,6 +1263,16 @@ ToolbarView = Backbone.View.extend({
                 }
             });
         },
+        "diag_sections": function(){
+            return new DialogView({
+                template: "diag_sections_template",
+                options: {
+                    autoOpen: false,
+                    width: 400,
+                    resizable: false
+                }
+            });
+        },
         "diag_info": function(){
             return new DialogView({
                 template: "diag_info_template",
@@ -1426,6 +1436,12 @@ ToolbarView = Backbone.View.extend({
             },
             text: false
         });
+        this.$('#t_sections').button({
+            icons: {
+                primary: 'icon-sections'
+            },
+            text: false
+        });
         $('#t_info').button({
             icons: {
                 primary: 'ui-icon-info'
@@ -1466,6 +1482,7 @@ ToolbarView = Backbone.View.extend({
         "click #t_options": function(){this.subviews.diag_options.open();},
         "click #t_select":  function(){this.subviews.diag_select.open();},
         "click #t_articles":function(){this.subviews.diag_articles.open();},
+        "click #t_sections":function(){this.subviews.diag_sections.open();},
         "click #t_info":    function(){this.subviews.diag_info.open();},
         "click #t_data":    function(){this.subviews.diag_data.open();},
         "click #t_legend":  function(){this.subviews.diag_legend.open();},

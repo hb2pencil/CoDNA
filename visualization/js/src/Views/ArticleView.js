@@ -19,7 +19,7 @@ ArticleView = Backbone.View.extend({
             return new ArticleInfoView({model: this.wikiviz, article: this.model});
         },
         "toolbar": function(){
-            return new ToolbarView({model: {'buttons': ['select','data','legend','deselect','talk']}, view: this});
+            return new ToolbarView({model: {'buttons': ['select','sections','data','legend','deselect','talk']}, view: this});
         }
     },
     
