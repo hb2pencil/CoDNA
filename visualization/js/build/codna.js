@@ -2009,8 +2009,8 @@ WikiVizView = Backbone.View.extend({
         for (var i = 0; i < this.model.get('data').get('revisions').length; ++i) { sums[i] = 0; }
         // Build up the stacked bars. The sums array stores the sum of the last few stacked values' heights so that we can stack them properly
         _.each(posFields, function(v, i) {
-            barsGroup.filter(function (d) { return d.wclass[v] > 0.0001; }).append('rect').attr('y', function(d) { return y(sums[index(d)])*0.85; })
-                .attr('width', barWidth).attr('height', function(d) { return y(d.wclass[v])*0.85; }).attr('class', v)
+            barsGroup.filter(function (d) { return d.wclass[v] > 0.0001; }).append('rect').attr('y', function(d) { return y(sums[index(d)])*0.80; })
+                .attr('width', barWidth).attr('height', function(d) { return y(d.wclass[v])*0.80; }).attr('class', v)
                 .attr('desc', index).attr('opacity', 1);
             // Collect the sums of what we've seen so far so as to stack the bars properly
             for (var ind = 0; ind < this.model.get('data').get('revisions').length; ++ind) { sums[ind] += this.model.get('data').get('revisions')[ind].wclass[v]; }
@@ -2022,8 +2022,8 @@ WikiVizView = Backbone.View.extend({
         for (var i = 0; i < this.model.get('data').get('revisions').length; ++i) { sums[i] = 0; }
         // Build up the stacked bars. The sums array stores the sum of the last few stacked values' heights so that we can stack them properly
         _.each(negFields, function(v, i) {
-            barsGroup.filter(function (d) { return d.wclass[v] > 0.0001; }).append('rect').attr('y', function(d) { return -y(d.wclass[v]+sums[index(d)])*0.85; }).attr('width', barWidth)
-                .attr('height', function(d) { return y(d.wclass[v])*0.85; }).attr('class', v).attr('desc', index).attr('opacity', 1);
+            barsGroup.filter(function (d) { return d.wclass[v] > 0.0001; }).append('rect').attr('y', function(d) { return -y(d.wclass[v]+sums[index(d)])*0.80; }).attr('width', barWidth)
+                .attr('height', function(d) { return y(d.wclass[v])*0.80; }).attr('class', v).attr('desc', index).attr('opacity', 1);
             // Collect the sums of what we've seen so far so as to stack the bars properly
             for (var ind = 0; ind < this.model.get('data').get('revisions').length; ++ind) { sums[ind] += this.model.get('data').get('revisions')[ind].wclass[v]; }
         }, this);
@@ -2149,7 +2149,6 @@ WikiVizView = Backbone.View.extend({
             _.each(d.q.description, function(val, i){
                 text += "<tr><td align='right'>" + i + ":&nbsp;</td><td>" + val + "</td></tr>";
             });
-            text += "<tr><td align='right'>Avg Score:&nbsp;</td><td>" + d.q.score + "</td></tr>";
             
             if(d.q.metric == 'CoDNA'){
                 text += "<tr><td colspan='2'><a style='float:right;' href='http://dl.acm.org/citation.cfm?id=2069609' target='_blank'>Source</a></td></tr>";
@@ -2301,8 +2300,9 @@ WikiVizView = Backbone.View.extend({
             
             this.navctl.onScale();
         
-            this.$('.talkrow').addClass('invisible');
-            this.$('.defaultrow').removeClass('invisible');
+            var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
+            $('.talkrow', dialog).addClass('invisible');
+            $('.defaultrow', dialog).removeClass('invisible');
         
             d3.select(this.$('.fg')[0]).attr('transform', 'translate(0, -500)');
         
@@ -2331,8 +2331,9 @@ WikiVizView = Backbone.View.extend({
         
             this.navctl.onScale();
         
-            this.$('.talkrow').removeClass('invisible');
-            this.$('.defaultrow').addClass('invisible');
+            var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
+            $('.talkrow', dialog).removeClass('invisible');
+            $('.defaultrow', dialog).addClass('invisible');
         
             d3.select(this.$('.fg')[0]).attr('transform', 'translate(0, 0)');
         
@@ -2355,8 +2356,9 @@ WikiVizView = Backbone.View.extend({
         
             d3.selectAll('.month').attr('opacity', 1);
         
-            this.$('.talkrow').removeClass('invisible');
-            this.$('.defaultrow').removeClass('invisible');
+            var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
+            $('.talkrow', dialog).removeClass('invisible');
+            $('.defaultrow', dialog).removeClass('invisible');
         
             d3.select(this.$('.fg')[0]).attr('transform', 'translate(0, 0)');
             d3.selectAll('g.ylabel').attr('opacity', 1);
@@ -2581,6 +2583,7 @@ WikiVizView = Backbone.View.extend({
         if(this.model.get('data').get('user') != ""){
             headers.push(['Article Title', 'sorttable_alpha']);
         }
+        headers.push(['Rev. Type', 'sorttable_alpha']);
         headers.push(['Revision Id', 'sorttable_numeric']);
         if(this.model.get('data').get('title') != ""){
             headers.push(['User', 'sorttable_alpha']);
@@ -2623,13 +2626,12 @@ WikiVizView = Backbone.View.extend({
         }
         
         var rows = dtable.append('tbody').selectAll('tr.data').data(mdata).enter().append('tr');
-        //rows.append('td').text(function(d) {
-            //return (d.type === 'art')?('A'):('TP');
-        //});
-        //rows.append('td').text(function(d) { return 1+d.id; });
         if(this.model.get('data').get('user') != ""){
             rows.append('td').text(function (d) { return d.page_title; });
         }
+        rows.append('td').text(function(d) {
+            return (d.type === 'art')?('A'):('TP');
+        });
         rows.append('td').text(function (d) { return d.revid; });
         if(this.model.get('data').get('title') != ""){
             rows.append('td').text(function (d) { return d.user; });

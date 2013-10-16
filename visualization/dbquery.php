@@ -88,10 +88,17 @@
         $stmt->execute();
         $stmt->bind_result($cutoff, $metric, $score, $description);
         while($stmt->fetch()){
+            $json = json_decode($description);
+            $desc = array();
+            $desc['Accuracy'] = $json->LibDelphAccur;
+            $desc['Completeness'] = $json->LibDelphCompl;
+            $desc['Representation'] = $json->LibDelphPres;
+            $desc['Objectivity'] = $json->LibDelphObject;
+            $desc['Overal Quality'] = $json->LibDelphQuality;
             $quality[] = array('cutoff' => $cutoff,
                                'metric' => $metric,
                                'score' => $score,
-                               'description' => json_decode($description));
+                               'description' => $desc);
         }
         $stmt->close();
         $events = array();

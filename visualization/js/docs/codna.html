@@ -4160,8 +4160,8 @@ Currently called by the slider element when a mode change event occurs.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>        _.each(posFields, <span class="keyword">function</span>(v, i) {
-            barsGroup.filter(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d.wclass[v] &gt; <span class="number">0.0001</span>; }).append(<span class="string">'rect'</span>).attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> y(sums[index(d)])*<span class="number">0.85</span>; })
-                .attr(<span class="string">'width'</span>, barWidth).attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> y(d.wclass[v])*<span class="number">0.85</span>; }).attr(<span class="string">'class'</span>, v)
+            barsGroup.filter(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d.wclass[v] &gt; <span class="number">0.0001</span>; }).append(<span class="string">'rect'</span>).attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> y(sums[index(d)])*<span class="number">0.80</span>; })
+                .attr(<span class="string">'width'</span>, barWidth).attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> y(d.wclass[v])*<span class="number">0.80</span>; }).attr(<span class="string">'class'</span>, v)
                 .attr(<span class="string">'desc'</span>, index).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);</pre></div></div>
             
         </li>
@@ -4210,8 +4210,8 @@ Currently called by the slider element when a mode change event occurs.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>        _.each(negFields, <span class="keyword">function</span>(v, i) {
-            barsGroup.filter(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d.wclass[v] &gt; <span class="number">0.0001</span>; }).append(<span class="string">'rect'</span>).attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> -y(d.wclass[v]+sums[index(d)])*<span class="number">0.85</span>; }).attr(<span class="string">'width'</span>, barWidth)
-                .attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> y(d.wclass[v])*<span class="number">0.85</span>; }).attr(<span class="string">'class'</span>, v).attr(<span class="string">'desc'</span>, index).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);</pre></div></div>
+            barsGroup.filter(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d.wclass[v] &gt; <span class="number">0.0001</span>; }).append(<span class="string">'rect'</span>).attr(<span class="string">'y'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> -y(d.wclass[v]+sums[index(d)])*<span class="number">0.80</span>; }).attr(<span class="string">'width'</span>, barWidth)
+                .attr(<span class="string">'height'</span>, <span class="keyword">function</span>(d) { <span class="keyword">return</span> y(d.wclass[v])*<span class="number">0.80</span>; }).attr(<span class="string">'class'</span>, v).attr(<span class="string">'desc'</span>, index).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);</pre></div></div>
             
         </li>
         
@@ -4439,7 +4439,6 @@ We use the timeX scale to find the left and right boundaries.</p>
             _.each(d.q.description, <span class="keyword">function</span>(val, i){
                 text += <span class="string">"&lt;tr&gt;&lt;td align='right'&gt;"</span> + i + <span class="string">":&amp;nbsp;&lt;/td&gt;&lt;td&gt;"</span> + val + <span class="string">"&lt;/td&gt;&lt;/tr&gt;"</span>;
             });
-            text += <span class="string">"&lt;tr&gt;&lt;td align='right'&gt;Avg Score:&amp;nbsp;&lt;/td&gt;&lt;td&gt;"</span> + d.q.score + <span class="string">"&lt;/td&gt;&lt;/tr&gt;"</span>;
             
             <span class="keyword">if</span>(d.q.metric == <span class="string">'CoDNA'</span>){
                 text += <span class="string">"&lt;tr&gt;&lt;td colspan='2'&gt;&lt;a style='float:right;' href='http://dl.acm.org/citation.cfm?id=2069609' target='_blank'&gt;Source&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;"</span>;
@@ -4776,8 +4775,9 @@ This is used in adjacent spacing of callouts.</p>
             
             <span class="keyword">this</span>.navctl.onScale();
         
-            <span class="keyword">this</span>.$(<span class="string">'.talkrow'</span>).addClass(<span class="string">'invisible'</span>);
-            <span class="keyword">this</span>.$(<span class="string">'.defaultrow'</span>).removeClass(<span class="string">'invisible'</span>);
+            <span class="keyword">var</span> dialog = <span class="keyword">this</span>.view.subviews.toolbar.subviews.diag_data.dialog;
+            $(<span class="string">'.talkrow'</span>, dialog).addClass(<span class="string">'invisible'</span>);
+            $(<span class="string">'.defaultrow'</span>, dialog).removeClass(<span class="string">'invisible'</span>);
         
             d3.select(<span class="keyword">this</span>.$(<span class="string">'.fg'</span>)[<span class="number">0</span>]).attr(<span class="string">'transform'</span>, <span class="string">'translate(0, -500)'</span>);
         
@@ -4806,8 +4806,9 @@ This is used in adjacent spacing of callouts.</p>
         
             <span class="keyword">this</span>.navctl.onScale();
         
-            <span class="keyword">this</span>.$(<span class="string">'.talkrow'</span>).removeClass(<span class="string">'invisible'</span>);
-            <span class="keyword">this</span>.$(<span class="string">'.defaultrow'</span>).addClass(<span class="string">'invisible'</span>);
+            <span class="keyword">var</span> dialog = <span class="keyword">this</span>.view.subviews.toolbar.subviews.diag_data.dialog;
+            $(<span class="string">'.talkrow'</span>, dialog).removeClass(<span class="string">'invisible'</span>);
+            $(<span class="string">'.defaultrow'</span>, dialog).addClass(<span class="string">'invisible'</span>);
         
             d3.select(<span class="keyword">this</span>.$(<span class="string">'.fg'</span>)[<span class="number">0</span>]).attr(<span class="string">'transform'</span>, <span class="string">'translate(0, 0)'</span>);
         
@@ -4830,8 +4831,9 @@ This is used in adjacent spacing of callouts.</p>
         
             d3.selectAll(<span class="string">'.month'</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
         
-            <span class="keyword">this</span>.$(<span class="string">'.talkrow'</span>).removeClass(<span class="string">'invisible'</span>);
-            <span class="keyword">this</span>.$(<span class="string">'.defaultrow'</span>).removeClass(<span class="string">'invisible'</span>);
+            <span class="keyword">var</span> dialog = <span class="keyword">this</span>.view.subviews.toolbar.subviews.diag_data.dialog;
+            $(<span class="string">'.talkrow'</span>, dialog).removeClass(<span class="string">'invisible'</span>);
+            $(<span class="string">'.defaultrow'</span>, dialog).removeClass(<span class="string">'invisible'</span>);
         
             d3.select(<span class="keyword">this</span>.$(<span class="string">'.fg'</span>)[<span class="number">0</span>]).attr(<span class="string">'transform'</span>, <span class="string">'translate(0, 0)'</span>);
             d3.selectAll(<span class="string">'g.ylabel'</span>).attr(<span class="string">'opacity'</span>, <span class="number">1</span>);
@@ -5507,6 +5509,7 @@ TODO: Use the values from ownership_results instead</p>
         <span class="keyword">if</span>(<span class="keyword">this</span>.model.get(<span class="string">'data'</span>).get(<span class="string">'user'</span>) != <span class="string">""</span>){
             headers.push([<span class="string">'Article Title'</span>, <span class="string">'sorttable_alpha'</span>]);
         }
+        headers.push([<span class="string">'Rev. Type'</span>, <span class="string">'sorttable_alpha'</span>]);
         headers.push([<span class="string">'Revision Id'</span>, <span class="string">'sorttable_numeric'</span>]);
         <span class="keyword">if</span>(<span class="keyword">this</span>.model.get(<span class="string">'data'</span>).get(<span class="string">'title'</span>) != <span class="string">""</span>){
             headers.push([<span class="string">'User'</span>, <span class="string">'sorttable_alpha'</span>]);
@@ -5560,27 +5563,13 @@ TODO: Use the values from ownership_results instead</p>
             mdata = mdata.concat(tlk.slice(j));
         }
         
-        <span class="keyword">var</span> rows = dtable.append(<span class="string">'tbody'</span>).selectAll(<span class="string">'tr.data'</span>).data(mdata).enter().append(<span class="string">'tr'</span>);</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-238">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-238">&#182;</a>
-              </div>
-              <p>rows.append(&#39;td&#39;).text(function(d) {
-return (d.type === &#39;art&#39;)?(&#39;A&#39;):(&#39;TP&#39;);
-});
-rows.append(&#39;td&#39;).text(function(d) { return 1+d.id; });</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>        <span class="keyword">if</span>(<span class="keyword">this</span>.model.get(<span class="string">'data'</span>).get(<span class="string">'user'</span>) != <span class="string">""</span>){
+        <span class="keyword">var</span> rows = dtable.append(<span class="string">'tbody'</span>).selectAll(<span class="string">'tr.data'</span>).data(mdata).enter().append(<span class="string">'tr'</span>);
+        <span class="keyword">if</span>(<span class="keyword">this</span>.model.get(<span class="string">'data'</span>).get(<span class="string">'user'</span>) != <span class="string">""</span>){
             rows.append(<span class="string">'td'</span>).text(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d.page_title; });
         }
+        rows.append(<span class="string">'td'</span>).text(<span class="keyword">function</span>(d) {
+            <span class="keyword">return</span> (d.type === <span class="string">'art'</span>)?(<span class="string">'A'</span>):(<span class="string">'TP'</span>);
+        });
         rows.append(<span class="string">'td'</span>).text(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d.revid; });
         <span class="keyword">if</span>(<span class="keyword">this</span>.model.get(<span class="string">'data'</span>).get(<span class="string">'title'</span>) != <span class="string">""</span>){
             rows.append(<span class="string">'td'</span>).text(<span class="function"><span class="keyword">function</span> <span class="params">(d)</span> {</span> <span class="keyword">return</span> d.user; });
@@ -5606,11 +5595,11 @@ rows.append(&#39;td&#39;).text(function(d) { return 1+d.id; });</p>
         </li>
         
         
-        <li id="section-239">
+        <li id="section-238">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-239">&#182;</a>
+                <a class="pilcrow" href="#section-238">&#182;</a>
               </div>
               <p>Get the sorttable library to make this table sortable!</p>
 
@@ -5621,11 +5610,11 @@ rows.append(&#39;td&#39;).text(function(d) { return 1+d.id; });</p>
         </li>
         
         
-        <li id="section-240">
+        <li id="section-239">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-240">&#182;</a>
+                <a class="pilcrow" href="#section-239">&#182;</a>
               </div>
               <p>In our default mode hide the talk page entries</p>
 
@@ -5650,11 +5639,11 @@ subview = <span class="keyword">function</span>(subviewName){
         </li>
         
         
-        <li id="section-241">
+        <li id="section-240">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-241">&#182;</a>
+                <a class="pilcrow" href="#section-240">&#182;</a>
               </div>
               <p>From <a href="http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format">http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format</a>
 Sort of like Python&#39;s new string formatting method. Handy when one wants to do some large string substitutions.</p>
@@ -5674,11 +5663,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-242">
+        <li id="section-241">
             <div class="annotation">
               
               <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-242">&#182;</a>
+                <a class="pilcrow" href="#section-241">&#182;</a>
               </div>
               <h2>Helper</h2>
 
@@ -5689,11 +5678,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-243">
+        <li id="section-242">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-243">&#182;</a>
+                <a class="pilcrow" href="#section-242">&#182;</a>
               </div>
               <p>Takes in a javascript date object and pretty-prints it to a string which is returned.</p>
 
@@ -5711,11 +5700,11 @@ Sort of like Python&#39;s new string formatting method. Handy when one wants to 
         </li>
         
         
-        <li id="section-244">
+        <li id="section-243">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-244">&#182;</a>
+                <a class="pilcrow" href="#section-243">&#182;</a>
               </div>
               <p>Thanks to <a href="http://stackoverflow.com/questions/5250244/jquery-date-formatting">http://stackoverflow.com/questions/5250244/jquery-date-formatting</a>
 for the quick fix for hours, minutes and seconds</p>
@@ -5732,11 +5721,11 @@ for the quick fix for hours, minutes and seconds</p>
         </li>
         
         
-        <li id="section-245">
+        <li id="section-244">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-245">&#182;</a>
+                <a class="pilcrow" href="#section-244">&#182;</a>
               </div>
               <p>Build a sorting key for the sorttable library to sort the date field used in the table view.</p>
 
@@ -5751,11 +5740,11 @@ for the quick fix for hours, minutes and seconds</p>
         </li>
         
         
-        <li id="section-246">
+        <li id="section-245">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-246">&#182;</a>
+                <a class="pilcrow" href="#section-245">&#182;</a>
               </div>
               <p>Take two lists, interpret as sets, and return true if subset_l is a subset of superset_l</p>
 
@@ -5777,11 +5766,11 @@ for the quick fix for hours, minutes and seconds</p>
         </li>
         
         
-        <li id="section-247">
+        <li id="section-246">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-247">&#182;</a>
+                <a class="pilcrow" href="#section-246">&#182;</a>
               </div>
               <p>Generate a string describing a given article revisions&#39; edit categories</p>
 
@@ -5803,11 +5792,11 @@ for the quick fix for hours, minutes and seconds</p>
         </li>
         
         
-        <li id="section-248">
+        <li id="section-247">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-248">&#182;</a>
+                <a class="pilcrow" href="#section-247">&#182;</a>
               </div>
               <p>Generate a string describing a given talk page revision entry&#39;s revision categories.</p>
 
@@ -5825,11 +5814,11 @@ for the quick fix for hours, minutes and seconds</p>
         </li>
         
         
-        <li id="section-249">
+        <li id="section-248">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-249">&#182;</a>
+                <a class="pilcrow" href="#section-248">&#182;</a>
               </div>
               <p>Return absolute max (disregarding sign) of func(arr[i])</p>
 
@@ -5847,11 +5836,11 @@ for the quick fix for hours, minutes and seconds</p>
         </li>
         
         
-        <li id="section-250">
+        <li id="section-249">
             <div class="annotation">
               
               <div class="pilwrap for-h2">
-                <a class="pilcrow" href="#section-250">&#182;</a>
+                <a class="pilcrow" href="#section-249">&#182;</a>
               </div>
               <h2>router.js</h2>
 
@@ -5882,11 +5871,11 @@ PageRouter = Backbone.Router.extend({
         </li>
         
         
-        <li id="section-251">
+        <li id="section-250">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-251">&#182;</a>
+                <a class="pilcrow" href="#section-250">&#182;</a>
               </div>
               <p>Initiate the router</p>
 
@@ -5897,11 +5886,11 @@ PageRouter = Backbone.Router.extend({
         </li>
         
         
-        <li id="section-252">
+        <li id="section-251">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-252">&#182;</a>
+                <a class="pilcrow" href="#section-251">&#182;</a>
               </div>
               <p>Start Backbone history a necessary step for bookmarkable URL&#39;s</p>
 

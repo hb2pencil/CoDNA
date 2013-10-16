@@ -417,7 +417,6 @@ WikiVizView = Backbone.View.extend({
             _.each(d.q.description, function(val, i){
                 text += "<tr><td align='right'>" + i + ":&nbsp;</td><td>" + val + "</td></tr>";
             });
-            text += "<tr><td align='right'>Avg Score:&nbsp;</td><td>" + d.q.score + "</td></tr>";
             
             if(d.q.metric == 'CoDNA'){
                 text += "<tr><td colspan='2'><a style='float:right;' href='http://dl.acm.org/citation.cfm?id=2069609' target='_blank'>Source</a></td></tr>";
@@ -569,8 +568,9 @@ WikiVizView = Backbone.View.extend({
             
             this.navctl.onScale();
         
-            this.$('.talkrow').addClass('invisible');
-            this.$('.defaultrow').removeClass('invisible');
+            var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
+            $('.talkrow', dialog).addClass('invisible');
+            $('.defaultrow', dialog).removeClass('invisible');
         
             d3.select(this.$('.fg')[0]).attr('transform', 'translate(0, -500)');
         
@@ -599,8 +599,9 @@ WikiVizView = Backbone.View.extend({
         
             this.navctl.onScale();
         
-            this.$('.talkrow').removeClass('invisible');
-            this.$('.defaultrow').addClass('invisible');
+            var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
+            $('.talkrow', dialog).removeClass('invisible');
+            $('.defaultrow', dialog).addClass('invisible');
         
             d3.select(this.$('.fg')[0]).attr('transform', 'translate(0, 0)');
         
@@ -623,8 +624,9 @@ WikiVizView = Backbone.View.extend({
         
             d3.selectAll('.month').attr('opacity', 1);
         
-            this.$('.talkrow').removeClass('invisible');
-            this.$('.defaultrow').removeClass('invisible');
+            var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
+            $('.talkrow', dialog).removeClass('invisible');
+            $('.defaultrow', dialog).removeClass('invisible');
         
             d3.select(this.$('.fg')[0]).attr('transform', 'translate(0, 0)');
             d3.selectAll('g.ylabel').attr('opacity', 1);
@@ -849,6 +851,7 @@ WikiVizView = Backbone.View.extend({
         if(this.model.get('data').get('user') != ""){
             headers.push(['Article Title', 'sorttable_alpha']);
         }
+        headers.push(['Rev. Type', 'sorttable_alpha']);
         headers.push(['Revision Id', 'sorttable_numeric']);
         if(this.model.get('data').get('title') != ""){
             headers.push(['User', 'sorttable_alpha']);
@@ -891,13 +894,12 @@ WikiVizView = Backbone.View.extend({
         }
         
         var rows = dtable.append('tbody').selectAll('tr.data').data(mdata).enter().append('tr');
-        //rows.append('td').text(function(d) {
-            //return (d.type === 'art')?('A'):('TP');
-        //});
-        //rows.append('td').text(function(d) { return 1+d.id; });
         if(this.model.get('data').get('user') != ""){
             rows.append('td').text(function (d) { return d.page_title; });
         }
+        rows.append('td').text(function(d) {
+            return (d.type === 'art')?('A'):('TP');
+        });
         rows.append('td').text(function (d) { return d.revid; });
         if(this.model.get('data').get('title') != ""){
             rows.append('td').text(function (d) { return d.user; });
