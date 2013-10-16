@@ -314,6 +314,7 @@ WikiVizView = Backbone.View.extend({
         // If the visualization is not time spaced, we need to go through our data, find month boundaries, and
         // build a list of the left and right offsets of the month rects on the visualization
         if (!this.model.get('isTimeSpaced')) {
+            var finalDate = new Date(_.last(revdata).timestamp);
             var lastDate = new Date(_.first(revdata).timestamp);
             var curDate;
             var lastIndex = 0;
@@ -324,28 +325,25 @@ WikiVizView = Backbone.View.extend({
                 curDate = new Date(revdata[i].timestamp);
                 
                 if (curDate.getMonth() !== lastDate.getMonth() || curDate.getYear() !== lastDate.getYear()) {
-                    //var left = lastIndex * barWidth;
-                    //var right = (i-1) * barWidth;
-                    
                     var left = this.getOffset(lastIndex);
                     var right = this.getOffset(i);
                     if (left === right) continue;
                     data.push({l: left, r:right, m:lastDate.getMonth(), y:lastDate.getFullYear()});
                     lastDate = curDate;
                     lastIndex = i;
-                    _.each(this.model.get('data').get('quality'), $.proxy(function(quality){
-                        var cutoff = new Date(quality.cutoff);
-                        if(curDate.getMonth() == cutoff.getMonth() && curDate.getYear() == cutoff.getYear()){
-                            qualityData.push({l: this.getOffset(lastIndex), q: quality});
-                        }
-                    }, this));
-                    _.each(this.model.get('data').get('events'), $.proxy(function(event){
-                        var time = new Date(event.timestamp);
-                        if(curDate.getMonth() == time.getMonth() && curDate.getYear() == time.getYear()){
-                            eventsData.push({l: this.getOffset(lastIndex), e: event});
-                        }
-                    }, this));
                 }
+                _.each(this.model.get('data').get('quality'), $.proxy(function(quality, ind){
+                    var cutoff = new Date(quality.cutoff);
+                    if((curDate >= cutoff || finalDate.valueOf() == curDate.valueOf()) && qualityData[ind] == undefined){
+                        qualityData[ind] = {l: this.getOffset(i), q: quality};
+                    }
+                }, this));
+                _.each(this.model.get('data').get('events'), $.proxy(function(event, ind){
+                    var time = new Date(event.timestamp);
+                    if(curDate >= time && eventsData[ind] == undefined){
+                        eventsData[ind] = {l: this.getOffset(i), e: event};
+                    }
+                }, this));
             }
         
             var left = this.getOffset(lastIndex);
