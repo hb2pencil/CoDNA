@@ -334,14 +334,15 @@ WikiVizView = Backbone.View.extend({
                 }
                 _.each(this.model.get('data').get('quality'), $.proxy(function(quality, ind){
                     var cutoff = new Date(quality.cutoff);
+                    cutoff = new Date(cutoff.getTime() + (24 * 60 * 60 * 1000));
                     if((curDate >= cutoff || finalDate.valueOf() == curDate.valueOf()) && qualityData[ind] == undefined){
-                        qualityData[ind] = {l: this.getOffset(i), q: quality};
+                        qualityData[ind] = {l: this.getOffset(i+0.5), q: quality};
                     }
                 }, this));
                 _.each(this.model.get('data').get('events'), $.proxy(function(event, ind){
                     var time = new Date(event.timestamp);
                     if(curDate >= time && eventsData[ind] == undefined){
-                        eventsData[ind] = {l: this.getOffset(i), e: event};
+                        eventsData[ind] = {l: this.getOffset(i+0.5), e: event};
                     }
                 }, this));
             }
@@ -373,6 +374,7 @@ WikiVizView = Backbone.View.extend({
             
             _.each(this.model.get('data').get('quality'), function(quality){
                 var cutoff = new Date(quality.cutoff);
+                cutoff = new Date(cutoff.getTime() + (24 * 60 * 60 * 1000));
                 qualityData.push({l: timeX(cutoff), q: quality});
             });
             _.each(this.model.get('data').get('events'), function(event){
@@ -415,6 +417,7 @@ WikiVizView = Backbone.View.extend({
             _.each(d.q.description, function(val, i){
                 text += "<tr><td align='right'>" + i + ":&nbsp;</td><td>" + val + "</td></tr>";
             });
+            text += "<tr><td colspan='2'>" + Helper.formatDate(new Date(d.q.cutoff), false) + "</td></tr>"
             
             if(d.q.metric == 'CoDNA'){
                 text += "<tr><td colspan='2'><a style='float:right;' href='http://dl.acm.org/citation.cfm?id=2069609' target='_blank'>Source</a></td></tr>";

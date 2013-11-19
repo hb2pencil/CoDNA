@@ -4347,14 +4347,15 @@ We do this by scanning through our bar graph data and appending to the month dat
                 }
                 _.each(<span class="keyword">this</span>.model.get(<span class="string">'data'</span>).get(<span class="string">'quality'</span>), $.proxy(<span class="keyword">function</span>(quality, ind){
                     <span class="keyword">var</span> cutoff = <span class="keyword">new</span> Date(quality.cutoff);
+                    cutoff = <span class="keyword">new</span> Date(cutoff.getTime() + (<span class="number">24</span> * <span class="number">60</span> * <span class="number">60</span> * <span class="number">1000</span>));
                     <span class="keyword">if</span>((curDate &gt;= cutoff || finalDate.valueOf() == curDate.valueOf()) &amp;&amp; qualityData[ind] == <span class="literal">undefined</span>){
-                        qualityData[ind] = {l: <span class="keyword">this</span>.getOffset(i), q: quality};
+                        qualityData[ind] = {l: <span class="keyword">this</span>.getOffset(i+<span class="number">0.5</span>), q: quality};
                     }
                 }, <span class="keyword">this</span>));
                 _.each(<span class="keyword">this</span>.model.get(<span class="string">'data'</span>).get(<span class="string">'events'</span>), $.proxy(<span class="keyword">function</span>(event, ind){
                     <span class="keyword">var</span> time = <span class="keyword">new</span> Date(event.timestamp);
                     <span class="keyword">if</span>(curDate &gt;= time &amp;&amp; eventsData[ind] == <span class="literal">undefined</span>){
-                        eventsData[ind] = {l: <span class="keyword">this</span>.getOffset(i), e: event};
+                        eventsData[ind] = {l: <span class="keyword">this</span>.getOffset(i+<span class="number">0.5</span>), e: event};
                     }
                 }, <span class="keyword">this</span>));
             }
@@ -4399,6 +4400,7 @@ We use the timeX scale to find the left and right boundaries.</p>
             
             _.each(<span class="keyword">this</span>.model.get(<span class="string">'data'</span>).get(<span class="string">'quality'</span>), <span class="keyword">function</span>(quality){
                 <span class="keyword">var</span> cutoff = <span class="keyword">new</span> Date(quality.cutoff);
+                cutoff = <span class="keyword">new</span> Date(cutoff.getTime() + (<span class="number">24</span> * <span class="number">60</span> * <span class="number">60</span> * <span class="number">1000</span>));
                 qualityData.push({l: timeX(cutoff), q: quality});
             });
             _.each(<span class="keyword">this</span>.model.get(<span class="string">'data'</span>).get(<span class="string">'events'</span>), <span class="keyword">function</span>(event){
@@ -4441,6 +4443,7 @@ We use the timeX scale to find the left and right boundaries.</p>
             _.each(d.q.description, <span class="keyword">function</span>(val, i){
                 text += <span class="string">"&lt;tr&gt;&lt;td align='right'&gt;"</span> + i + <span class="string">":&amp;nbsp;&lt;/td&gt;&lt;td&gt;"</span> + val + <span class="string">"&lt;/td&gt;&lt;/tr&gt;"</span>;
             });
+            text += <span class="string">"&lt;tr&gt;&lt;td colspan='2'&gt;"</span> + Helper.formatDate(<span class="keyword">new</span> Date(d.q.cutoff), <span class="literal">false</span>) + <span class="string">"&lt;/td&gt;&lt;/tr&gt;"</span>
             
             <span class="keyword">if</span>(d.q.metric == <span class="string">'CoDNA'</span>){
                 text += <span class="string">"&lt;tr&gt;&lt;td colspan='2'&gt;&lt;a style='float:right;' href='http://dl.acm.org/citation.cfm?id=2069609' target='_blank'&gt;Source&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;"</span>;
