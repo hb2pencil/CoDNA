@@ -422,6 +422,20 @@ WikiVizView = Backbone.View.extend({
                             .attr('height', 35)
                             .attr('fill', '#F2E4CB');
         this.repositionBar();
+        var lastX = 0;
+        var lastY = -(this.model.get('height')/2);
+        _.each(googleData, $.proxy(function(d){
+            var newX = d.l;
+            var newY = -(this.model.get('height')/2) + (35*(d.g.value/100));
+            bar_g.append('line')
+                .attr('x1', lastX)
+                .attr('y1', lastY)
+                .attr('x2', newX)
+                .attr('y2', newY)
+                .attr('class', 'google');
+            lastX = newX;
+            lastY = newY;
+        }, this));
         var r = 8;
         _.each(qualityData, $.proxy(function(d){
             var text = "<table>";
@@ -472,21 +486,6 @@ WikiVizView = Backbone.View.extend({
                          .css('top', this.mouseY - r*2 - height);
                 }, this));
             }, this));
-        }, this));
-        
-        var lastX = 0;
-        var lastY = -(this.model.get('height')/2);
-        _.each(googleData, $.proxy(function(d){
-            var newX = d.l;
-            var newY = -(this.model.get('height')/2) + (35*(d.g.value/100));
-            bar_g.append('line')
-                .attr('x1', lastX)
-                .attr('y1', lastY)
-                .attr('x2', newX)
-                .attr('y2', newY)
-                .attr('class', 'google');
-            lastX = newX;
-            lastY = newY;
         }, this));
     
         var mts_x = mts.exit();

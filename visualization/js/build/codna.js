@@ -420,7 +420,8 @@ WikiVizData = Backbone.Model.extend({
         users: [],
         revisions: [],
         quality: [],
-        events: []
+        events: [],
+        google: []
     }
     
 });
@@ -1083,6 +1084,10 @@ ProjectView = Backbone.View.extend({
         else{
             this.$el.css('display', 'none');
         }
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = "//www.google.ca/trends/embed.js?hl=en-US&q=Peter+Jackson&cmpt=q&content=1&cid=TIMESERIES_GRAPH_0&export=5&w=1000&h=330";
+        this.$("#google").append(script);
         return this.$el;
     }
 
@@ -2054,6 +2059,7 @@ WikiVizView = Backbone.View.extend({
         var revdata = this.model.get('data').get('revisions');
         var qualityData = Array();
         var eventsData = Array();
+        var googleData = Array();
         // Min. additional width of month box required to display text.
         var blankThreshold = 10;
         //Helper.view.body.select('.bg').selectAll('.month').data([]).exit().remove();
@@ -2094,6 +2100,12 @@ WikiVizView = Backbone.View.extend({
                         eventsData[ind] = {l: this.getOffset(i+0.5), e: event};
                     }
                 }, this));
+                _.each(this.model.get('data').get('google'), $.proxy(function(google, ind){
+                    var time = new Date(google.timestamp);
+                    if(curDate >= time && googleData[ind] == undefined){
+                        googleData[ind] = {l: this.getOffset(i+0.5), g: google};
+                    }
+                }, this));
             }
         
             var left = this.getOffset(lastIndex);
@@ -2130,6 +2142,10 @@ WikiVizView = Backbone.View.extend({
                 var time = new Date(event.timestamp);
                 eventsData.push({l: timeX(time), e: event});
             });
+            _.each(this.model.get('data').get('google'), function(google){
+                var time = new Date(google.timestamp);
+                googleData.push({l: timeX(time), g: google});
+            });
         }
     
         var bg = this.model.get('view').body.select('.bg');
@@ -2160,6 +2176,20 @@ WikiVizView = Backbone.View.extend({
                             .attr('height', 35)
                             .attr('fill', '#F2E4CB');
         this.repositionBar();
+        var lastX = 0;
+        var lastY = -(this.model.get('height')/2);
+        _.each(googleData, $.proxy(function(d){
+            var newX = d.l;
+            var newY = -(this.model.get('height')/2) + (35*(d.g.value/100));
+            bar_g.append('line')
+                .attr('x1', lastX)
+                .attr('y1', lastY)
+                .attr('x2', newX)
+                .attr('y2', newY)
+                .attr('class', 'google');
+            lastX = newX;
+            lastY = newY;
+        }, this));
         var r = 8;
         _.each(qualityData, $.proxy(function(d){
             var text = "<table>";
