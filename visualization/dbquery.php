@@ -116,10 +116,25 @@
                               'description' => $description);
         }
         $stmt->close();
+        $google = array();
+        $stmt = $mysqli->prepare("SELECT g.timestamp, g.value
+                                  FROM articles_google g, articles a
+                                  WHERE g.article_id = a.id
+                                  AND a.page_title =?");
+        $stmt->bind_param("s", $article);
+        $stmt->execute();
+        $stmt->bind_result($timestamp, $value);
+        while($stmt->fetch()){
+            $google[] = array('timestamp' => $timestamp,
+                              'value' => $value);
+        }
+        $stmt->close();
+        
         $response = array('revisions' => $revdata, 
                           'users' => $userdata, 
                           'quality' => $quality,
                           'events' => $events,
+                          'google' => $google,
                           'talk' => $talk);
         echo json_encode($response);
     } else if(isset($_REQUEST['user'])){ // Client is requesting article/revision data

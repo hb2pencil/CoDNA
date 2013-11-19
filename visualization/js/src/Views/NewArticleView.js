@@ -269,6 +269,10 @@ ProjectView = Backbone.View.extend({
         else{
             this.$el.css('display', 'none');
         }
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = "//www.google.ca/trends/embed.js?hl=en-US&q=Peter+Jackson&cmpt=q&content=1&cid=TIMESERIES_GRAPH_0&export=5&w=1000&h=330";
+        this.$("#google").append(script);
         return this.$el;
     }
 
