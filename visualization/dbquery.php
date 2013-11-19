@@ -29,16 +29,17 @@
         $wikirevs = WikiRevision::getBy(array('page_title' => $article), $lower, $upper);
         $revdata = array();
         
-        if (!empty($wikirevs))
+        if (!empty($wikirevs)){
             foreach ($wikirevs as $revobj) {
-                array_push($revdata, $revobj->toArray());
+                $array = $revobj->toArray();
+                $revdata[] = array_map('utf8_encode', $array);
             }
-        
+        }
         // Build array of all users associated with our selection of revisions
         // and remove duplicates
         $users = array();
         for ($i = 0; $i < count($revdata); ++$i) {
-            array_push($users, $revdata[$i]['user']);
+            $users[] = $revdata[$i]['user'];
         }
         $users = array_unique($users);
         
