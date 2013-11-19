@@ -711,6 +711,11 @@ rect.ymask {
 	stroke-width: 2px;
 }
 
+line.google {
+    stroke: #3F85F2;
+    stroke-width: 2px;
+}
+
 rect.sd {
 	/*stroke: #777;
 	stroke-width: 1px;*/
