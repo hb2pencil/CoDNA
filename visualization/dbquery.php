@@ -148,7 +148,8 @@
         
         $sql = "SELECT `rev_id`, `par_id`, `timestamp`, `user`, `userid`, `comment`, `page_title`, `diff`, `lev`, `class`, `rand`
                 FROM `articles_data`
-                WHERE `user`=?";
+                WHERE `user`=?
+                ORDER BY `timestamp`";
         $stmt = $mysqli->prepare($sql);
         $stmt->bind_param("s", $user);
         $stmt->execute();
