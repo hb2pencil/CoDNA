@@ -23,16 +23,34 @@
         if (isset($_REQUEST['upper'])) {
             $upper = intval($_REQUEST['upper']);
         }
+
+        $mysqli = DBConnection::get()->handle();
         
         WikiRevision::useTable('articles_data');
         
         $wikirevs = WikiRevision::getBy(array('page_title' => $article), $lower, $upper);
         $revdata = array();
         
+        $sections = array();
+        $stmt = $mysqli->prepare("SELECT DISTINCT a.`rev_id`, r.`attr`
+                                  FROM  `articles_data` a, `ownership_relations` r
+                                  WHERE a.`page_title`=?
+                                  AND r.`rev_id` = a.`rev_id`
+                                  ORDER BY a.`timestamp`");
+        $stmt->bind_param("s", $article);
+        $stmt->execute();
+        $stmt->bind_result($revid, $attr);
+        while ($stmt->fetch()) {
+            $attr = json_decode($attr);
+            $section = str_replace("[edit]", "", $attr->section);
+            $sections[$revid][$section] = $section;
+        }
+        
         if (!empty($wikirevs)){
             foreach ($wikirevs as $revobj) {
-                $array = $revobj->toArray();
-                $revdata[] = array_map('utf8_encode', $array);
+                $array = array_map('utf8_encode', $revobj->toArray());
+                $array['sections'] = (isset($sections[$array['rev_id']])) ? array_values($sections[$array['rev_id']]) : array();
+                $revdata[] = $array;
             }
         }
         // Build array of all users associated with our selection of revisions
@@ -42,9 +60,6 @@
             $users[] = $revdata[$i]['user'];
         }
         $users = array_unique($users);
-        
-        // Now, we need to grab the user classification data
-        $mysqli = DBConnection::get()->handle();
         
         $userdata = array();
         
@@ -57,7 +72,7 @@
             $stmt->bind_result($userid, $user, $timestamp, $userclass, $flagged);
             $history = array();
             while ($stmt->fetch()) {
-                array_push($history, array('timestamp' => $timestamp, 'userclass' => $userclass));
+                $history[] = array('timestamp' => $timestamp, 'userclass' => $userclass);
             }
             $userdata[$user] = array('userid' => $userid, 'history' => $history, 'flagged' => $flagged);
             $stmt->close();

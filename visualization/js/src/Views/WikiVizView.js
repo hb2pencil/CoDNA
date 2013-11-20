@@ -886,6 +886,7 @@ WikiVizView = Backbone.View.extend({
         headers.push(['Revision Date', 'sorttable_alpha']);
         headers.push(['Revision Size', 'sorttable_numeric']);
         headers.push(['Revision Categories', 'sorttable_alpha']);
+        headers.push(['Sections', 'sorttable_alpha']);
         dtable.append('thead').append('tr').selectAll('th').data(headers)
             .enter().append('th').text(function (d) { return d[0]; }).attr('class', function (d) { return d[1]; });
 
@@ -942,6 +943,9 @@ WikiVizView = Backbone.View.extend({
             } else {
                 return 'Undefined';
             }
+        });
+        rows.append('td').text(function (d) {
+            return d.sections.join("; ");
         });
         rows.attr('class', function (d) {
             if (d.type === 'talk') return 'data talkrow';
