@@ -286,6 +286,20 @@
                                         $wordsDel,
                                         $section);
                         }
+                        if((!isset($lastRevSentences[$i]) || $lastRevSentences[$i]['section'] != $section) &&
+                           (!isset($lastRevSentences[$i-1]) || $lastRevSentences[$i-1]['section'] != $section) &&
+                           (!isset($lastRevSentences[$i+1]) || $lastRevSentences[$i+1]['section'] != $section)){
+                            addRelation($relations,
+                                        $owner,
+                                        "",
+                                        $owner,
+                                        "adds_new",
+                                        $revId,
+                                        count($finalSentences)-1,
+                                        $wordsIns,
+                                        $wordsDel,
+                                        $section);
+                        }
                         $key++;
                     }
                 }

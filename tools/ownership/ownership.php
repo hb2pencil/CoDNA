@@ -48,7 +48,7 @@
         $relations = array();
         $ownership = array();
         $nSentences = 0;
-        echo "Initializing...\n";
+        echo "Initializing {$article}...\n";
         $sql = "SELECT `id` 
                 FROM `articles`
                 WHERE `page_title` = '".$mysqli->escape_string($article)."'
@@ -67,14 +67,14 @@
         $sql3 = "DELETE FROM `ownership_relations`
                  WHERE `article` = '".$mysqli->escape_string($articleId)."';";
         //$mysqli->query($sql);
-        $mysqli->query($sql2);
-        //$mysqli->query($sql3);
+        //$mysqli->query($sql2);
+        $mysqli->query($sql3);
         
         foreach($revisions as $timestamp => $rev){
             $users[$rev->user] = $rev->user;
             $revid = $rev->rev_id;
             $user = $rev->user;
-            $cache = "cache/{$article}_{$revid}";
+            $cache = "cache/".str_replace("/", "_", str_replace(" ", "_", $article))."_{$revid}";
             if(file_exists($cache)){
                 $json = json_decode(file_get_contents($cache));
             }
@@ -151,7 +151,7 @@
             //$sum += count($rows2);
             //echo $sum."\n";
             $publicDomain = abs(100 - $percentSum);
-            $mysqli->query($sql2.implode(",\n", $rows2));
+            //$mysqli->query($sql2.implode(",\n", $rows2));
             //echo $sql2.implode(",\n", $rows2);
         }
         
@@ -171,7 +171,7 @@
                 }
             }
         }
-        //$mysqli->query($sql3.implode(",\n", $rows3));
+        $mysqli->query($sql3.implode(",\n", $rows3));
     }
 
 ?>
