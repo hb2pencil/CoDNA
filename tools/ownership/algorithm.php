@@ -9,6 +9,10 @@
     $lastRevSentences = array();
     $relations = array();
     $ownership = array();
+    
+    // Array of all the sentences in the order that they were added.
+    // Each entry in the array is another array of tuples for that sentence (revId, sentId, section)
+    $sentenceHistory = array(); 
 
     /**
      * Returns an array of words from a sentence
@@ -76,6 +80,8 @@
                 | Dr\.              # or "Dr.",
                 | Prof\.            # or "Prof.",
                 | Sr\.              # or "Sr.",
+                | et\sal\.          # or "et al."
+                | c\.f\. | cf\.     # or "c.f." (compared to)
                 | \s[A-Z]\.         # or initials ex: "George W. Bush",
                 | i\.e\.            # or "i.e."
                                     # or... (you get the idea).
@@ -93,7 +99,7 @@
                 $wc = count($words);
                 if($wc >= $minWC){
                     $finalSentences[] = array('section' => preg_replace("/=*SECTION=*/", "", preg_replace("/=*!SECTION=*/", "", $section['title'])), 
-                                              'sentence' => $sentence);
+                                              'sentence' => trim($sentence));
                 }
             }
         }
@@ -134,6 +140,7 @@
                 $lastWords[] = $word['word'];
             }
             $wordDiff = diff($lastWords, $words);
+            //print_r($wordDiff);
             $wi = 0;
             foreach($wordDiff as $word){
                 if(is_array($word)){
@@ -146,7 +153,7 @@
                     }
                     if(count($wDeletion) > 0){
                         $wi += count($wDeletion);
-                        $nDel++;
+                        $nDel += count($wDeletion);
                     }
                 }
                 else{
@@ -178,9 +185,12 @@
      * @param int $sentId The id of the sentence in this revision
      * @param int $wordsIns The number of words inserted in this sentence
      * @param int $wordsDel The number of words deleted in this sentence
+     * @param int $historyId The id of the sentence in the sentenceHistory array
+     * @param int $relHistoryId The id of the related sentence in the sentenceHistory array
      * @return array The relation array
      */
-    function addRelation(&$relations, $user1, $user2, $newOwner, $type, $revId, $sentId, $wordsIns, $wordsDel, $section){
+    function addRelation(&$relations, $user1, $user2, $newOwner, $type, $revId, $sentId, $wordsIns, $wordsDel, $section, $historyId, $relHistoryId){
+        global $sentenceHistory;
         $relation = array();
         if($user1 != $user2 && $user1 !== false && $user2 !== false){
             if(!isset($relations[$user1])){
@@ -190,20 +200,68 @@
                 $relations[$user1][$user2] = array();
             }
             $relation = array('modifier' => $user1,
-                               'owner' => $user2,
-                               'type' => $type,
-                               'attr' => array());
-            $relation['attr'] = array('revId' => $revId,
-                                      'section' => $section,
-                                      'sentId' => $sentId,
-                                      'wordsIns' => $wordsIns,
-                                      'wordDel' => $wordsDel);
+                              'owner' => $user2,
+                              'type' => $type,
+                              'section' => $section,
+                              'sentId' => $sentId,
+                              'wordsIns' => $wordsIns,
+                              'wordsDel' => $wordsDel,
+                              'takesOwnership' => true,
+                              'history' => array(),
+                              'relHistory' => array());
             if($type == "changes"){
-                $relation['attr']['takesOwnership'] = ($newOwner == $user1);
+                $relation['takesOwnership'] = ($newOwner == $user1);
+            }
+            if(isset($sentenceHistory[$historyId])){
+                $relation['history'] = $sentenceHistory[$historyId][count($sentenceHistory[$historyId])-1];
+            }
+            if(isset($sentenceHistory[$relHistoryId])){
+                $relation['relHistory'] = $sentenceHistory[$relHistoryId][0];
             }
             $relations[$user1][$user2][] = $relation;
         }
         return $relation;
+    }
+    
+    /**
+     * Appends the sentence revision to the sentenceHistory array.  
+     * If $histId >= 0 then it is appended to the revision information for that sentence
+     * @param int $revId The id of the revision
+     * @param String $section The section name for the sentence
+     * @param int $sentId The id of the sentence
+     * @param string $raw The raw sentence text
+     * @param int $histId If $histId >= 0 then it is appended to the revision information for that sentence
+     */
+    function addSentenceHistory($revId, $section, $sentId, $raw, $histId=-1){
+        global $sentenceHistory;
+        if($histId == -1){
+            $histId = count($sentenceHistory);
+            $history = array();
+        }
+        else{
+            $history = $sentenceHistory[$histId];
+        }
+        $history[] = array('revId' => $revId, 
+                           'section' => $section,
+                           'sentId' => $sentId,
+                           'raw' => $raw);
+        $sentenceHistory[$histId] = $history;
+    }
+    
+    /**
+     * Returns the historic sentence tuple for the given text
+     * @param String $sentence The text for the sentence to match
+     */
+    function findSentenceInHistory($sentence){
+        global $sentenceHistory;
+        foreach($sentenceHistory as $key => $history){
+            foreach($history as $tuple){
+                if($tuple['raw'] == $sentence){
+                    return $key;
+                }
+            }
+        }
+        return -1;
     }
     
     /**
@@ -217,6 +275,7 @@
      * @return array The final array of sentences split up into words
      */
     function processSentences($revId, $user, &$relations, &$previousSentences, &$lastRevSentences, $sentences){
+        global $sentenceHistory;
         $finalSentences = array();
         $previousArray = array();
         $sentenceArray = array();
@@ -236,59 +295,97 @@
                 $deletion = $sentence['d'];
                 if(count($insertion) > 0){
                     // Insertion
-                    foreach($insertion as $ins){
+                    $nIns = 0;
+                    foreach($insertion as $kIns => $ins){
                         $section = $sentences[$key]['section'];
                         $wordsIns = 0;
                         $wordsDel = 0;
-                        $words = processWords($user, @$lastRevSentences[$i], getWords($ins), $wordsIns, $wordsDel);
+                        if(isset($deletion[$kIns])){
+                            // Changed sentence
+                            $words = processWords($user, @$lastRevSentences[$i+$kIns], getWords($ins), $wordsIns, $wordsDel);
+                        }
+                        else{
+                            // New sentence
+                            $words = processWords($user, array('words' => array()), getWords($ins), $wordsIns, $wordsDel);
+                        }
                         $owner = determineOwner($words);
                         $finalSentences[] = array('section' => $section,
                                                   'words' => $words,
                                                   'raw' => $ins,
                                                   'user' => $owner);
-                        if(isset($lastRevSentences[$i])){
+                        $changes = false;
+                        $adds_after = false;
+                        $adds_before = false;
+                        $adds_new = false;
+                        if(isset($lastRevSentences[$i+$kIns]) && isset($deletion[$kIns])){
+                            // Changes
+                            //print_r($sentence);
+                            echo $lastRevSentences[$i+$kIns]['raw']."\n$ins\n\n";
+                            $id = findSentenceInHistory($lastRevSentences[$i+$kIns]['raw']);
+                            addSentenceHistory($revId, $section, count($finalSentences)-1, $ins, $id);
+                            $relId = $id;
                             addRelation($relations,
                                         $user,
-                                        $lastRevSentences[$i]['user'],
+                                        $lastRevSentences[$i+$kIns]['user'],
                                         $owner,
                                         "changes",
                                         $revId,
                                         count($finalSentences)-1,
                                         $wordsIns,
                                         $wordsDel,
-                                        $section);
+                                        $section,
+                                        $id,
+                                        $relId);
+                            $changes = true;
                         }
-                        if(isset($lastRevSentences[$i-1]) && 
+                        if(isset($lastRevSentences[$i-1+$kIns]) && 
                            $owner == $user && $wordsDel == 0 && 
-                           $lastRevSentences[$i-1]['section'] == $section){
+                           $lastRevSentences[$i-1+$kIns]['section'] == $section && !isset($deletion[$kIns])){
+                            // Adds After
+                            addSentenceHistory($revId, $section, count($finalSentences)-1, $ins);
+                            $id = findSentenceInHistory($ins);
+                            $relId = findSentenceInHistory($lastRevSentences[$i-1+$kIns]['raw']);
                             addRelation($relations,
                                         $owner,
-                                        $lastRevSentences[$i-1]['user'],
+                                        $lastRevSentences[$i-1+$kIns]['user'],
                                         $owner,
                                         "adds_after",
                                         $revId,
                                         count($finalSentences)-1,
                                         $wordsIns,
                                         $wordsDel,
-                                        $section);
+                                        $section,
+                                        $id,
+                                        $relId);
+                            $adds_after = true;
                         }
-                        if(isset($lastRevSentences[$i+1]) && 
+                        if(isset($lastRevSentences[$i+$kIns-$nIns]) && 
                            $owner == $user && $wordsDel == 0 && 
-                           $lastRevSentences[$i+1]['section'] == $section){
+                           $lastRevSentences[$i+$kIns-$nIns]['section'] == $section && !isset($deletion[$kIns])){
+                            // Adds Before
+                            addSentenceHistory($revId, $section, count($finalSentences)-1, $ins);
+                            $id = findSentenceInHistory($ins);
+                            $relId = findSentenceInHistory($lastRevSentences[$i+$kIns-$nIns]['raw']);
                             addRelation($relations,
                                         $owner,
-                                        $lastRevSentences[$i+1]['user'],
+                                        $lastRevSentences[$i+$kIns-$nIns]['user'],
                                         $owner,
                                         "adds_before",
                                         $revId,
                                         count($finalSentences)-1,
                                         $wordsIns,
                                         $wordsDel,
-                                        $section);
+                                        $section,
+                                        $id,
+                                        $relId);
+                            $nIns++;
+                            $adds_before = true;
                         }
-                        if((!isset($lastRevSentences[$i]) || $lastRevSentences[$i]['section'] != $section) &&
-                           (!isset($lastRevSentences[$i-1]) || $lastRevSentences[$i-1]['section'] != $section) &&
-                           (!isset($lastRevSentences[$i+1]) || $lastRevSentences[$i+1]['section'] != $section)){
+                        if(!$adds_before && !$adds_after && !$changes){
+                            // Adds New
+                            addSentenceHistory($revId, $section, count($finalSentences)-1, $ins);
+                            $id = findSentenceInHistory($ins);
+                            $relId = $id;
                             addRelation($relations,
                                         $owner,
                                         "",
@@ -298,9 +395,37 @@
                                         count($finalSentences)-1,
                                         $wordsIns,
                                         $wordsDel,
-                                        $section);
+                                        $section,
+                                        $id,
+                                        $relId);
                         }
                         $key++;
+                    }
+                }
+                if(count($deletion) > count($insertion)){
+                    // Deletion
+                    foreach($deletion as $kDel => $del){
+                        $wordsIns = 0;
+                        $wordsDel = 0;
+                        $words = processWords($user, $lastRevSentences[$i+$kDel], getWords(""), $wordsIns, $wordsDel);
+                        $owner = determineOwner($words);
+                        if(!isset($insertion[$kDel])){
+                            addSentenceHistory($revId, "", count($finalSentences)-1, $del);
+                            $id = findSentenceInHistory($del);
+                            $relId = $id;
+                            addRelation($relations,
+                                        $user,
+                                        $lastRevSentences[$i+$kDel]['user'],
+                                        $user,
+                                        "deletes",
+                                        $revId,
+                                        count($finalSentences)-1,
+                                        $wordsIns,
+                                        $wordsDel,
+                                        "",
+                                        $id,
+                                        $relId);
+                        }
                     }
                 }
                 if(count($deletion) > 0){
