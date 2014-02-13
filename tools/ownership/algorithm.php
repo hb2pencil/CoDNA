@@ -319,8 +319,6 @@
                         $adds_new = false;
                         if(isset($lastRevSentences[$i+$kIns]) && isset($deletion[$kIns])){
                             // Changes
-                            //print_r($sentence);
-                            echo $lastRevSentences[$i+$kIns]['raw']."\n$ins\n\n";
                             $id = findSentenceInHistory($lastRevSentences[$i+$kIns]['raw']);
                             addSentenceHistory($revId, $section, count($finalSentences)-1, $ins, $id);
                             $relId = $id;

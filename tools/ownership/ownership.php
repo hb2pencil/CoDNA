@@ -10,7 +10,7 @@
     $sql = "SELECT `page_title` as `article` FROM `articles` WHERE `set` = '1'";
     $articles = $mysqli->query($sql);
     
-    $options = getopt("htf::w::a:");
+    $options = getopt("htf:w:a:");
     
     // Help
     if(isset($options['h'])){
@@ -34,6 +34,7 @@ EOF;
     }
     // Memory Factor
     if(isset($options['f'])){
+        echo $options['f'];
         if(is_numeric($options['f']) &&
            $options['f'] >= 0.00 &&
            $options['f'] <= 1.00){
@@ -131,7 +132,7 @@ EOF;
                  WHERE `article` = '".$mysqli->escape_string($articleId)."'
                  AND `talk` = $talk
                  AND `factor` = $memoryFactor;";
-        $sql3 = "DELETE FROM `ownership_relations2`
+        $sql3 = "DELETE FROM `ownership_relations`
                  WHERE `article` = '".$mysqli->escape_string($articleId)."'";
         
         $mysqli->query($sql);
@@ -233,7 +234,7 @@ EOF;
             $sentences[$sent->rev_id."_".$sent->sentence_id] = $sent;
         }
         
-        $sql3 = "INSERT INTO `ownership_relations2` (`sent_id`,`rel_sent_id`,`article`,`talk`,`modifier`,`type`,`wordsIns`,`wordsDel`,`takesOwnership`) VALUES ";
+        $sql3 = "INSERT INTO `ownership_relations` (`sent_id`,`rel_sent_id`,`article`,`talk`,`modifier`,`type`,`wordsIns`,`wordsDel`,`takesOwnership`) VALUES ";
         $rows3 = array();
         foreach($relations as $u => $rels){
             foreach($rels as $u1 => $r){
