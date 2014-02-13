@@ -34,7 +34,6 @@ EOF;
     }
     // Memory Factor
     if(isset($options['f'])){
-        echo $options['f'];
         if(is_numeric($options['f']) &&
            $options['f'] >= 0.00 &&
            $options['f'] <= 1.00){
