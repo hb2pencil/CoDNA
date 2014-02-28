@@ -132,7 +132,8 @@ EOF;
                  AND `talk` = $talk
                  AND `factor` = $memoryFactor;";
         $sql3 = "DELETE FROM `ownership_relations`
-                 WHERE `article` = '".$mysqli->escape_string($articleId)."'";
+                 WHERE `article` = '".$mysqli->escape_string($articleId)."'
+                 AND `talk` = $talk";
         
         $mysqli->query($sql);
         $mysqli->query($sql2);
