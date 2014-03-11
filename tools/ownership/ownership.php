@@ -181,7 +181,7 @@ EOF;
                              "'".$mysqli->escape_string($sentence['user'])."',".
                              "'".$mysqli->escape_string($sentence['raw'])."')";
             }
-            $mysqli->query($sql.implode(",\n", $rows));
+            $res = $mysqli->query($sql.implode(",\n", $rows));
             
             foreach($ownership as $u => $o){
                 $ownership[$u] = $o*$memoryFactor;
@@ -253,6 +253,11 @@ EOF;
                         if($relSent != null){
                             $relSentence = $sentences[$relSent['revId']."_".$relSent['sentId']];
                             $relSentId = $relSentence->id;
+                        }
+                        
+                        if($r1['type'] == 'adds_new' && $sentId != $relSentId){
+                            echo $sent['revId']."_".$sent['sentId'].", ".$relSent['revId']."_".$relSent['sentId']."\n";
+                            //print_r($sentences[$relSent['revId']."_".$relSent['sentId']]);
                         }
                         $rows3[] = "('".$mysqli->escape_string($sentId)."',".
                                     "'".$mysqli->escape_string($relSentId)."',".

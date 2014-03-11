@@ -231,6 +231,7 @@
      * @param int $sentId The id of the sentence
      * @param string $raw The raw sentence text
      * @param int $histId If $histId >= 0 then it is appended to the revision information for that sentence
+     * @return int The sentenceHistory Id
      */
     function addSentenceHistory($revId, $section, $sentId, $raw, $histId=-1){
         global $sentenceHistory;
@@ -246,6 +247,7 @@
                            'sentId' => $sentId,
                            'raw' => $raw);
         $sentenceHistory[$histId] = $history;
+        return $histId;
     }
     
     /**
@@ -340,8 +342,7 @@
                            $owner == $user && $wordsDel == 0 && 
                            $lastRevSentences[$i-1+$kIns]['section'] == $section && !isset($deletion[$kIns])){
                             // Adds After
-                            addSentenceHistory($revId, $section, count($finalSentences)-1, $ins);
-                            $id = findSentenceInHistory($ins);
+                            $id = addSentenceHistory($revId, $section, count($finalSentences)-1, $ins);
                             $relId = findSentenceInHistory($lastRevSentences[$i-1+$kIns]['raw']);
                             addRelation($relations,
                                         $owner,
@@ -361,8 +362,7 @@
                            $owner == $user && $wordsDel == 0 && 
                            $lastRevSentences[$i+$kIns-$nIns]['section'] == $section && !isset($deletion[$kIns])){
                             // Adds Before
-                            addSentenceHistory($revId, $section, count($finalSentences)-1, $ins);
-                            $id = findSentenceInHistory($ins);
+                            $id = addSentenceHistory($revId, $section, count($finalSentences)-1, $ins);
                             $relId = findSentenceInHistory($lastRevSentences[$i+$kIns-$nIns]['raw']);
                             addRelation($relations,
                                         $owner,
@@ -381,9 +381,7 @@
                         }
                         if(!$adds_before && !$adds_after && !$changes){
                             // Adds New
-                            addSentenceHistory($revId, $section, count($finalSentences)-1, $ins);
-                            $id = findSentenceInHistory($ins);
-                            $relId = $id;
+                            $id = addSentenceHistory($revId, $section, count($finalSentences)-1, $ins);
                             addRelation($relations,
                                         $owner,
                                         "",
@@ -395,7 +393,7 @@
                                         $wordsDel,
                                         $section,
                                         $id,
-                                        $relId);
+                                        $id);
                         }
                         $key++;
                     }
@@ -408,9 +406,7 @@
                         $words = processWords($user, $lastRevSentences[$i+$kDel], getWords(""), $wordsIns, $wordsDel);
                         $owner = determineOwner($words);
                         if(!isset($insertion[$kDel])){
-                            addSentenceHistory($revId, "", count($finalSentences)-1, $del);
-                            $id = findSentenceInHistory($del);
-                            $relId = $id;
+                            $id = findSentenceInHistory($lastRevSentences[$i+$kDel]['raw']);
                             addRelation($relations,
                                         $user,
                                         $lastRevSentences[$i+$kDel]['user'],
@@ -422,7 +418,7 @@
                                         $wordsDel,
                                         "",
                                         $id,
-                                        $relId);
+                                        $id);
                         }
                     }
                 }
