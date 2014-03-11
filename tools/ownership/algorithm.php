@@ -192,7 +192,7 @@
     function addRelation(&$relations, $user1, $user2, $newOwner, $type, $revId, $sentId, $wordsIns, $wordsDel, $section, $historyId, $relHistoryId){
         global $sentenceHistory;
         $relation = array();
-        if($user1 != $user2 && $user1 !== false && $user2 !== false){
+        if($user1 !== false && $user2 !== false){
             if(!isset($relations[$user1])){
                 $relations[$user1] = array();
             }
@@ -394,6 +394,7 @@
                                         $section,
                                         $id,
                                         $id);
+                            $adds_new = true;
                         }
                         $key++;
                     }
