@@ -257,7 +257,6 @@ EOF;
                         
                         if($r1['type'] == 'adds_new' && $sentId != $relSentId){
                             echo $sent['revId']."_".$sent['sentId'].", ".$relSent['revId']."_".$relSent['sentId']."\n";
-                            //print_r($sentences[$relSent['revId']."_".$relSent['sentId']]);
                         }
                         $rows3[] = "('".$mysqli->escape_string($sentId)."',".
                                     "'".$mysqli->escape_string($relSentId)."',".

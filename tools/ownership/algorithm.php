@@ -140,7 +140,6 @@
                 $lastWords[] = $word['word'];
             }
             $wordDiff = diff($lastWords, $words);
-            //print_r($wordDiff);
             $wi = 0;
             foreach($wordDiff as $word){
                 if(is_array($word)){
@@ -281,14 +280,23 @@
         $finalSentences = array();
         $previousArray = array();
         $sentenceArray = array();
+        foreach($lastRevSentences as $key => $sentence){
+            if($sentence['raw'] == ""){
+                unset($lastRevSentences[$key]);
+            }
+        }
+        $lastRevSentences = array_values($lastRevSentences);
         foreach($previousSentences as $sentence){
-            $previousArray[] = $sentence['sentence'];
+            if($sentence['sentence'] != ""){
+                $previousArray[] = $sentence['sentence'];
+            }
         }
         foreach($sentences as $sentence){
             $sentenceArray[] = $sentence['sentence'];
         }
         $diff = diff($previousArray, $sentenceArray);
         $nInserts = 0;
+        $nDeletes = 0;
         $i = 0;
         $key = 0;
         foreach($diff as $sentence){
@@ -407,7 +415,12 @@
                         $words = processWords($user, $lastRevSentences[$i+$kDel], getWords(""), $wordsIns, $wordsDel);
                         $owner = determineOwner($words);
                         if(!isset($insertion[$kDel])){
-                            $id = findSentenceInHistory($lastRevSentences[$i+$kDel]['raw']);
+                            $finalSentences[] = array('section' => $lastRevSentences[$i+$kDel]['section'],
+                                                      'words' => $words,
+                                                      'raw' => "",
+                                                      'user' => $user);
+                            $relId = findSentenceInHistory($lastRevSentences[$i+$kDel]['raw']);
+                            $id = addSentenceHistory($revId, $lastRevSentences[$i+$kDel]['section'], count($finalSentences)-1, $user, $relId);
                             addRelation($relations,
                                         $user,
                                         $lastRevSentences[$i+$kDel]['user'],
@@ -419,7 +432,8 @@
                                         $wordsDel,
                                         "",
                                         $id,
-                                        $id);
+                                        $relId);
+                            $nDeletes++;
                         }
                     }
                 }
