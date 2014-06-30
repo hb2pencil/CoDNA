@@ -10,7 +10,7 @@
     $sql = "SELECT `page_title` as `article` FROM `articles` WHERE `set` = '1'";
     $articles = $mysqli->query($sql);
     
-    $options = getopt("htf:w:a:");
+    $options = getopt("htfro:w:a:");
     
     // Help
     if(isset($options['h'])){
@@ -21,6 +21,8 @@ Usage: php ownership.php [opts] -a "Article Title"
     -f  What memory factor to use when determining the sentence ownership (between 0.00 and 1.00.  Default is 0.95)
     -w  The minimum word count for sentences (integer at least 1.  Default is 5)
     -a  What article to process (To do them all do "*". Default is "*")
+    -r  Do not do any relationship calculations
+    -o  Do not do any ownership calculations
 
 EOF;
         exit;
@@ -31,6 +33,20 @@ EOF;
     }
     else{
         $talk = "false";
+    }
+    // Relations?
+    if(isset($options['r'])){
+        $doRelations = false;
+    }
+    else{
+        $doRelations = true;
+    }
+    // Ownership?
+    if(isset($options['o'])){
+        $doOwnership = false;
+    }
+    else{
+        $doOwnership = true;
     }
     // Memory Factor
     if(isset($options['f'])){
@@ -136,8 +152,12 @@ EOF;
                  AND `talk` = $talk";
         
         $mysqli->query($sql);
-        $mysqli->query($sql2);
-        $mysqli->query($sql3);
+        if($doOwnership){
+            $mysqli->query($sql2);
+        }
+        if($doRelations){
+            $mysqli->query($sql3);
+        }
         
         foreach($revisions as $timestamp => $rev){
             $users[$rev->user] = $rev->user;
@@ -221,7 +241,9 @@ EOF;
                 }
             }
             $publicDomain = abs(100 - $percentSum);
-            $mysqli->query($sql2.implode(",\n", $rows2));
+            if($doOwnership){
+                $mysqli->query($sql2.implode(",\n", $rows2));
+            }
         }
         
         $sentenceSQL = "SELECT * 
@@ -234,46 +256,49 @@ EOF;
             $sentences[$sent->rev_id."_".$sent->sentence_id] = $sent;
         }
         
-        $sql3 = "INSERT INTO `ownership_relations` (`sent_id`,`rel_sent_id`,`article`,`talk`,`modifier`,`type`,`wordsIns`,`wordsDel`,`takesOwnership`) VALUES ";
-        $rows3 = array();
-        foreach($relations as $u => $rels){
-            foreach($rels as $u1 => $r){
-                if($u !== false && $u1 !== false){
-                    foreach($r as $r1){
-                        $history = $r1['history'];
-                        $sent = $history;
-                        $sentId = 0;
-                        if($sent != null){
-                            $sentence = $sentences[$sent['revId']."_".$sent['sentId']];
-                            $sentId = $sentence->id;
+        if($doRelations){
+            echo "RELATIONS";
+            $sql3 = "INSERT INTO `ownership_relations` (`sent_id`,`rel_sent_id`,`article`,`talk`,`modifier`,`type`,`wordsIns`,`wordsDel`,`takesOwnership`) VALUES ";
+            $rows3 = array();
+            foreach($relations as $u => $rels){
+                foreach($rels as $u1 => $r){
+                    if($u !== false && $u1 !== false){
+                        foreach($r as $r1){
+                            $history = $r1['history'];
+                            $sent = $history;
+                            $sentId = 0;
+                            if($sent != null){
+                                $sentence = $sentences[$sent['revId']."_".$sent['sentId']];
+                                $sentId = $sentence->id;
+                            }
+                            $relHistory = $r1['relHistory'];
+                            $relSent = $relHistory;
+                            $relSentId = 0;
+                            if($relSent != null){
+                                $relSentence = $sentences[$relSent['revId']."_".$relSent['sentId']];
+                                $relSentId = $relSentence->id;
+                            }
+                            
+                            if($r1['type'] == 'adds_new' && $sentId != $relSentId){
+                                echo $sent['revId']."_".$sent['sentId'].", ".$relSent['revId']."_".$relSent['sentId']."\n";
+                            }
+                            $rows3[] = "('".$mysqli->escape_string($sentId)."',".
+                                        "'".$mysqli->escape_string($relSentId)."',".
+                                        "'".$mysqli->escape_string($articleId)."',".
+                                        "$talk,".
+                                        "'".$mysqli->escape_string($r1['modifier'])."',".
+                                        "'".$mysqli->escape_string($r1['type'])."',".
+                                        "'".$mysqli->escape_string($r1['wordsIns'])."',".
+                                        "'".$mysqli->escape_string($r1['wordsDel'])."',".
+                                        "'".$mysqli->escape_string($r1['takesOwnership'])."')";
                         }
-                        $relHistory = $r1['relHistory'];
-                        $relSent = $relHistory;
-                        $relSentId = 0;
-                        if($relSent != null){
-                            $relSentence = $sentences[$relSent['revId']."_".$relSent['sentId']];
-                            $relSentId = $relSentence->id;
-                        }
-                        
-                        if($r1['type'] == 'adds_new' && $sentId != $relSentId){
-                            echo $sent['revId']."_".$sent['sentId'].", ".$relSent['revId']."_".$relSent['sentId']."\n";
-                        }
-                        $rows3[] = "('".$mysqli->escape_string($sentId)."',".
-                                    "'".$mysqli->escape_string($relSentId)."',".
-                                    "'".$mysqli->escape_string($articleId)."',".
-                                    "$talk,".
-                                    "'".$mysqli->escape_string($r1['modifier'])."',".
-                                    "'".$mysqli->escape_string($r1['type'])."',".
-                                    "'".$mysqli->escape_string($r1['wordsIns'])."',".
-                                    "'".$mysqli->escape_string($r1['wordsDel'])."',".
-                                    "'".$mysqli->escape_string($r1['takesOwnership'])."')";
                     }
                 }
             }
-        }
-        $mysqli->query($sql3.implode(",\n", $rows3));
-        if($article == $articleToProcess){
-            exit;
+            $mysqli->query($sql3.implode(",\n", $rows3));
+            if($article == $articleToProcess){
+                exit;
+            }
         }
     }
 
