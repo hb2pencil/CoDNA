@@ -257,7 +257,6 @@ EOF;
         }
         
         if($doRelations){
-            echo "RELATIONS";
             $sql3 = "INSERT INTO `ownership_relations` (`sent_id`,`rel_sent_id`,`article`,`talk`,`modifier`,`type`,`wordsIns`,`wordsDel`,`takesOwnership`) VALUES ";
             $rows3 = array();
             foreach($relations as $u => $rels){
