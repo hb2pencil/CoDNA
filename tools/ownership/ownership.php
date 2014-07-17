@@ -10,7 +10,7 @@
     $sql = "SELECT `page_title` as `article` FROM `articles` WHERE `set` = '1'";
     $articles = $mysqli->query($sql);
     
-    $options = getopt("htfro:w:a:");
+    $options = getopt("htrof:w:a:");
     
     // Help
     if(isset($options['h'])){
@@ -49,6 +49,7 @@ EOF;
         $doOwnership = true;
     }
     // Memory Factor
+    $memoryFactor = 0.95;
     if(isset($options['f'])){
         if(is_numeric($options['f']) &&
            $options['f'] >= 0.00 &&
