@@ -17,6 +17,10 @@ String.prototype.format = function() {
 // ## Helper
 Helper = function() {};
 
+Helper.numberFormat = function(x){
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
+
 // Takes in a javascript date object and pretty-prints it to a string which is returned.
 Helper.formatDate = function(dt, time) {
     if(time == undefined) time = true;
@@ -58,16 +62,7 @@ Helper.isSubset = function(subset_l, superset_l) {
 
 // Generate a string describing a given article revisions' edit categories
 Helper.toClassString = function(rc){
-    return rc.split(';').map(function(c) { return ({
-            'a': 'edit',
-            'b': 'add',
-            'c': 'remove',
-            'd': 'reorganize',
-            'e': 'cite',
-            'f': 'vandalize',
-            'g': 'unvandalize',
-            'x': 'unclassified'
-        })[c]; }).join(', ');
+    return rc.split(';').map(function(c) { return classifications.findWhere({id: c.trim()}).get('codna'); }).join(', ');
 };
 
 // Generate a string describing a given talk page revision entry's revision categories.

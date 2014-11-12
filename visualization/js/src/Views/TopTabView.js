@@ -16,7 +16,7 @@ TopTabsView = Backbone.View.extend({
     order: function(){
         this.model.sort();
         var startX = TopTabsView.leftMargin;
-        var widthEstimate = (($("#content").outerWidth()-30-30-TopTabsView.spacing)/(this.model.length-1)) - 25 - 10 - TopTabsView.spacing;
+        var widthEstimate = (($("#content").outerWidth(true)-30-30-30-TopTabsView.spacing)/(this.model.length-1)) - 25 - 10 - TopTabsView.spacing;
         var widthSum = 0;
         var actualSum = 0;
         this.model.each(function(tab, index){
@@ -31,7 +31,7 @@ TopTabsView = Backbone.View.extend({
                 // TODO: This isn't perfect, some rounding problems still exist
                 this.$("#tab_" + tab.cid).css('max-width', Math.max(5, Math.min(150, Math.round(widthEstimate) + diff)));
             }
-            startX += Math.round(this.$("#tab_" + tab.cid).outerWidth()) + TopTabsView.spacing;
+            startX += Math.round(this.$("#tab_" + tab.cid).outerWidth(true)) + TopTabsView.spacing;
             if(before != tab.get('x')){
                 this.views[index].updatePosition();
             }
@@ -130,7 +130,7 @@ TopTabView = Backbone.View.extend({
             $("#tab_" + tab.cid).show('slide', 200);
             _.last(topTabsView.views).$el.css('left', beforeX);
             _.last(topTabsView.views).$el.animate({
-                'left': tab.get('x') + $("#tab_" + tab.cid).outerWidth() + TopTabsView.spacing
+                'left': tab.get('x') + $("#tab_" + tab.cid).outerWidth(true) + TopTabsView.spacing
             }, 200);
         }
         else{
@@ -152,7 +152,7 @@ TopTabView = Backbone.View.extend({
         _.each(topTabsView.views, function(tab){
             if(found){
                 tab.$el.animate({
-                    'left': tab.model.get('x') - this.$el.outerWidth() - TopTabsView.spacing
+                    'left': tab.model.get('x') - this.$el.outerWidth(true) - TopTabsView.spacing
                 }, 200);
             }
             if(tab == this){

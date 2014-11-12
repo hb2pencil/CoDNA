@@ -237,8 +237,18 @@ ToolbarView = Backbone.View.extend({
                         unsure: ['unsure'],
                         vandunvand: ['vand', 'unvand']
                     };
+                    
+                    var classMap = {};
+                    classifications.each(function(c){
+                        if(classMap[c.get('codna')] == undefined){
+                            classMap[c.get('codna')] = new Array();
+                        }
+                        classMap[c.get('codna')].push(c.get('id'));
+                    });
+                    
+                    
                 
-                    // Legend selection functionality (by varyng opacity)
+                    // Legend selection functionality (by varying opacity)
                     $('#d_legend_accordion h3', dialog).each(function (i, el) {
                         $(el).find('input').change(function(e) {
                             // If the event is the checking of a checkbox
@@ -252,10 +262,12 @@ ToolbarView = Backbone.View.extend({
                                     wikiviz.get('view').data.selectAll('rect.' + classMap[$(this).val()][i]).transition().duration(500).attr('opacity', 0.2);
                                 }
                             }
-                        
+                            
                             var selected = new Array();
                             $('#d_legend_accordion input:checked', dialog).each(function(i, v) {
-                                $.merge(selected, classMap[$(v).val()]);
+                                if(classMap[$(v).val()] != undefined){
+                                    $.merge(selected, classMap[$(v).val()]);
+                                }
                             });
                         
                             article.viz.navctl.bg.selectAll('rect').transition().duration(500).attr('opacity',

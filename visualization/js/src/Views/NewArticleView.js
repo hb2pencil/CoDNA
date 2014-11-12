@@ -23,9 +23,9 @@ NewArticleView = Backbone.View.extend({
     
     events: {
         "click #initiative .option:not(.disabled)": "clickInitiative",
-        "click #set .option": "clickDataSet",
+        "click #set .option:not(.disabled)": "clickDataSet",
         "click #project .option": "clickProject",
-        "click #analyse button": "clickAnalyse",
+        "click #analyze button": "clickAnalyze",
         "click #clearFilter": "clearFilter",
         "change #filter": "filter",
         "keyup #filter": "filter"
@@ -62,8 +62,8 @@ NewArticleView = Backbone.View.extend({
             this.$("#set").hide('slide', 400);
             if(this.$("#project").css('display') != 'none'){
                 this.$("#project").hide('slide', 400);
-                if(this.$("#analyse").css('display') != 'none'){
-                    this.$("#analyse").hide('slide', 400);
+                if(this.$("#analyze").css('display') != 'none'){
+                    this.$("#analyze").hide('slide', 400);
                 }
             }
         }
@@ -88,8 +88,8 @@ NewArticleView = Backbone.View.extend({
         else if(this.$("#project").css('display') != 'none' && 
                 this.$("#set .option.selected").length == 0){
             this.$("#project").hide('slide', 400);
-            if(this.$("#analyse").css('display') != 'none'){
-                this.$("#analyse").hide('slide', 400);
+            if(this.$("#analyze").css('display') != 'none'){
+                this.$("#analyze").hide('slide', 400);
             }
         }
     },
@@ -98,18 +98,18 @@ NewArticleView = Backbone.View.extend({
     clickProject: function(e){
         this.$("#project .option").not(e.currentTarget).removeClass('selected');
         $(e.currentTarget).toggleClass('selected');
-        if(this.$("#analyse").css('display') == 'none' &&
+        if(this.$("#analyze").css('display') == 'none' &&
            this.$("#project .option.selected").length > 0){
-            this.$("#analyse").show('slide', 400);
+            this.$("#analyze").show('slide', 400);
         }
-        else if(this.$("#analyse").css('display') != 'none' && 
+        else if(this.$("#analyze").css('display') != 'none' && 
                 this.$("#project .option.selected").length == 0){
-            this.$("#analyse").hide('slide', 400);
+            this.$("#analyze").hide('slide', 400);
         }
     },
     
-    // Triggered when the analyse button is clicked
-    clickAnalyse: function(e){
+    // Triggered when the analyze button is clicked
+    clickAnalyze: function(e){
         var selected = this.getSelected();
         var view = null;
         var title = "";
@@ -177,7 +177,6 @@ NewArticleView = Backbone.View.extend({
     // Renders the projects/contributors list
     renderProjects: function(set){
         var articles = document.createDocumentFragment();
-        var users = document.createDocumentFragment();
         _.each(this.views, function(view){
             if(view instanceof ProjectView){
                 view.remove();
@@ -235,6 +234,9 @@ DataSetView = Backbone.View.extend({
         else if(this.model instanceof ArticleSet){
             this.$el.addClass("article");
         }
+        if(this.model.get('disabled') == true){
+            this.$el.addClass("disabled");
+        }
     },
     
     render: function(){
@@ -264,15 +266,11 @@ ProjectView = Backbone.View.extend({
     render: function(){
         if(this.model.get('display')){
             this.$el.css('display', 'block');
-            this.$el.html(this.template(this.model.toJSON()));
+            this.el.innerHTML = this.template(this.model.toJSON());
         }
         else{
             this.$el.css('display', 'none');
         }
-        var script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = "//www.google.ca/trends/embed.js?hl=en-US&q=Peter+Jackson&cmpt=q&content=1&cid=TIMESERIES_GRAPH_0&export=5&w=1000&h=330";
-        this.$("#google").append(script);
         return this.$el;
     }
 

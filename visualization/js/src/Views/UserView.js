@@ -6,7 +6,8 @@ UserView = Backbone.View.extend({
     navctl: null,
     
     initialize: function(){
-        this.wikiviz = new WikiViz({user: this.model.get('name')});
+        this.wikiviz = new WikiViz({user: this.model.get('name'), 
+                                    set: this.model.get('set')});
         var id = _.uniqueId();
         $("#content").append("<div id='" + id + "'>");
         this.$el = $("#" + id);

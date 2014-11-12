@@ -2,7 +2,8 @@
 $.ajaxSetup({ cache: false });
 
 articles = new ArticleCollection();
-articles.fetch();
+classifications = new ClassificationCollection();
+classifications.fetch();
 topTabs = new TopTabCollection();
 topTabsView = new TopTabsView({model: topTabs, el: "#topTabs"});
 

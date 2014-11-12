@@ -6,7 +6,9 @@ ArticleView = Backbone.View.extend({
     navctl: null,
     
     initialize: function(){
-        this.wikiviz = new WikiViz({title: this.model.get('title')});
+        this.wikiviz = new WikiViz({article_id: this.model.get('article_id'),
+                                    title: this.model.get('title'),
+                                    set: this.model.get('set')});
         var id = _.uniqueId();
         $("#content").append("<div id='" + id + "'>");
         this.$el = $("#" + id);

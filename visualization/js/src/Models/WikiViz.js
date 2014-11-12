@@ -5,22 +5,17 @@ WikiViz = Backbone.Model.extend({
         // Create a fetch a new WikiVizData
         var data = null;
         if(this.get('user') != ""){
-            data = new WikiVizData({user: this.get('user'), wikiviz: this});
+            data = new WikiVizData({user: this.get('user'), 
+                                    set: this.get('set'),
+                                    wikiviz: this});
         }
-        else if(this.get('title') != ""){
-            data = new WikiVizData({title: this.get('title'), wikiviz: this});
+        else if(this.get('article_id') != ""){
+            data = new WikiVizData({article_id: this.get('article_id'),
+                                    title: this.get('title'),
+                                    set: this.get('set'), 
+                                    wikiviz: this});
         }
-        // The weights for computing the weighted-splitting of visualization bars.
-        this.set('weights', {
-            add: 60,
-            remove: 60,
-            edit: 20,
-            reorganize: 40,
-            vand: 10,
-            unvand: 10,
-            cite: 20,
-            unclassified: 60
-        });
+
         this.set('view', {});
         data.fetch();
         this.set('data', data);
@@ -97,6 +92,7 @@ WikiViz = Backbone.Model.extend({
     timeX: d3.time.scale(),
     
     defaults: {
+        article_id: "",
         title: "",
         user: "",
         data: null,
@@ -110,7 +106,6 @@ WikiViz = Backbone.Model.extend({
         // UNUSED: Used to be used for generating "time offset" calues in data annotation.
         timeMultiplier: 1,
         isTimeSpaced: false,
-        weights: null,
         mode: 'art',
         view: null,
     }
@@ -145,44 +140,23 @@ WikiVizData = Backbone.Model.extend({
             // Split up the edit by its classification and the classification weights
             // 
             // Will eventually hold the formatted info for drawing.
-            var wclass = {    
-                add: 0,
-                remove: 0,
-                edit: 0,
-                reorganize: 0,
-                cite: 0,
-                vand: 0,
-                unvand: 0,
-                unsure: 0,
-                unclassified: 0
-            };
+            var wclass = {};
+            _.each(classifications.pluck('id'), function(c){
+                wclass[c] = 0;
+            });
         
             // Perform a weighted-separation of our article revision edit distance.
-            if (strcontains('a', rev['class'])) {
-                wclass.edit += this.get('wikiviz').get('weights').edit;
+            
+            if(rev['class'] == ""){
+                rev['class'] = classifications.findWhere({manual: 'Miscellaneous'}).get('id');
             }
-            if (strcontains('b', rev['class'])) {
-                wclass.add += this.get('wikiviz').get('weights').add;
-            }
-            if (strcontains('c', rev['class'])) {
-                wclass.remove += this.get('wikiviz').get('weights').remove;
-            }
-            if (strcontains('d', rev['class'])) {
-                wclass.reorganize += this.get('wikiviz').get('weights').reorganize;
-            }
-            if (strcontains('e', rev['class'])) {
-                wclass.cite += this.get('wikiviz').get('weights').cite;
-            }
-            if (strcontains('f', rev['class'])) {
-                wclass.vand += this.get('wikiviz').get('weights').vand;
-            }
-            if (strcontains('g', rev['class'])) {
-                wclass.unvand += this.get('wikiviz').get('weights').unvand;
-            }
-            if (strcontains('x', rev['class'])) {
-                wclass.unclassified += this.get('wikiviz').get('weights').unclassified;
-            }
-        
+            
+            classifications.each(function(c){
+                if(strcontains(c.get('id'), rev['class'])){
+                    wclass[c.get('id')] += Math.abs(c.get('weight'));
+                }
+            });
+                   
             var wsum = 0;
             for (c in wclass) {
                 wsum += wclass[c];
@@ -193,10 +167,7 @@ WikiVizData = Backbone.Model.extend({
                     wclass[c] = wclass[c] * Math.log(+rev.lev+1) / wsum;
                 }
             }
-            
-            if (wsum === 0) {
-                wclass.unsure = Math.log(rev.lev + 1);
-            }
+
             rev.revid = rev.rev_id;
             
             rev.wclass = wclass;
@@ -213,15 +184,16 @@ WikiVizData = Backbone.Model.extend({
     },
     
     urlRoot: function(){
-        if(this.get('title') != ""){
-            return "dbquery.php?" + "lower=0&upper=10000&article=" + encodeURIComponent(this.get('title'));
+        if(this.get('article_id') != ""){
+            return "dbquery.php?" + "article=" + encodeURIComponent(this.get('article_id')) + "&set=" + encodeURIComponent(this.get('set'));
         }
         else if(this.get('user') != ""){
-            return "dbquery.php?" + "user=" + encodeURIComponent(this.get('user'));
+            return "dbquery.php?" + "user=" + encodeURIComponent(this.get('user')) + "&set=" + encodeURIComponent(this.get('set'));
         }
     },
     
     defaults: {
+        article_id: "",
         title: "",
         user: "",
         wikiviz: null,

@@ -8,15 +8,12 @@ class WikiRevision {
 	protected static $fields = array(
 		'rev_id',
 		'par_id',
-		'timestamp',
-		'user',
-		'userid',
+		'article_id',
+		'rev_date',
+		'user_id',
 		'comment',
-		'page_title',
-		'diff',
 		'lev',
-		'class',
-		'rand'
+		'class'
 	);
 	
 	private $data = array();
@@ -34,12 +31,11 @@ class WikiRevision {
 		$t_data = array();
 		$t_data['rev_id'] = 0;
 		$t_data['par_id'] = 0;
-		$t_data['timestamp'] = '';
-		$t_data['user'] = '';
+		$t_data['article_id'] = 0;
+		$t_data['rev_date'] = '';
 		$t_data['userid'] = 0;
 		$t_data['comment'] = '';
 		$t_data['page_title'] = '';
-		$t_data['diff'] = '';
 		$t_data['lev'] = 0;
 		$t_data['class'] = '';
 		$t_data['rand'] = rand();
@@ -130,7 +126,7 @@ class WikiRevision {
 			$query .= " $key='$myval' AND";
 		}
 		// Note that we order wikirevisions by timestamp!
-		$query = substr($query, 0, -3)."ORDER BY timestamp LIMIT $lower, $upper";
+		$query = substr($query, 0, -3)."ORDER BY rev_date LIMIT $lower, $upper";
 		$res = DBConnection::get()->handle()->query($query);
 		return WikiRevision::unpackRows($res);
 	}

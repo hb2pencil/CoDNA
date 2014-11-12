@@ -1,5 +1,5 @@
 //     CoDNA 0.1.0
-//     (c) 2013 Henry Brausen, David Turner
+//     (c) 2014 Henry Brausen, David Turner
 //     https://github.com/hb2pencil/CoDNA
 //     Released under GPLv2 License
 
@@ -2640,6 +2640,7 @@ WikiVizView = Backbone.View.extend({
         headers.push(['Revision Date', 'sorttable_alpha']);
         headers.push(['Revision Size', 'sorttable_numeric']);
         headers.push(['Revision Categories', 'sorttable_alpha']);
+        headers.push(['Sections', 'sorttable_alpha']);
         dtable.append('thead').append('tr').selectAll('th').data(headers)
             .enter().append('th').text(function (d) { return d[0]; }).attr('class', function (d) { return d[1]; });
 
@@ -2696,6 +2697,9 @@ WikiVizView = Backbone.View.extend({
             } else {
                 return 'Undefined';
             }
+        });
+        rows.append('td').text(function (d) {
+            return d.sections.join("; ");
         });
         rows.attr('class', function (d) {
             if (d.type === 'talk') return 'data talkrow';

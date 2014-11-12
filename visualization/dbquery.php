@@ -13,27 +13,67 @@
     
     header('Content-type: application/json');
     
+    $mysqli = DBConnection::get()->handle();
+    
+    $stmt = $mysqli->prepare("SELECT `Set_ID`, `Set_Table`
+                              FROM `articles_sets`
+                              WHERE `Set_Table` != ''");
+    $stmt->execute();
+    $stmt->bind_result($id, $table);
+    $set_mappings = array('articles' => array(),
+                          'users' => array());
+    while ($stmt->fetch()) {
+        if($table != ""){
+            $set_mappings['articles'][$id] = $table;
+        }
+    }
+    $stmt->close();
+    $stmt = $mysqli->prepare("SELECT `Set_ID`, `Set_Table`
+                              FROM `users_sets`
+                              WHERE `Set_Table` != ''");
+    $stmt->execute();
+    $stmt->bind_result($id, $table);
+    while ($stmt->fetch()) {
+        if($table != ""){
+            $set_mappings['users'][$id] = $table;
+        }
+    }
+    $stmt->close();
+    
+    ob_start("ob_gzhandler");
     if (isset($_REQUEST['article'])) {    // Client is requesting user/revision data.
         $article = $_REQUEST['article'];
-        $lower = 0;
-        if (isset($_REQUEST['lower'])) {
-            $lower = intval($_REQUEST['lower']);
-        }
-        $upper = 10;
-        if (isset($_REQUEST['upper'])) {
-            $upper = intval($_REQUEST['upper']);
-        }
-
-        $mysqli = DBConnection::get()->handle();
+        $set = $_REQUEST['set'];
+        $table = $set_mappings['articles'][$set];
         
-        WikiRevision::useTable('articles_data');
+        $wikirevs = array();      
+        $stmt = $mysqli->prepare("SELECT DISTINCT t.rev_id, t.par_id, t.rev_date, t.user_id, t.comment, t.lev, t.class, a.page_title
+                                  FROM `{$table}` t, `articles` a, `articles_to_sets` s
+                                  WHERE a.article_id = {$article}
+                                  AND a.article_id = t.article_id
+                                  AND s.set_id = {$set}
+                                  AND a.article_id = s.article_id
+                                  AND s.cutoff_date > t.rev_date
+                                  ORDER BY t.rev_date");
+        $stmt->execute();
+        $stmt->bind_result($rev_id, $par_id, $rev_date, $user_id, $comment, $lev, $class, $page_title);
+        while ($stmt->fetch()) {
+            $wikirevs[] = array('rev_id' => $rev_id,
+                                'par_id' => $par_id,
+                                'timestamp' => str_replace(" ", "T", $rev_date."Z"),
+                                'userid' => utf8_encode($user_id),
+                                'user' => utf8_encode($user_id),
+                                'comment' => utf8_encode($comment),
+                                'lev' => max(0, $lev),
+                                'class' => str_replace(",", ";", $class),
+                                'page_title' => utf8_encode($page_title));
+        }
         
-        $wikirevs = WikiRevision::getBy(array('page_title' => $article), $lower, $upper);
         $revdata = array();
         
         $sections = array();
-        $stmt = $mysqli->prepare("SELECT DISTINCT a.`rev_id`, r.`attr`
-                                  FROM  `articles_data` a, `ownership_relations` r
+        /*$stmt = $mysqli->prepare("SELECT DISTINCT a.`rev_id`, r.`attr`
+                                  FROM  `{$table}` a, `ownership_relations` r
                                   WHERE a.`page_title`=?
                                   AND r.`rev_id` = a.`rev_id`
                                   ORDER BY a.`timestamp`");
@@ -44,11 +84,11 @@
             $attr = json_decode($attr);
             $section = str_replace("[edit]", "", $attr->section);
             $sections[$revid][$section] = $section;
-        }
+        }*/
         
         if (!empty($wikirevs)){
             foreach ($wikirevs as $revobj) {
-                $array = array_map('utf8_encode', $revobj->toArray());
+                $array = array_map('utf8_encode', $revobj);
                 $array['sections'] = (isset($sections[$array['rev_id']])) ? array_values($sections[$array['rev_id']]) : array();
                 $revdata[] = $array;
             }
@@ -64,9 +104,10 @@
         $userdata = array();
         
         foreach ($users as $u) {
-            $stmt = $mysqli->prepare("SELECT u.userid, u.user, g.timestamp, g.userclass, u.flagged
-                                      FROM users as u inner join users_grouphistory as g on u.g_histid=g.g_histid 
-                                      WHERE u.user=?");
+            $stmt = $mysqli->prepare("SELECT u.user_id, u.user_id, r.level_date, r.med_level, 0 as flagged
+                                      FROM users u, users_role_changes r
+                                      WHERE u.user_id =?
+                                      AND u.user_id = r.user_id");
             $stmt->bind_param("s", $u);
             $stmt->execute();
             $stmt->bind_result($userid, $user, $timestamp, $userclass, $flagged);
@@ -74,51 +115,60 @@
             while ($stmt->fetch()) {
                 $history[] = array('timestamp' => $timestamp, 'userclass' => $userclass);
             }
-            $userdata[$user] = array('userid' => $userid, 'history' => $history, 'flagged' => $flagged);
+            $userdata[utf8_encode($user)] = array('userid' => utf8_encode($userid), 'history' => $history, 'flagged' => $flagged);
             $stmt->close();
         }
         
         // Fetch talkpage data
         $talk = array();
-        $stmt = $mysqli->prepare("SELECT id, topic, contributor, timestamp, content, lev, indent, crit, perf, inf, att 
-                                  FROM talkpages_simple 
-                                  WHERE article=? 
-                                  ORDER BY timestamp");
+        $stmt = $mysqli->prepare("SELECT t.rev_id, t.user_id, t.rev_date, t.lev
+                                  FROM articles a, `{$table}` t, `articles_to_sets` s
+                                  WHERE a.article_id=?
+                                  AND t.article_id = a.talkpage_id
+                                  AND s.set_id = {$set}
+                                  AND a.article_id = s.article_id
+                                  AND s.cutoff_date > t.rev_date
+                                  ORDER BY t.rev_date");
         $stmt->bind_param("s", $article);
         $stmt->execute();
-        $stmt->bind_result($id, $topic, $contributor, $timestamp, $content, $lev, $indent, $crit, $perf, $inf, $att);
+        $stmt->bind_result($id, $contributor, $timestamp, $lev);
         while ($stmt->fetch()) {
-            array_push($talk, array('id' => $id, 'topic' => $topic, 'contributor' => $contributor, 'timestamp' => $timestamp,
-                        'content' => $content, 'lev' => $lev, 'indent' => $indent, 'crit' => $crit, 'perf' => $perf,
-                        'inf' => $inf, 'att' => $att));
+            array_push($talk, array('id' => $id, 
+                                    'contributor' => utf8_encode($contributor), 
+                                    'timestamp' => str_replace(" ", "T", $timestamp."Z"),
+                                    'lev' => $lev));
         }
         
         // Fetch quality stats
         $quality = array();
         $stmt->close();
-        $stmt = $mysqli->prepare("SELECT q.cutoff, q.metric, q.score, q.description
-                                  FROM articles_quality q, articles a
-                                  WHERE q.article_id = a.id
-                                  AND a.page_title =?");
+        $stmt = $mysqli->prepare("SELECT s.cutoff_date, s.quality, s.accuracy, s.completeness, s.objectivity, s.representation 
+                                  FROM articles_to_sets s
+                                  WHERE s.article_id =?
+                                  AND s.set_id = {$set}");
         $stmt->bind_param("s", $article);
         $stmt->execute();
-        $stmt->bind_result($cutoff, $metric, $score, $description);
+        $stmt->bind_result($cutoff, $qual, $accuracy, $completeness, $objectivity, $representation);
         while($stmt->fetch()){
-            $json = json_decode($description);
-            $desc = array();
-            $desc['Accuracy'] = $json->LibDelphAccur;
-            $desc['Completeness'] = $json->LibDelphCompl;
-            $desc['Representation'] = $json->LibDelphPres;
-            $desc['Objectivity'] = $json->LibDelphObject;
-            $desc['Overal Quality'] = $json->LibDelphQuality;
-            $quality[] = array('cutoff' => $cutoff,
-                               'metric' => $metric,
-                               'score' => $score,
-                               'description' => $desc);
+            if(is_numeric($qual) &&
+               is_numeric($accuracy) &&
+               is_numeric($completeness) &&
+               is_numeric($objectivity) &&
+               is_numeric($representation)){
+                $desc = array();
+                $desc['Accuracy'] = $accuracy;
+                $desc['Completeness'] = $completeness;
+                $desc['Representation'] = $representation;
+                $desc['Objectivity'] = $objectivity;
+                $desc['Overal Quality'] = $qual;
+                $quality[] = array('cutoff' => str_replace(" ", "T", $cutoff."Z"),
+                                   'score' => $qual,
+                                   'description' => $desc);
+            }
         }
         $stmt->close();
         $events = array();
-        $stmt = $mysqli->prepare("SELECT e.timestamp, e.title, e.description
+        /*$stmt = $mysqli->prepare("SELECT e.timestamp, e.title, e.description
                                   FROM articles_events e, articles a
                                   WHERE e.article_id = a.id
                                   AND a.page_title =?");
@@ -130,17 +180,20 @@
                               'title' => $title,
                               'description' => $description);
         }
-        $stmt->close();
+        $stmt->close();*/
         $google = array();
-        $stmt = $mysqli->prepare("SELECT g.timestamp, g.value
-                                  FROM articles_google g, articles a
-                                  WHERE g.article_id = a.id
-                                  AND a.page_title =?");
-        $stmt->bind_param("s", $article);
+        
+        $stmt = $mysqli->prepare("SELECT t.end_date, t.value
+                                  FROM articles_trends t, articles_to_sets s
+                                  WHERE t.article_id = {$article}
+                                  AND s.set_id = {$set}
+                                  AND s.article_id = t.article_id
+                                  AND s.cutoff_date > t.end_date
+                                  ORDER BY end_date ASC");
         $stmt->execute();
         $stmt->bind_result($timestamp, $value);
         while($stmt->fetch()){
-            $google[] = array('timestamp' => $timestamp,
+            $google[] = array('timestamp' => str_replace(" ", "T", $timestamp."Z"),
                               'value' => $value);
         }
         $stmt->close();
@@ -154,49 +207,49 @@
         echo json_encode($response);
     } else if(isset($_REQUEST['user'])){ // Client is requesting article/revision data
         $user = $_REQUEST['user'];
+        $set = $_REQUEST['set'];
+        $table = $set_mappings['users'][$set];
         $revdata = array();
         $articles = array();
         $talk = array();
         
-        // Now, we need to grab the user classification data
-        $mysqli = DBConnection::get()->handle();
-        
-        $sql = "SELECT `rev_id`, `par_id`, `timestamp`, `user`, `userid`, `comment`, `page_title`, `diff`, `lev`, `class`, `rand`
-                FROM `articles_data`
-                WHERE `user`=?
-                ORDER BY `timestamp`";
+        $sql = "SELECT `rev_id`, `par_id`, `rev_date`, `user_id`, `comment`, `page_title`, `lev`, `class`
+                FROM `{$table}`, users_sets s
+                WHERE `user_id`=?
+                AND s.set_id = {$set}
+                ORDER BY `rev_date`";
         $stmt = $mysqli->prepare($sql);
         $stmt->bind_param("s", $user);
         $stmt->execute();
-        $stmt->bind_result($revid, $parid, $timestamp, $name, $userid, $comment, $title, $diff, $lev, $class, $rand);
+        $stmt->bind_result($revid, $parid, $timestamp, $userid, $comment, $title, $lev, $class);
         while ($stmt->fetch()) {
             $revdata[] = array('rev_id' => $revid,
                                'par_id' => $parid, 
-                               'timestamp' => $timestamp, 
-                               'user' => $name, 
-                               'userid' => $userid, 
-                               'comment' => $comment, 
-                               'page_title' => $title, 
-                               'diff' => $diff, 
+                               'timestamp' => str_replace(" ", "T", $timestamp."Z"), 
+                               'user' => utf8_encode($userid), 
+                               'userid' => utf8_encode($userid), 
+                               'comment' => utf8_encode($comment), 
+                               'page_title' => utf8_encode($title),
                                'lev' => $lev, 
-                               'class' => $class, 
-                               'rand' => $rand);
-            if(!isset($articles[$title])){
-                $articles[$title] = true;
+                               'class' => str_replace(",", ";", $class));
+            if(!isset($articles[utf8_encode($title)])){
+                $articles[utf8_encode($title)] = true;
             }
         }
         $stmt->close();
         $events = array();
-        $stmt = $mysqli->prepare("SELECT a.timestamp, a.title, a.type
-                                  FROM users_awards a
-                                  WHERE a.user =?");
+        $stmt = $mysqli->prepare("SELECT a.date_received, a.barnstar_name, a.barnstar_name
+                                  FROM users_awards_changes a, users_sets s
+                                  WHERE a.user_id =?
+                                  AND s.set_id = {$set}
+                                  AND a.date_received BETWEEN s.start_date AND s.end_date");
         $stmt->bind_param("s", $user);
         $stmt->execute();
         $stmt->bind_result($timestamp, $title, $type);
         while($stmt->fetch()){
-            $events[] = array('timestamp' => $timestamp,
-                              'title' => $title,
-                              'description' => "Type: $type");
+            $events[] = array('timestamp' => str_replace(" ", "T", $timestamp."Z"),
+                              'title' => utf8_encode($title),
+                              'description' => utf8_encode("Type: $type"));
         }
         $stmt->close();
         $response = array('revisions' => $revdata, 
@@ -204,11 +257,30 @@
                           'talk' => $talk,
                           'events' => $events);
         echo json_encode($response);
-    } else if(isset($_REQUEST['users'])) {   // Client is requesting users list
-        // Grab DB Handle
-        $mysqli = DBConnection::get()->handle();
+    } else if(isset($_REQUEST['users'])) { // Client is requesting users list
+        $userslist = array();
+        foreach($set_mappings['users'] as $id => $table){
+            $stmt = $mysqli->prepare("SELECT t.user_id, COUNT(t.rev_id) as edits, s.set_id
+                                      FROM `{$table}` t, users_sets s
+                                      WHERE t.user_id NOT LIKE '%.%.%.%'
+                                      AND s.set_id = {$id}
+                                      GROUP BY t.user_id
+                                      ORDER BY edits DESC");
+            $stmt->execute();
+            $stmt->bind_result($userid, $edits, $set);
+            while ($stmt->fetch()) {
+                if($edits > 0){
+                    $userslist[] = array('id' => utf8_encode($userid), 
+                                         'name' => utf8_encode($userid),
+                                         'edits' => $edits,
+                                         'set' => $set
+                                        );
+                }
+            }
+            $stmt->close();
+        }
         
-        $stmt = $mysqli->prepare("SELECT userid, user, u.g_histid, flagged, (SELECT COUNT(*) FROM `articles_data` cl WHERE cl.user=u.user) as edits, h.timestamp as created, u.set
+        /*$stmt = $mysqli->prepare("SELECT userid, user, u.g_histid, flagged, (SELECT COUNT(*) FROM `articles_data` cl WHERE cl.user=u.user) as edits, h.timestamp as created, u.set
                                   FROM `users` u, `users_grouphistory` h
                                   WHERE h.g_histid = u.g_histid
                                   AND h.timestamp != '1970-01-01T00:00:00Z'
@@ -230,61 +302,91 @@
                 $done[$user] = true;
             }
         }
-        $stmt->close();
+        $stmt->close();*/
         echo json_encode($userslist);
     } else if(isset($_REQUEST['list'])) { // Client is requesting article list
-        // Grab DB Handle
-        $mysqli = DBConnection::get()->handle();
-        $stmt = $mysqli->prepare("SELECT DISTINCT a.page_title, (SELECT COUNT(*) FROM articles_data ad WHERE ad.page_title=a.page_title) AS rev_count, a.set
-                                  FROM articles a
-                                  WHERE a.set != 3
-                                  ORDER BY rev_count DESC");
-        $stmt->execute();
-        $stmt->bind_result($title, $revcount, $set);
         $titlelist = array();
-        while ($stmt->fetch()) {
-            array_push($titlelist, array('title' => $title, 
-                                         'rev_count' => $revcount, 
-                                         'set' => $set));
+        foreach($set_mappings['articles'] as $set => $table){
+            $stmt = $mysqli->prepare("SELECT a.page_title, COUNT(*) as rev_count, t.article_id
+                                      FROM articles a, articles_to_sets s, `{$table}` as t
+                                      WHERE a.article_id = t.article_id
+                                      AND s.set_id = {$set}
+                                      AND a.article_id = s.article_id
+                                      AND s.cutoff_date > t.rev_date
+                                      GROUP BY t.article_id
+                                      ORDER BY rev_count DESC");
+            $stmt->execute();
+            $stmt->bind_result($title, $revcount, $article_id);
+            
+            while($stmt->fetch()){
+                $titlelist[] = array('title' => utf8_encode($title), 
+                                     'rev_count' => $revcount, 
+                                     'set' => $set,
+                                     'article_id' => $article_id);
+            }
+            $stmt->close();
         }
-        $stmt->close();
         echo json_encode($titlelist);
-    } else if (isset($_REQUEST['listArticleSets'])) {
-        // Grab DB Handle
-        $mysqli = DBConnection::get()->handle();
-        
-        $stmt = $mysqli->prepare("SELECT `id`, `name`, `url`, (SELECT COUNT(*) FROM `articles` WHERE `set` = s.`id`) as count
-                                  FROM `articles_sets` s
-                                  WHERE `name` != 'Others'");
+    } 
+    else if (isset($_REQUEST['listArticleSets'])) {
+        $titlelist = array();
+        $stmt = $mysqli->prepare("SELECT s.set_id, s.set_name, s.set_url, COUNT(*) as count, s.set_table
+                                  FROM `articles_sets` s, `articles_to_sets` a
+                                  WHERE s.set_id = a.set_id
+                                  GROUP BY s.set_id
+                                  ORDER BY count DESC");
         $stmt->execute();
-        $stmt->bind_result($id, $name, $url, $count);
+        $stmt->bind_result($id, $name, $url, $count, $table);
         $list = array();
         while ($stmt->fetch()) {
+             $url = ($url == null) ? "" : $url;
             $titlelist[] = array('id' => $id, 
                                  'name' => $name,
                                  'url' => $url,
-                                 'count' => $count);
+                                 'count' => $count,
+                                 'disabled' => ($table == ''));
         }
         $stmt->close();
         echo json_encode($titlelist);
     }
     else if (isset($_REQUEST['listUserSets'])) {
-        // Grab DB Handle
-        $mysqli = DBConnection::get()->handle();
-        
-        $stmt = $mysqli->prepare("SELECT `id`, `name`, `url`, (SELECT COUNT(*) FROM `users` WHERE `set` = s.`id`) as count
-                                  FROM `users_sets` s");
+        $titlelist = array();
+        $stmt = $mysqli->prepare("SELECT s.set_id, s.set_name, s.set_url, COUNT(*) as count, s.set_table
+                                  FROM `users_sets` s, `users_to_sets` u
+                                  WHERE s.set_id = u.set_id
+                                  AND u.user_id NOT LIKE '%.%.%.%'
+                                  GROUP BY s.set_id
+                                  ORDER BY count DESC");
         $stmt->execute();
-        $stmt->bind_result($id, $name, $url, $count);
+        $stmt->bind_result($id, $name, $url, $count, $table);
         $list = array();
         while ($stmt->fetch()) {
+            $url = ($url == null) ? "" : $url;
             $titlelist[] = array('id' => $id, 
                                  'name' => $name,
                                  'url' => $url,
-                                 'count' => $count);
+                                 'count' => $count,
+                                 'disabled' => ($table == ''));
         }
         $stmt->close();
         echo json_encode($titlelist);
+    }
+    else if (isset($_REQUEST['classifications'])) {
+        $stmt = $mysqli->prepare("SELECT type_id, manual_analysis, codna, `factor analysis`, weight, style
+                                  FROM `article_edit_type_classes`");
+        $stmt->execute();
+        $stmt->bind_result($id, $manual, $codna, $factor, $weight, $style);
+        $classifications = array();
+        while ($stmt->fetch()) {
+            $classifications[] = array('id' => $id, 
+                                       'manual' => $manual,
+                                       'codna' => $codna,
+                                       'factor' => $factor,
+                                       'weight' => $weight,
+                                       'style' => $style);
+        }
+        $stmt->close();
+        echo json_encode($classifications);
     }
     else {
         die('Error: Invalid request!');

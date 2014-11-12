@@ -133,10 +133,16 @@ WikiVizView = Backbone.View.extend({
         var that = this;
         this.model.get('view').data.selectAll('.datum').selectAll('.bars rect').attr('width', this.calcBarWidth());
         // Hide x labels that would overlap!
-        this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width <= that.calcBarWidth(); })
-            .attr('opacity', 1);
-        this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width > that.calcBarWidth(); })
-            .attr('opacity', 0);
+        try{
+            // This can sometimes fail, so gracefully fail if it does
+            this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width <= that.calcBarWidth(); })
+                .attr('opacity', 1);
+            this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width > that.calcBarWidth(); })
+                .attr('opacity', 0);
+        }
+        catch (e){
+        
+        }
     
         // Need to update the month rectangles so that they use the new scale!
         this.buildMonths();
@@ -264,8 +270,10 @@ WikiVizView = Backbone.View.extend({
     
     // Function to map revision data to rectangle groups that represent the data as a stacked bar graph.
     buildBars: function(barsGroup, barWidth){
-        var posFields = ['add', 'unsure', 'reorganize', 'edit', 'cite', 'vand', 'unclassified'];
-        var negFields = ['unvand', 'remove'];
+        //var posFields = ['add', 'unsure', 'reorganize', 'edit', 'cite', 'vand', 'unclassified'];
+        //var negFields = ['unvand', 'remove'];
+        var posFields = new Backbone.Collection(classifications.filter(function(c){ return c.get('weight') >= 0; })).pluck('id');
+        var negFields = new Backbone.Collection(classifications.filter(function(c){ return c.get('weight') < 0; })).pluck('id');
     
         // For brevity
         var y = this.model.get('view').y;
@@ -414,7 +422,7 @@ WikiVizView = Backbone.View.extend({
         mts.select('text.mtext').filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) >= blankThreshold;}).attr('opacity', 1);
         mts.select('text.ytext').filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) < blankThreshold;}).attr('opacity', 0);
         mts.select('text.ytext').filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) >= blankThreshold;}).attr('opacity', 1);
-    
+        
         bg.selectAll('.bar').remove();
         var bar_g = bg.append('g').attr('class', 'bar');
         bar_g.append('rect').attr('class', 'bar_bg')
@@ -448,8 +456,8 @@ WikiVizView = Backbone.View.extend({
                 text += "<tr><td colspan='2'><a style='float:right;' href='http://dl.acm.org/citation.cfm?id=2069609' target='_blank'>Source</a></td></tr>";
             }
             text += "</table>";
-            var clone = $(_.template($("#tooltip_template").html(), {
-                title: d.q.metric + " Ranking",
+            var clone = $(_.template($("#tooltip_template").html())({
+                title: "CoDNA Ranking",
                 text: text
             }));
             this.$('#view').append(clone);
@@ -803,7 +811,8 @@ WikiVizView = Backbone.View.extend({
     
         // Group for talk page data entries
         view.tdata = body.select('g.fg').append('g').attr('class', 'tdata');
-        var tentries = view.tdata.selectAll('.tdatum').data(this.model.get('data').get('talk')).enter().append('g').attr('class', 'tdatum')
+        var tentries = view.tdata.selectAll('.tdatum').data(this.model.get('data').get('talk')).enter()
+            .append('g').attr('class', 'tdatum')
             .attr('transform', $.proxy(function(d) { return 'translate(' + view.x(this.model.index(d)) + ', 0)'; }, this)).attr('opacity', 0);
         this.appendCallout(tentries);
     
@@ -945,7 +954,8 @@ WikiVizView = Backbone.View.extend({
             }
         });
         rows.append('td').text(function (d) {
-            return d.sections.join("; ");
+            return "";
+            //return d.sections.join("; ");
         });
         rows.attr('class', function (d) {
             if (d.type === 'talk') return 'data talkrow';

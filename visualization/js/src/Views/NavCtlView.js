@@ -27,11 +27,13 @@ NavCtlView = Backbone.View.extend({
     
         var that = this;
     
+        var negFields = new Backbone.Collection(classifications.filter(function(c){ return c.get('weight') < 0; })).pluck('id');
+    
         this.bg.select('g.navbars').selectAll('rect.sd').data(this.viz.model.get('data').get('revisions'))
             .attr('x', function(d,i) { return that.xscale(d.date); })
-            .attr('y', function(d) { return -that.yscale(d.wclass.remove + d.wclass.vand); })
+            .attr('y', function(d) { return -that.yscale(_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)); })
             .attr('width', function(d,i) { return that.spikewidth; })
-            .attr('height', function(d) { return that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
+            .attr('height', function(d) { return that.yscale(d.loglev - (_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)))+that.yscale(_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)); })
             .attr('class', 'sd');
         
         this.bg.select('g.navbars').selectAll('circle.tcircle').data(this.viz.model.get('data').get('talk'))
@@ -53,11 +55,13 @@ NavCtlView = Backbone.View.extend({
     
         var that = this;
     
+        var negFields = new Backbone.Collection(classifications.filter(function(c){ return c.get('weight') < 0; })).pluck('id');
+    
         this.bg.select('g.navbars').selectAll('rect.sd').data(this.viz.model.get('data').get('revisions'))
             .attr('x', function(d,i) { return that.xscale(i); })
-            .attr('y', function(d) { return -that.yscale(d.wclass.remove + d.wclass.vand); })
+            .attr('y', function(d) { return -that.yscale(_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)); })
             .attr('width', function(d,i) { return that.spikewidth; })
-            .attr('height', function(d) { return that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
+            .attr('height', function(d) { return that.yscale(d.loglev - (_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)))+that.yscale(_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)); })
             .attr('class', 'sd');
         
         this.bg.select('g.navbars').selectAll('circle').data(this.viz.model.get('data').get('talk'))
@@ -189,15 +193,17 @@ NavCtlView = Backbone.View.extend({
         this.yscale.rangeRound([0, this.dim.h/2]);
     
         var that = this;
+        
+        var negFields = new Backbone.Collection(classifications.filter(function(c){ return c.get('weight') < 0; })).pluck('id');
     
         this.spikewidth = (this.dim.w-2*handleWidth) / this.viz.model.get('data').get('revisions').length;
     
         this.spikes = this.bg.select('g.navbars').selectAll('rect.sd').data(this.viz.model.get('data').get('revisions'));
         this.spikes.enter().append('rect')
             .attr('x', function(d,i) { return that.xscale(i); })
-            .attr('y', function(d) { return -that.yscale(d.wclass.remove + d.wclass.vand); })
+            .attr('y', function(d) { return -that.yscale(_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)); })
             .attr('width', function(d,i) { return that.spikewidth; })
-            .attr('height', function(d) { return that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
+            .attr('height', function(d) { return that.yscale(d.loglev - (_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)))+that.yscale(_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)); })
             .attr('class', 'sd');
         
         // Draw talk page entries, need to manually keep this in sync with appendCallout for now
@@ -211,7 +217,6 @@ NavCtlView = Backbone.View.extend({
 
         // Append circle to our element. Cap the circle size and re-style the circle if it has reached the cap.
         this.dots.filter(function(d) { return Math.log(d.lev+1)*fact <= maxR; }).attr('r', function(d) { return Math.log(d.lev+1)*fact; }).attr('class', 'tcircle');
-        this.dots.filter(function(d) { return Math.log(d.lev+1)*fact > maxR; }).attr('r', maxR).attr('class', 'tcircle_full');
     
         this.sd = { dx: 0 };
     
@@ -269,12 +274,14 @@ NavCtlView = Backbone.View.extend({
                 this.onSlide();
             }
             if (this.viz.$('.chandle').hasClass('dragging')) {
-                this.sdim.x0 = (event.pageX - this.sd.dx);
-            
-                if (this.sdim.x0 < 0) this.sdim.x0 = 0;
-                if (this.sdim.x0 > this.dim.w - ((handleWidth) + this.sdim.w)) this.sdim.x0 = this.dim.w - ((handleWidth) + this.sdim.w);
-                this.viz.$('.slider').attr('transform', 'translate(' + (this.sdim.x0) + ',0)');
-                this.onSlide();
+                _.defer($.proxy(function(){
+                    this.sdim.x0 = (event.pageX - this.sd.dx);
+
+                    if (this.sdim.x0 < 0) this.sdim.x0 = 0;
+                    if (this.sdim.x0 > this.dim.w - ((handleWidth) + this.sdim.w)) this.sdim.x0 = this.dim.w - ((handleWidth) + this.sdim.w);
+                    this.viz.$('.slider').attr('transform', 'translate(' + (this.sdim.x0) + ',0)');
+                    this.onSlide();
+                }, this));
             }
         }, this));
         // Once the mouse is released, reset the slider "dragging" state.
@@ -287,8 +294,10 @@ NavCtlView = Backbone.View.extend({
         this.handleWidth = handleWidth;
     
         // Call these to update the slider for the first time.
-        this.onSlide();
-        this.onScale();
+        _.defer($.proxy(function(){
+            this.onSlide();
+            this.onScale();
+        }, this));
         this.changeMode();
     }
 });
