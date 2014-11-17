@@ -3,6 +3,8 @@ NewArticleView = Backbone.View.extend({
     
     template: _.template($("#new_article_template").html()),
     views: new Array(),
+    set: new Array(),
+    type: '',
     
     initialize: function(){
         this.articleSets = new ArticleSetCollection();
@@ -24,11 +26,12 @@ NewArticleView = Backbone.View.extend({
     events: {
         "click #initiative .option:not(.disabled)": "clickInitiative",
         "click #set .option:not(.disabled)": "clickDataSet",
-        "click #project .option": "clickProject",
+        "click #project .option:not(.disabled)": "clickProject",
         "click #analyze button": "clickAnalyze",
         "click #clearFilter": "clearFilter",
         "change #filter": "filter",
-        "keyup #filter": "filter"
+        "keyup #filter": "filter",
+        "click .class_filter": "classFilter"
     },
     
     // Returns the selected Article/User, or null if nothing is selected
@@ -76,10 +79,10 @@ NewArticleView = Backbone.View.extend({
         if(this.$("#set .option.selected").length > 0){
             var span = this.$("#set .option.selected span");
             if(span.parent().hasClass("article")){
-                this.renderProjects(this.articles.where({'set': parseInt(span.attr('name'))}));
+                this.renderProjects(this.articles.where({'set': parseInt(span.attr('name'))}), 'article');
             }
             else if(span.parent().hasClass("contributor")){
-                this.renderProjects(this.users.where({'set': parseInt(span.attr('name'))}));
+                this.renderProjects(this.users.where({'set': parseInt(span.attr('name'))}), 'user');
             }
             if(this.$("#project").css('display') == 'none'){
                 this.$("#project").show('slide', 400);
@@ -123,7 +126,7 @@ NewArticleView = Backbone.View.extend({
         }
         else if(selected instanceof User){
             view = new UserView({model: selected});
-            title = selected.get('name');
+            title = selected.get('id');
             color = "#EEADAD";
             hoverColor = "#EE9898";
         }
@@ -153,12 +156,13 @@ NewArticleView = Backbone.View.extend({
     renderDataSets: function(){
         var artSets = document.createDocumentFragment();
         var userSets = document.createDocumentFragment();
-        _.each(this.views, function(view){
+        for(var i = this.views.length; i >= 0; i--){
+            var view = this.views[i];
             if(view instanceof DataSetView){
                 view.remove();
+                this.views.splice(i, 1);
             }
-        });
-        this.views = new Array();
+        }
         _.each(this.articleSets.models, function(article){
             var view = new DataSetView({model: article});
             this.views.push(view);
@@ -175,19 +179,33 @@ NewArticleView = Backbone.View.extend({
     },
     
     // Renders the projects/contributors list
-    renderProjects: function(set){
+    renderProjects: function(set, type){
         var articles = document.createDocumentFragment();
-        _.each(this.views, function(view){
+        var select = this.$("#project #tabs-item .select").detach();
+        for(var i = this.views.length; i >= 0; i--){
+            var view = this.views[i];
             if(view instanceof ProjectView){
                 view.remove();
+                this.views.splice(i, 1);
             }
-        });
-        this.views = new Array();
+        }
+        this.$("#project #tabs-item .header").after(select);
+        this.set = set;
+        this.type = type;
         _.each(set, function(article){
             var view = new ProjectView({model: article});
             this.views.push(view);
-            articles.appendChild(view.render()[0]);
+            articles.appendChild(view.el);
         }, this);
+
+        if(type == 'user'){
+            this.filterUsers();
+            $(".footer").show();
+        }
+        else{
+            $(".footer").hide();
+        }
+        this.filter();
         this.$("#project #tabs-item .select").html(articles);
         this.$("#project").tabs();
     },
@@ -195,22 +213,72 @@ NewArticleView = Backbone.View.extend({
     // Filters the options which appear in the selection list
     filter: function(){
         var filterVal = this.$("#filter").val().toLowerCase();
-        _.each(this.articles.models, function(article){
-            if(article.get('title').toLowerCase().indexOf(filterVal) != -1){
-                article.set('display', true);
+        if(this.type == 'article'){
+            _.each(this.set, function(article){
+                if(article.get('title').toLowerCase().indexOf(filterVal) != -1){
+                    article.set('display', true);
+                }
+                else{
+                    article.set('display', false);
+                }
+            });
+        }
+        if(this.type == 'user'){
+            _.each(this.set, function(user){
+                if(user.get('id').toLowerCase().indexOf(filterVal) != -1){
+                    user.set('display', true);
+                }
+                else{
+                    user.set('display', false);
+                }
+            });
+        }
+    },
+    
+    filterUsers: function(){
+        _.each(this.set, function(user){
+            if(user.isBot()){
+                user.set('filter', true);
             }
             else{
-                article.set('display', false);
+                user.set('filter', false);
             }
         });
-        _.each(this.users.models, function(user){
-            if(user.get('name').toLowerCase().indexOf(filterVal) != -1){
-                user.set('display', true);
+    },
+    
+    filterBots: function(){
+        _.each(this.set, function(user){
+            if(!user.isBot()){
+                user.set('filter', true);
             }
             else{
-                user.set('display', false);
+                user.set('filter', false);
             }
         });
+    },
+    
+    filterAll: function(){
+        _.each(this.set, function(user){
+            user.set('filter', false);
+        });
+    },
+    
+    classFilter: function(e){
+        var target = e.currentTarget;
+        $(".class_filter").not(target).removeClass("selected");
+        $(target).addClass("selected");
+        
+        switch($(target).attr("name")){
+            case "users":
+                this.filterUsers();
+                break;
+            case "bots":
+                this.filterBots();
+                break;
+            case "all":
+                this.filterAll();
+                break;
+        }
     },
     
     render: function(){
@@ -254,19 +322,21 @@ ProjectView = Backbone.View.extend({
 
     initialize: function(){
         if(this.model instanceof Article){
-            this.template = this.article_template;
+            this.el.innerHTML = this.article_template(this.model.toJSON());
         }
         else if(this.model instanceof User){
-            this.template = this.user_template;
+            this.el.innerHTML = this.user_template(this.model.toJSON());
         }
         this.listenTo(this.model, 'change', this.render);
         this.$el.addClass("option");
+        if(this.model.get('edits') == -1){
+            this.$el.addClass("disabled");
+        }
     },
     
     render: function(){
-        if(this.model.get('display')){
+        if(this.model.get('display') && !this.model.get('filter')){
             this.$el.css('display', 'block');
-            this.el.innerHTML = this.template(this.model.toJSON());
         }
         else{
             this.$el.css('display', 'none');

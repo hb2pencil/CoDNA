@@ -9,20 +9,15 @@ User = Backbone.Model.extend({
         return "dbquery.php?users&id=" + this.get('id');
     },
     
-    defaults: {
-        id: 0,
-        name: "",
-        histid: "",
-        flagged: 0,
-        edits: 0,
-        created: "",
-        display: true
+    // Returns whether or not this User has ever been a 'Bot' or not
+    isBot: function(){
+        return (this.get('roles').indexOf('Bot') != -1);
     }
 
 });
 
 // ## UserCollection
-UserCollection = Backbone.Collection.extend({
+UserCollection = Backbone.NonUniqueCollection.extend({
 
     model: User,
     

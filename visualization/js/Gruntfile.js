@@ -43,7 +43,7 @@ module.exports = function(grunt) {
     docco: {
       src: ['build/<%= pkg.name %>.js'],
       options: {
-        output: 'docs'
+        output: 'docs/'
       }
     }
   });

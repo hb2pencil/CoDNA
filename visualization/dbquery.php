@@ -29,14 +29,11 @@
     }
     $stmt->close();
     $stmt = $mysqli->prepare("SELECT `Set_ID`, `Set_Table`
-                              FROM `users_sets`
-                              WHERE `Set_Table` != ''");
+                              FROM `users_sets`");
     $stmt->execute();
     $stmt->bind_result($id, $table);
     while ($stmt->fetch()) {
-        if($table != ""){
-            $set_mappings['users'][$id] = $table;
-        }
+        $set_mappings['users'][$id] = $table;
     }
     $stmt->close();
     
@@ -104,7 +101,7 @@
         $userdata = array();
         
         foreach ($users as $u) {
-            $stmt = $mysqli->prepare("SELECT u.user_id, u.user_id, r.level_date, r.med_level, 0 as flagged
+            $stmt = $mysqli->prepare("SELECT u.user_id, u.user_id, r.level_date, r.high_level, 0 as flagged
                                       FROM users u, users_role_changes r
                                       WHERE u.user_id =?
                                       AND u.user_id = r.user_id");
@@ -113,7 +110,26 @@
             $stmt->bind_result($userid, $user, $timestamp, $userclass, $flagged);
             $history = array();
             while ($stmt->fetch()) {
-                $history[] = array('timestamp' => $timestamp, 'userclass' => $userclass);
+                $group = "Anon";
+                switch(trim($userclass)){
+                    case "Unregistered Users":
+                        $group = "Anon";
+                        break;
+                    case "Registered Users":
+                        $group = "User";
+                        break;
+                    case "Executives":
+                        $group = "Admin";
+                        break;
+                    case "Super Users":
+                        $group = "Power User";
+                        break;
+                    case "Bot":
+                        $group = "Bot";
+                        break;
+                }
+                
+                $history[] = array('timestamp' => $timestamp, 'userclass' => $group);
             }
             $userdata[utf8_encode($user)] = array('userid' => utf8_encode($userid), 'history' => $history, 'flagged' => $flagged);
             $stmt->close();
@@ -121,22 +137,28 @@
         
         // Fetch talkpage data
         $talk = array();
-        $stmt = $mysqli->prepare("SELECT t.rev_id, t.user_id, t.rev_date, t.lev
-                                  FROM articles a, `{$table}` t, `articles_to_sets` s
+        $stmt = $mysqli->prepare("SELECT t.rev_id, t.user_id, t.rev_date, t.lev, c.indent, c.crit, c.perf, c.inf, c.att
+                                  FROM `articles` a, `{$table}` t, `articles_to_sets` s, `talkpage_classification` c
                                   WHERE a.article_id=?
                                   AND t.article_id = a.talkpage_id
                                   AND s.set_id = {$set}
                                   AND a.article_id = s.article_id
                                   AND s.cutoff_date > t.rev_date
+                                  AND c.rev_id = t.rev_id
                                   ORDER BY t.rev_date");
         $stmt->bind_param("s", $article);
         $stmt->execute();
-        $stmt->bind_result($id, $contributor, $timestamp, $lev);
+        $stmt->bind_result($id, $contributor, $timestamp, $lev, $indent, $crit, $perf, $inf, $att);
         while ($stmt->fetch()) {
             array_push($talk, array('id' => $id, 
                                     'contributor' => utf8_encode($contributor), 
                                     'timestamp' => str_replace(" ", "T", $timestamp."Z"),
-                                    'lev' => $lev));
+                                    'lev' => $lev,
+                                    'indent' => $indent,
+                                    'crit' => $crit,
+                                    'perf' => $perf,
+                                    'inf' => $inf,
+                                    'att' => $att));
         }
         
         // Fetch quality stats
@@ -259,21 +281,43 @@
         echo json_encode($response);
     } else if(isset($_REQUEST['users'])) { // Client is requesting users list
         $userslist = array();
+        $roleslist = array();
+        $stmt = $mysqli->prepare("SELECT user_id, GROUP_CONCAT(DISTINCT med_level SEPARATOR ',') as roles
+                                  FROM users_role_changes
+                                  WHERE user_id NOT LIKE '%.%.%.%'
+                                  GROUP BY user_id");
+        $stmt->execute();
+        $stmt->bind_result($userid, $roles);
+        while ($stmt->fetch()) {
+            if(strstr($roles, "Bot") !== false){
+                $roleslist[$userid] = "Bot";
+            }
+        }
+        $stmt->close();
+        $i = 0;
         foreach($set_mappings['users'] as $id => $table){
-            $stmt = $mysqli->prepare("SELECT t.user_id, COUNT(t.rev_id) as edits, s.set_id
-                                      FROM `{$table}` t, users_sets s
-                                      WHERE t.user_id NOT LIKE '%.%.%.%'
-                                      AND s.set_id = {$id}
-                                      GROUP BY t.user_id
-                                      ORDER BY edits DESC");
+            if($table != ""){
+                $stmt = $mysqli->prepare("SELECT User_ID, count
+                                          FROM (SELECT User_ID, count(Rev_ID) as count FROM {$table} group by User_ID) q1
+                                          WHERE User_ID IN (SELECT User_ID FROM users WHERE Wiki_ID IS NOT NULL)
+                                          GROUP BY User_ID
+                                          ORDER BY count desc");
+            }
+            else{
+                $stmt = $mysqli->prepare("SELECT s.user_id, -1 as edits
+                                          FROM users_to_sets s
+                                          WHERE s.set_id = {$id}
+                                          AND s.user_id IN (SELECT user_id from users WHERE wiki_id IS NOT NULL)");
+            }
             $stmt->execute();
-            $stmt->bind_result($userid, $edits, $set);
+            $stmt->bind_result($userid, $edits);
             while ($stmt->fetch()) {
-                if($edits > 0){
-                    $userslist[] = array('id' => utf8_encode($userid), 
-                                         'name' => utf8_encode($userid),
+                if($edits != 0){
+                    $userslist[] = array('id' => utf8_encode($userid),
                                          'edits' => $edits,
-                                         'set' => $set
+                                         'roles' => utf8_encode(@$roleslist[$userid]),
+                                         'set' => $id,
+                                         'created' => '2000-01-01T00:00:00Z'
                                         );
                 }
             }
@@ -344,7 +388,7 @@
                                  'name' => $name,
                                  'url' => $url,
                                  'count' => $count,
-                                 'disabled' => ($table == ''));
+                                 'disabled' => false);
         }
         $stmt->close();
         echo json_encode($titlelist);
@@ -366,7 +410,7 @@
                                  'name' => $name,
                                  'url' => $url,
                                  'count' => $count,
-                                 'disabled' => ($table == ''));
+                                 'disabled' => false);
         }
         $stmt->close();
         echo json_encode($titlelist);

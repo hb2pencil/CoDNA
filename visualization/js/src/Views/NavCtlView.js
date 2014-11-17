@@ -16,7 +16,6 @@ NavCtlView = Backbone.View.extend({
     // Adjust the slider when we switch to time-spaced mode.
     // Use a new time-spaced scale for display.
     toTimeSpaced: function() {
-    
         var minDate = _.first(this.viz.model.get('data').get('revisions')).date;
     
         this.xscale = d3.time.scale();
@@ -39,8 +38,8 @@ NavCtlView = Backbone.View.extend({
         this.bg.select('g.navbars').selectAll('circle.tcircle').data(this.viz.model.get('data').get('talk'))
             .attr('cx', function(d) { return that.xscale(d.date); });
     
-        this.onSlide();
-        this.onScale();
+        this.onSlide({silent: true});
+        this.onScale({silent: true});
     },
 
     // When we switch to adjacent-spaced mode, switch back to using a linear scale for display.
@@ -67,8 +66,8 @@ NavCtlView = Backbone.View.extend({
         this.bg.select('g.navbars').selectAll('circle').data(this.viz.model.get('data').get('talk'))
             .attr('cx', function(d, i) { return that.xscale(i); });
     
-        this.onSlide();
-        this.onScale();
+        this.onSlide({silent: true});
+        this.onScale({silent: false});
     },
     
     // Change the apperance of the navctl based on the current mode
@@ -89,18 +88,20 @@ NavCtlView = Backbone.View.extend({
     },
 
     // Slide the view when we slide the slider.
-    onSlide: function() {
+    onSlide: function(options) {
         d3.select(this.viz.$('g.body')[0]).attr('transform', 'translate(' + -Math.round(this.getPanOffset()) + ',0)');
         this.viz.repositionBar();
     },
 
     // Increase/Decrease the range of the chart
-    onScale: function() {
+    onScale: function(options) {
+        
+        options = options != undefined ? options : {};
         if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'art') {
-            this.viz.model.set('numBars', this.getNumBars());
+            this.viz.model.set('numBars', this.getNumBars(), options);
         }
         else if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'talk') {
-            this.viz.model.set('numDots', this.getNumBars());
+            this.viz.model.set('numDots', this.getNumBars(), options);
         }
         else if (this.viz.model.get('isTimeSpaced')) {
             var df = _.last(this.viz.model.get('data').get('revisions')).date;
@@ -110,7 +111,7 @@ NavCtlView = Backbone.View.extend({
         
             // The multiplier 0.9 is a quick fix for getting the rightmost bars in TS mode visible.
             this.viz.model.timeX.rangeRound([0, 0.9*this.viz.model.get('width') * (df-d0) / (d2 - d1)]);
-            this.viz.toTimeSpaced();
+            this.viz.toTimeSpaced(options);
         }
     },
 
@@ -274,14 +275,12 @@ NavCtlView = Backbone.View.extend({
                 this.onSlide();
             }
             if (this.viz.$('.chandle').hasClass('dragging')) {
-                _.defer($.proxy(function(){
-                    this.sdim.x0 = (event.pageX - this.sd.dx);
+                this.sdim.x0 = (event.pageX - this.sd.dx);
 
-                    if (this.sdim.x0 < 0) this.sdim.x0 = 0;
-                    if (this.sdim.x0 > this.dim.w - ((handleWidth) + this.sdim.w)) this.sdim.x0 = this.dim.w - ((handleWidth) + this.sdim.w);
-                    this.viz.$('.slider').attr('transform', 'translate(' + (this.sdim.x0) + ',0)');
-                    this.onSlide();
-                }, this));
+                if (this.sdim.x0 < 0) this.sdim.x0 = 0;
+                if (this.sdim.x0 > this.dim.w - ((handleWidth) + this.sdim.w)) this.sdim.x0 = this.dim.w - ((handleWidth) + this.sdim.w);
+                this.viz.$('.slider').attr('transform', 'translate(' + (this.sdim.x0) + ',0)');
+                this.onSlide();
             }
         }, this));
         // Once the mouse is released, reset the slider "dragging" state.
@@ -294,10 +293,6 @@ NavCtlView = Backbone.View.extend({
         this.handleWidth = handleWidth;
     
         // Call these to update the slider for the first time.
-        _.defer($.proxy(function(){
-            this.onSlide();
-            this.onScale();
-        }, this));
         this.changeMode();
     }
 });

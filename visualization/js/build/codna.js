@@ -15,6 +15,7 @@ Article = Backbone.Model.extend({
     urlRoot: "",
     
     defaults: {
+        article_id: 0,
         title: "",
         rev_count: 0,
         set: 1,
@@ -47,7 +48,8 @@ ArticleSet = Backbone.Model.extend({
         id: null,
         name: "",
         url: "",
-        count: 0
+        count: 0,
+        disabled: false
     }
 
 });
@@ -59,6 +61,153 @@ ArticleSetCollection = Backbone.Collection.extend({
     
     url: "dbquery.php?listArticleSets"
     
+});
+
+// ## Classification
+Classification = Backbone.Model.extend({
+
+    initialize: function(){
+        $("<style type='text/css'> ." + this.get('id') + " { background:" + this.get('style') + "; fill:" + this.get('style') + "; } </style>").appendTo("head");
+    },
+       
+    defaults: {
+         'id': '',
+         'manual': "",
+         'codna': "",
+         'factor': "",
+         'weight': 0,
+         'style': ""
+    }
+
+});
+
+// ## ClassificationCollection
+ClassificationCollection = Backbone.Collection.extend({
+    
+    url: "dbquery.php?" + "classifications",
+    
+    model: Classification
+    
+});
+
+Backbone.Model = Backbone.Model.extend({
+    
+    constructor: function(attributes, options) {
+      var attrs = attributes || {};
+      options || (options = {});
+      this.cid = _.uniqueId('c');
+      this.attributes = {};
+      if (options.collection) this.collection = options.collection;
+      if (options.parse) attrs = this.parse(attrs, options) || {};
+      if (this.defaults) attrs = _.defaults({}, attrs, _.result(this, 'defaults'));
+      this.set(attrs, options);
+      this.changed = {};
+      this.initialize.apply(this, arguments);
+    },
+    
+    // Set a hash of model attributes on the object, firing `"change"`. This is
+    // the core primitive operation of a model, updating the data and notifying
+    // anyone who needs to know about the change in state. The heart of the beast.
+    set: function(key, val, options) {
+      var attr, attrs, unset, changes, silent, changing, prev, current;
+      if (key == null) return this;
+
+      // Handle both `"key", value` and `{key: value}` -style arguments.
+      if (typeof key === 'object') {
+        attrs = key;
+        options = val;
+      } else {
+        (attrs = {})[key] = val;
+      }
+
+      options || (options = {});
+
+      // Run validation.
+      if (!this._validate(attrs, options)) return false;
+
+      // Extract attributes and options.
+      unset           = options.unset;
+      silent          = options.silent;
+      changes         = [];
+      changing        = this._changing;
+      this._changing  = true;
+
+      if (!changing) {
+        this._previousAttributes = _.clone(this.attributes);
+        this.changed = {};
+      }
+      current = this.attributes, prev = this._previousAttributes;
+
+      // Check for changes of `id`.
+      if (this.idAttribute in attrs) this.id = attrs[this.idAttribute];
+
+      // For each `set` attribute, update or delete the current value.
+      for (attr in attrs) {
+        val = attrs[attr];
+        if(!silent){
+            if (!_.isEqual(current[attr], val)) changes.push(attr);
+            if (!_.isEqual(prev[attr], val)) {
+              this.changed[attr] = val;
+            } else {
+              delete this.changed[attr];
+            }
+        }
+        unset ? delete current[attr] : current[attr] = val;
+      }
+
+      // Trigger all relevant attribute changes.
+      if (!silent) {
+        if (changes.length) this._pending = options;
+        for (var i = 0, l = changes.length; i < l; i++) {
+          this.trigger('change:' + changes[i], this, current[changes[i]], options);
+        }
+      }
+
+      // You might be wondering why there's a `while` loop here. Changes can
+      // be recursively nested within `"change"` events.
+      if (changing) return this;
+      if (!silent) {
+        while (this._pending) {
+          options = this._pending;
+          this._pending = false;
+          this.trigger('change', this, options);
+        }
+      }
+      this._pending = false;
+      this._changing = false;
+      return this;
+    }
+
+});
+
+Backbone.NonUniqueCollection = Backbone.Collection.extend({
+
+    set: function(models, options) {
+      var setOptions = {add: true, remove: true, merge: true};
+      options = _.defaults({}, options, setOptions);
+      options.silent = true;
+      options.validate = false;
+      options.parse = false;
+      var singular = !_.isArray(models);
+      models = singular ? (models ? [models] : []) : _.clone(models);
+      var i, l, id, model, attrs, existing, sort;
+
+      // Turn bare objects into model references, and prevent invalid models
+      // from being added.
+      for (i = 0, l = models.length; i < l; i++) {
+        attrs = models[i] || {};
+
+        model = models[i] = new this.model(attrs, options);
+        //this._addReference(model, options);
+
+        // Do not add multiple models with the same `id`.
+        this.models.push(model);
+      }
+
+      // Return the added (or merged) model (or models).
+      return singular ? models[0] : models;
+    }
+
 });
 
 // ## TopTab
@@ -142,20 +291,15 @@ User = Backbone.Model.extend({
         return "dbquery.php?users&id=" + this.get('id');
     },
     
-    defaults: {
-        id: 0,
-        name: "",
-        histid: "",
-        flagged: 0,
-        edits: 0,
-        created: "",
-        display: true
+    // Returns whether or not this User has ever been a 'Bot' or not
+    isBot: function(){
+        return (this.get('roles').indexOf('Bot') != -1);
     }
 
 });
 
 // ## UserCollection
-UserCollection = Backbone.Collection.extend({
+UserCollection = Backbone.NonUniqueCollection.extend({
 
     model: User,
     
@@ -176,7 +320,8 @@ UserSet = Backbone.Model.extend({
         id: null,
         name: "",
         url: "",
-        count: 0
+        count: 0,
+        disabled: false
     }
 
 });
@@ -197,22 +342,17 @@ WikiViz = Backbone.Model.extend({
         // Create a fetch a new WikiVizData
         var data = null;
         if(this.get('user') != ""){
-            data = new WikiVizData({user: this.get('user'), wikiviz: this});
+            data = new WikiVizData({user: this.get('user'),
+                                    set: this.get('set'),
+                                    wikiviz: this});
         }
-        else if(this.get('title') != ""){
-            data = new WikiVizData({title: this.get('title'), wikiviz: this});
+        else if(this.get('article_id') != ""){
+            data = new WikiVizData({article_id: this.get('article_id'),
+                                    title: this.get('title'),
+                                    set: this.get('set'), 
+                                    wikiviz: this});
         }
-        // The weights for computing the weighted-splitting of visualization bars.
-        this.set('weights', {
-            add: 60,
-            remove: 60,
-            edit: 20,
-            reorganize: 40,
-            vand: 10,
-            unvand: 10,
-            cite: 20,
-            unclassified: 60
-        });
+
         this.set('view', {});
         data.fetch();
         this.set('data', data);
@@ -289,6 +429,7 @@ WikiViz = Backbone.Model.extend({
     timeX: d3.time.scale(),
     
     defaults: {
+        article_id: "",
         title: "",
         user: "",
         data: null,
@@ -302,7 +443,6 @@ WikiViz = Backbone.Model.extend({
         // UNUSED: Used to be used for generating "time offset" calues in data annotation.
         timeMultiplier: 1,
         isTimeSpaced: false,
-        weights: null,
         mode: 'art',
         view: null,
     }
@@ -337,44 +477,23 @@ WikiVizData = Backbone.Model.extend({
             // Split up the edit by its classification and the classification weights
             // 
             // Will eventually hold the formatted info for drawing.
-            var wclass = {    
-                add: 0,
-                remove: 0,
-                edit: 0,
-                reorganize: 0,
-                cite: 0,
-                vand: 0,
-                unvand: 0,
-                unsure: 0,
-                unclassified: 0
-            };
+            var wclass = {};
+            _.each(classifications.pluck('id'), function(c){
+                wclass[c] = 0;
+            });
         
             // Perform a weighted-separation of our article revision edit distance.
-            if (strcontains('a', rev['class'])) {
-                wclass.edit += this.get('wikiviz').get('weights').edit;
+            
+            if(rev['class'] == ""){
+                rev['class'] = classifications.findWhere({manual: 'Miscellaneous'}).get('id');
             }
-            if (strcontains('b', rev['class'])) {
-                wclass.add += this.get('wikiviz').get('weights').add;
-            }
-            if (strcontains('c', rev['class'])) {
-                wclass.remove += this.get('wikiviz').get('weights').remove;
-            }
-            if (strcontains('d', rev['class'])) {
-                wclass.reorganize += this.get('wikiviz').get('weights').reorganize;
-            }
-            if (strcontains('e', rev['class'])) {
-                wclass.cite += this.get('wikiviz').get('weights').cite;
-            }
-            if (strcontains('f', rev['class'])) {
-                wclass.vand += this.get('wikiviz').get('weights').vand;
-            }
-            if (strcontains('g', rev['class'])) {
-                wclass.unvand += this.get('wikiviz').get('weights').unvand;
-            }
-            if (strcontains('x', rev['class'])) {
-                wclass.unclassified += this.get('wikiviz').get('weights').unclassified;
-            }
-        
+            
+            classifications.each(function(c){
+                if(strcontains(c.get('id'), rev['class'])){
+                    wclass[c.get('id')] += Math.abs(c.get('weight'));
+                }
+            });
+                   
             var wsum = 0;
             for (c in wclass) {
                 wsum += wclass[c];
@@ -385,10 +504,7 @@ WikiVizData = Backbone.Model.extend({
                     wclass[c] = wclass[c] * Math.log(+rev.lev+1) / wsum;
                 }
             }
-            
-            if (wsum === 0) {
-                wclass.unsure = Math.log(rev.lev + 1);
-            }
+
             rev.revid = rev.rev_id;
             
             rev.wclass = wclass;
@@ -405,15 +521,16 @@ WikiVizData = Backbone.Model.extend({
     },
     
     urlRoot: function(){
-        if(this.get('title') != ""){
-            return "dbquery.php?" + "lower=0&upper=10000&article=" + encodeURIComponent(this.get('title'));
+        if(this.get('article_id') != ""){
+            return "dbquery.php?" + "article=" + encodeURIComponent(this.get('article_id')) + "&set=" + encodeURIComponent(this.get('set'));
         }
         else if(this.get('user') != ""){
-            return "dbquery.php?" + "user=" + encodeURIComponent(this.get('user'));
+            return "dbquery.php?" + "user=" + encodeURIComponent(this.get('user')) + "&set=" + encodeURIComponent(this.get('set'));
         }
     },
     
     defaults: {
+        article_id: "",
         title: "",
         user: "",
         wikiviz: null,
@@ -451,7 +568,9 @@ ArticleView = Backbone.View.extend({
     navctl: null,
     
     initialize: function(){
-        this.wikiviz = new WikiViz({title: this.model.get('title')});
+        this.wikiviz = new WikiViz({article_id: this.model.get('article_id'),
+                                    title: this.model.get('title'),
+                                    set: this.model.get('set')});
         var id = _.uniqueId();
         $("#content").append("<div id='" + id + "'>");
         this.$el = $("#" + id);
@@ -536,7 +655,6 @@ NavCtlView = Backbone.View.extend({
     // Adjust the slider when we switch to time-spaced mode.
     // Use a new time-spaced scale for display.
     toTimeSpaced: function() {
-    
         var minDate = _.first(this.viz.model.get('data').get('revisions')).date;
     
         this.xscale = d3.time.scale();
@@ -547,18 +665,20 @@ NavCtlView = Backbone.View.extend({
     
         var that = this;
     
+        var negFields = new Backbone.Collection(classifications.filter(function(c){ return c.get('weight') < 0; })).pluck('id');
+    
         this.bg.select('g.navbars').selectAll('rect.sd').data(this.viz.model.get('data').get('revisions'))
             .attr('x', function(d,i) { return that.xscale(d.date); })
-            .attr('y', function(d) { return -that.yscale(d.wclass.remove + d.wclass.vand); })
+            .attr('y', function(d) { return -that.yscale(_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)); })
             .attr('width', function(d,i) { return that.spikewidth; })
-            .attr('height', function(d) { return that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
+            .attr('height', function(d) { return that.yscale(d.loglev - (_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)))+that.yscale(_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)); })
             .attr('class', 'sd');
         
         this.bg.select('g.navbars').selectAll('circle.tcircle').data(this.viz.model.get('data').get('talk'))
             .attr('cx', function(d) { return that.xscale(d.date); });
     
-        this.onSlide();
-        this.onScale();
+        this.onSlide({silent: true});
+        this.onScale({silent: true});
     },
 
     // When we switch to adjacent-spaced mode, switch back to using a linear scale for display.
@@ -573,18 +693,20 @@ NavCtlView = Backbone.View.extend({
     
         var that = this;
     
+        var negFields = new Backbone.Collection(classifications.filter(function(c){ return c.get('weight') < 0; })).pluck('id');
+    
         this.bg.select('g.navbars').selectAll('rect.sd').data(this.viz.model.get('data').get('revisions'))
             .attr('x', function(d,i) { return that.xscale(i); })
-            .attr('y', function(d) { return -that.yscale(d.wclass.remove + d.wclass.vand); })
+            .attr('y', function(d) { return -that.yscale(_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)); })
             .attr('width', function(d,i) { return that.spikewidth; })
-            .attr('height', function(d) { return that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
+            .attr('height', function(d) { return that.yscale(d.loglev - (_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)))+that.yscale(_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)); })
             .attr('class', 'sd');
         
         this.bg.select('g.navbars').selectAll('circle').data(this.viz.model.get('data').get('talk'))
             .attr('cx', function(d, i) { return that.xscale(i); });
     
-        this.onSlide();
-        this.onScale();
+        this.onSlide({silent: true});
+        this.onScale({silent: false});
     },
     
     // Change the apperance of the navctl based on the current mode
@@ -605,18 +727,20 @@ NavCtlView = Backbone.View.extend({
     },
 
     // Slide the view when we slide the slider.
-    onSlide: function() {
+    onSlide: function(options) {
         d3.select(this.viz.$('g.body')[0]).attr('transform', 'translate(' + -Math.round(this.getPanOffset()) + ',0)');
         this.viz.repositionBar();
     },
 
     // Increase/Decrease the range of the chart
-    onScale: function() {
+    onScale: function(options) {
+        
+        options = options != undefined ? options : {};
         if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'art') {
-            this.viz.model.set('numBars', this.getNumBars());
+            this.viz.model.set('numBars', this.getNumBars(), options);
         }
         else if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'talk') {
-            this.viz.model.set('numDots', this.getNumBars());
+            this.viz.model.set('numDots', this.getNumBars(), options);
         }
         else if (this.viz.model.get('isTimeSpaced')) {
             var df = _.last(this.viz.model.get('data').get('revisions')).date;
@@ -626,7 +750,7 @@ NavCtlView = Backbone.View.extend({
         
             // The multiplier 0.9 is a quick fix for getting the rightmost bars in TS mode visible.
             this.viz.model.timeX.rangeRound([0, 0.9*this.viz.model.get('width') * (df-d0) / (d2 - d1)]);
-            this.viz.toTimeSpaced();
+            this.viz.toTimeSpaced(options);
         }
     },
 
@@ -709,15 +833,17 @@ NavCtlView = Backbone.View.extend({
         this.yscale.rangeRound([0, this.dim.h/2]);
     
         var that = this;
+        
+        var negFields = new Backbone.Collection(classifications.filter(function(c){ return c.get('weight') < 0; })).pluck('id');
     
         this.spikewidth = (this.dim.w-2*handleWidth) / this.viz.model.get('data').get('revisions').length;
     
         this.spikes = this.bg.select('g.navbars').selectAll('rect.sd').data(this.viz.model.get('data').get('revisions'));
         this.spikes.enter().append('rect')
             .attr('x', function(d,i) { return that.xscale(i); })
-            .attr('y', function(d) { return -that.yscale(d.wclass.remove + d.wclass.vand); })
+            .attr('y', function(d) { return -that.yscale(_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)); })
             .attr('width', function(d,i) { return that.spikewidth; })
-            .attr('height', function(d) { return that.yscale(d.loglev - (d.wclass.remove + d.wclass.vand))+that.yscale(d.wclass.remove + d.wclass.vand); })
+            .attr('height', function(d) { return that.yscale(d.loglev - (_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)))+that.yscale(_.reduce(negFields, function(sum, c){ return sum + Math.abs(d.wclass[c]); }, 0)); })
             .attr('class', 'sd');
         
         // Draw talk page entries, need to manually keep this in sync with appendCallout for now
@@ -731,7 +857,6 @@ NavCtlView = Backbone.View.extend({
 
         // Append circle to our element. Cap the circle size and re-style the circle if it has reached the cap.
         this.dots.filter(function(d) { return Math.log(d.lev+1)*fact <= maxR; }).attr('r', function(d) { return Math.log(d.lev+1)*fact; }).attr('class', 'tcircle');
-        this.dots.filter(function(d) { return Math.log(d.lev+1)*fact > maxR; }).attr('r', maxR).attr('class', 'tcircle_full');
     
         this.sd = { dx: 0 };
     
@@ -790,7 +915,7 @@ NavCtlView = Backbone.View.extend({
             }
             if (this.viz.$('.chandle').hasClass('dragging')) {
                 this.sdim.x0 = (event.pageX - this.sd.dx);
-            
+
                 if (this.sdim.x0 < 0) this.sdim.x0 = 0;
                 if (this.sdim.x0 > this.dim.w - ((handleWidth) + this.sdim.w)) this.sdim.x0 = this.dim.w - ((handleWidth) + this.sdim.w);
                 this.viz.$('.slider').attr('transform', 'translate(' + (this.sdim.x0) + ',0)');
@@ -807,8 +932,6 @@ NavCtlView = Backbone.View.extend({
         this.handleWidth = handleWidth;
     
         // Call these to update the slider for the first time.
-        this.onSlide();
-        this.onScale();
         this.changeMode();
     }
 });
@@ -818,6 +941,8 @@ NewArticleView = Backbone.View.extend({
     
     template: _.template($("#new_article_template").html()),
     views: new Array(),
+    set: new Array(),
+    type: '',
     
     initialize: function(){
         this.articleSets = new ArticleSetCollection();
@@ -838,12 +963,13 @@ NewArticleView = Backbone.View.extend({
     
     events: {
         "click #initiative .option:not(.disabled)": "clickInitiative",
-        "click #set .option": "clickDataSet",
-        "click #project .option": "clickProject",
-        "click #analyse button": "clickAnalyse",
+        "click #set .option:not(.disabled)": "clickDataSet",
+        "click #project .option:not(.disabled)": "clickProject",
+        "click #analyze button": "clickAnalyze",
         "click #clearFilter": "clearFilter",
         "change #filter": "filter",
-        "keyup #filter": "filter"
+        "keyup #filter": "filter",
+        "click .class_filter": "classFilter"
     },
     
     // Returns the selected Article/User, or null if nothing is selected
@@ -877,8 +1003,8 @@ NewArticleView = Backbone.View.extend({
             this.$("#set").hide('slide', 400);
             if(this.$("#project").css('display') != 'none'){
                 this.$("#project").hide('slide', 400);
-                if(this.$("#analyse").css('display') != 'none'){
-                    this.$("#analyse").hide('slide', 400);
+                if(this.$("#analyze").css('display') != 'none'){
+                    this.$("#analyze").hide('slide', 400);
                 }
             }
         }
@@ -891,10 +1017,10 @@ NewArticleView = Backbone.View.extend({
         if(this.$("#set .option.selected").length > 0){
             var span = this.$("#set .option.selected span");
             if(span.parent().hasClass("article")){
-                this.renderProjects(this.articles.where({'set': parseInt(span.attr('name'))}));
+                this.renderProjects(this.articles.where({'set': parseInt(span.attr('name'))}), 'article');
             }
             else if(span.parent().hasClass("contributor")){
-                this.renderProjects(this.users.where({'set': parseInt(span.attr('name'))}));
+                this.renderProjects(this.users.where({'set': parseInt(span.attr('name'))}), 'user');
             }
             if(this.$("#project").css('display') == 'none'){
                 this.$("#project").show('slide', 400);
@@ -903,8 +1029,8 @@ NewArticleView = Backbone.View.extend({
         else if(this.$("#project").css('display') != 'none' && 
                 this.$("#set .option.selected").length == 0){
             this.$("#project").hide('slide', 400);
-            if(this.$("#analyse").css('display') != 'none'){
-                this.$("#analyse").hide('slide', 400);
+            if(this.$("#analyze").css('display') != 'none'){
+                this.$("#analyze").hide('slide', 400);
             }
         }
     },
@@ -913,18 +1039,18 @@ NewArticleView = Backbone.View.extend({
     clickProject: function(e){
         this.$("#project .option").not(e.currentTarget).removeClass('selected');
         $(e.currentTarget).toggleClass('selected');
-        if(this.$("#analyse").css('display') == 'none' &&
+        if(this.$("#analyze").css('display') == 'none' &&
            this.$("#project .option.selected").length > 0){
-            this.$("#analyse").show('slide', 400);
+            this.$("#analyze").show('slide', 400);
         }
-        else if(this.$("#analyse").css('display') != 'none' && 
+        else if(this.$("#analyze").css('display') != 'none' && 
                 this.$("#project .option.selected").length == 0){
-            this.$("#analyse").hide('slide', 400);
+            this.$("#analyze").hide('slide', 400);
         }
     },
     
-    // Triggered when the analyse button is clicked
-    clickAnalyse: function(e){
+    // Triggered when the analyze button is clicked
+    clickAnalyze: function(e){
         var selected = this.getSelected();
         var view = null;
         var title = "";
@@ -938,7 +1064,7 @@ NewArticleView = Backbone.View.extend({
         }
         else if(selected instanceof User){
             view = new UserView({model: selected});
-            title = selected.get('name');
+            title = selected.get('id');
             color = "#EEADAD";
             hoverColor = "#EE9898";
         }
@@ -968,12 +1094,13 @@ NewArticleView = Backbone.View.extend({
     renderDataSets: function(){
         var artSets = document.createDocumentFragment();
         var userSets = document.createDocumentFragment();
-        _.each(this.views, function(view){
+        for(var i = this.views.length; i >= 0; i--){
+            var view = this.views[i];
             if(view instanceof DataSetView){
                 view.remove();
+                this.views.splice(i, 1);
             }
-        });
-        this.views = new Array();
+        }
         _.each(this.articleSets.models, function(article){
             var view = new DataSetView({model: article});
             this.views.push(view);
@@ -990,20 +1117,33 @@ NewArticleView = Backbone.View.extend({
     },
     
     // Renders the projects/contributors list
-    renderProjects: function(set){
+    renderProjects: function(set, type){
         var articles = document.createDocumentFragment();
-        var users = document.createDocumentFragment();
-        _.each(this.views, function(view){
+        var select = this.$("#project #tabs-item .select").detach();
+        for(var i = this.views.length; i >= 0; i--){
+            var view = this.views[i];
             if(view instanceof ProjectView){
                 view.remove();
+                this.views.splice(i, 1);
             }
-        });
-        this.views = new Array();
+        }
+        this.$("#project #tabs-item .header").after(select);
+        this.set = set;
+        this.type = type;
         _.each(set, function(article){
             var view = new ProjectView({model: article});
             this.views.push(view);
-            articles.appendChild(view.render()[0]);
+            articles.appendChild(view.el);
         }, this);
+
+        if(type == 'user'){
+            this.filterUsers();
+            $(".footer").show();
+        }
+        else{
+            $(".footer").hide();
+        }
+        this.filter();
         this.$("#project #tabs-item .select").html(articles);
         this.$("#project").tabs();
     },
@@ -1011,22 +1151,72 @@ NewArticleView = Backbone.View.extend({
     // Filters the options which appear in the selection list
     filter: function(){
         var filterVal = this.$("#filter").val().toLowerCase();
-        _.each(this.articles.models, function(article){
-            if(article.get('title').toLowerCase().indexOf(filterVal) != -1){
-                article.set('display', true);
+        if(this.type == 'article'){
+            _.each(this.set, function(article){
+                if(article.get('title').toLowerCase().indexOf(filterVal) != -1){
+                    article.set('display', true);
+                }
+                else{
+                    article.set('display', false);
+                }
+            });
+        }
+        if(this.type == 'user'){
+            _.each(this.set, function(user){
+                if(user.get('id').toLowerCase().indexOf(filterVal) != -1){
+                    user.set('display', true);
+                }
+                else{
+                    user.set('display', false);
+                }
+            });
+        }
+    },
+    
+    filterUsers: function(){
+        _.each(this.set, function(user){
+            if(user.isBot()){
+                user.set('filter', true);
             }
             else{
-                article.set('display', false);
+                user.set('filter', false);
             }
         });
-        _.each(this.users.models, function(user){
-            if(user.get('name').toLowerCase().indexOf(filterVal) != -1){
-                user.set('display', true);
+    },
+    
+    filterBots: function(){
+        _.each(this.set, function(user){
+            if(!user.isBot()){
+                user.set('filter', true);
             }
             else{
-                user.set('display', false);
+                user.set('filter', false);
             }
         });
+    },
+    
+    filterAll: function(){
+        _.each(this.set, function(user){
+            user.set('filter', false);
+        });
+    },
+    
+    classFilter: function(e){
+        var target = e.currentTarget;
+        $(".class_filter").not(target).removeClass("selected");
+        $(target).addClass("selected");
+        
+        switch($(target).attr("name")){
+            case "users":
+                this.filterUsers();
+                break;
+            case "bots":
+                this.filterBots();
+                break;
+            case "all":
+                this.filterAll();
+                break;
+        }
     },
     
     render: function(){
@@ -1050,6 +1240,9 @@ DataSetView = Backbone.View.extend({
         else if(this.model instanceof ArticleSet){
             this.$el.addClass("article");
         }
+        if(this.model.get('disabled') == true){
+            this.$el.addClass("disabled");
+        }
     },
     
     render: function(){
@@ -1067,27 +1260,25 @@ ProjectView = Backbone.View.extend({
 
     initialize: function(){
         if(this.model instanceof Article){
-            this.template = this.article_template;
+            this.el.innerHTML = this.article_template(this.model.toJSON());
         }
         else if(this.model instanceof User){
-            this.template = this.user_template;
+            this.el.innerHTML = this.user_template(this.model.toJSON());
         }
         this.listenTo(this.model, 'change', this.render);
         this.$el.addClass("option");
+        if(this.model.get('edits') == -1){
+            this.$el.addClass("disabled");
+        }
     },
     
     render: function(){
-        if(this.model.get('display')){
+        if(this.model.get('display') && !this.model.get('filter')){
             this.$el.css('display', 'block');
-            this.$el.html(this.template(this.model.toJSON()));
         }
         else{
             this.$el.css('display', 'none');
         }
-        var script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = "//www.google.ca/trends/embed.js?hl=en-US&q=Peter+Jackson&cmpt=q&content=1&cid=TIMESERIES_GRAPH_0&export=5&w=1000&h=330";
-        this.$("#google").append(script);
         return this.$el;
     }
 
@@ -1332,8 +1523,18 @@ ToolbarView = Backbone.View.extend({
                         unsure: ['unsure'],
                         vandunvand: ['vand', 'unvand']
                     };
+                    
+                    var classMap = {};
+                    classifications.each(function(c){
+                        if(classMap[c.get('codna')] == undefined){
+                            classMap[c.get('codna')] = new Array();
+                        }
+                        classMap[c.get('codna')].push(c.get('id'));
+                    });
+                    
+                    
                 
-                    // Legend selection functionality (by varyng opacity)
+                    // Legend selection functionality (by varying opacity)
                     $('#d_legend_accordion h3', dialog).each(function (i, el) {
                         $(el).find('input').change(function(e) {
                             // If the event is the checking of a checkbox
@@ -1347,10 +1548,12 @@ ToolbarView = Backbone.View.extend({
                                     wikiviz.get('view').data.selectAll('rect.' + classMap[$(this).val()][i]).transition().duration(500).attr('opacity', 0.2);
                                 }
                             }
-                        
+                            
                             var selected = new Array();
                             $('#d_legend_accordion input:checked', dialog).each(function(i, v) {
-                                $.merge(selected, classMap[$(v).val()]);
+                                if(classMap[$(v).val()] != undefined){
+                                    $.merge(selected, classMap[$(v).val()]);
+                                }
                             });
                         
                             article.viz.navctl.bg.selectAll('rect').transition().duration(500).attr('opacity',
@@ -1520,7 +1723,7 @@ TopTabsView = Backbone.View.extend({
     order: function(){
         this.model.sort();
         var startX = TopTabsView.leftMargin;
-        var widthEstimate = (($("#content").outerWidth()-30-30-TopTabsView.spacing)/(this.model.length-1)) - 25 - 10 - TopTabsView.spacing;
+        var widthEstimate = (($("#content").outerWidth(true)-30-30-30-TopTabsView.spacing)/(this.model.length-1)) - 25 - 10 - TopTabsView.spacing;
         var widthSum = 0;
         var actualSum = 0;
         this.model.each(function(tab, index){
@@ -1535,7 +1738,7 @@ TopTabsView = Backbone.View.extend({
                 // TODO: This isn't perfect, some rounding problems still exist
                 this.$("#tab_" + tab.cid).css('max-width', Math.max(5, Math.min(150, Math.round(widthEstimate) + diff)));
             }
-            startX += Math.round(this.$("#tab_" + tab.cid).outerWidth()) + TopTabsView.spacing;
+            startX += Math.round(this.$("#tab_" + tab.cid).outerWidth(true)) + TopTabsView.spacing;
             if(before != tab.get('x')){
                 this.views[index].updatePosition();
             }
@@ -1634,7 +1837,7 @@ TopTabView = Backbone.View.extend({
             $("#tab_" + tab.cid).show('slide', 200);
             _.last(topTabsView.views).$el.css('left', beforeX);
             _.last(topTabsView.views).$el.animate({
-                'left': tab.get('x') + $("#tab_" + tab.cid).outerWidth() + TopTabsView.spacing
+                'left': tab.get('x') + $("#tab_" + tab.cid).outerWidth(true) + TopTabsView.spacing
             }, 200);
         }
         else{
@@ -1656,7 +1859,7 @@ TopTabView = Backbone.View.extend({
         _.each(topTabsView.views, function(tab){
             if(found){
                 tab.$el.animate({
-                    'left': tab.model.get('x') - this.$el.outerWidth() - TopTabsView.spacing
+                    'left': tab.model.get('x') - this.$el.outerWidth(true) - TopTabsView.spacing
                 }, 200);
             }
             if(tab == this){
@@ -1726,7 +1929,8 @@ UserView = Backbone.View.extend({
     navctl: null,
     
     initialize: function(){
-        this.wikiviz = new WikiViz({user: this.model.get('name')});
+        this.wikiviz = new WikiViz({user: this.model.get('id'),
+                                    set: this.model.get('set')});
         var id = _.uniqueId();
         $("#content").append("<div id='" + id + "'>");
         this.$el = $("#" + id);
@@ -1817,10 +2021,10 @@ WikiVizView = Backbone.View.extend({
         var ret = 0;
         // Width of icon + padding
         var el_w = 29;
-        if (d.att !== 0) { ret += el_w; }
-        if (d.crit !== 0) { ret += el_w; }
-        if (d.inf !== 0) { ret += el_w; }
-        if (d.perf !== 0) { ret += el_w; }
+        if (d.att !== 0 && d.att !== null) { ret += el_w; }
+        if (d.crit !== 0 && d.crit !== null) { ret += el_w; }
+        if (d.inf !== 0 && d.inf !== null) { ret += el_w; }
+        if (d.perf !== 0 && d.perf !== null) { ret += el_w; }
         return ret;
     },
     
@@ -1828,10 +2032,10 @@ WikiVizView = Backbone.View.extend({
     // entry that is represented by that callout.
     genCalloutImageSet: function(d){
         var imgs = [];
-        if (d.att !== 0) { imgs.push('att'); }
-        if (d.crit !== 0) { imgs.push('crit'); }
-        if (d.inf !== 0) { imgs.push('inf'); }
-        if (d.perf !== 0) { imgs.push('perf'); }
+        if (d.att !== 0 && d.att !== null) { imgs.push('att'); }
+        if (d.crit !== 0 && d.crit !== null) { imgs.push('crit'); }
+        if (d.inf !== 0 && d.inf !== null) { imgs.push('inf'); }
+        if (d.perf !== 0 && d.perf !== null) { imgs.push('perf'); }
         return imgs;
     },
     
@@ -1887,10 +2091,16 @@ WikiVizView = Backbone.View.extend({
         var that = this;
         this.model.get('view').data.selectAll('.datum').selectAll('.bars rect').attr('width', this.calcBarWidth());
         // Hide x labels that would overlap!
-        this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width <= that.calcBarWidth(); })
-            .attr('opacity', 1);
-        this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width > that.calcBarWidth(); })
-            .attr('opacity', 0);
+        try{
+            // This can sometimes fail, so gracefully fail if it does
+            this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width <= that.calcBarWidth(); })
+                .attr('opacity', 1);
+            this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width > that.calcBarWidth(); })
+                .attr('opacity', 0);
+        }
+        catch (e){
+        
+        }
     
         // Need to update the month rectangles so that they use the new scale!
         this.buildMonths();
@@ -1969,13 +2179,14 @@ WikiVizView = Backbone.View.extend({
         this.navctl.spikes.transition().duration(500).attr('opacity', 1);
     
         // Re-enable any previously disabled selection controls
-        this.$('#diag_legend input').removeAttr('disabled');
-        this.$('#d_select_groups_accordion input').removeAttr('disabled');
+        $('#diag_legend input').prop('disabled', false);
+        $('#d_select_groups_accordion input').prop('disabled', false);
     },
     
     // Switch visualization to time-spaced mode, or update time-spaced visualization
     // This is currently called by the slider element on a switch mode event.
-    toTimeSpaced: function(){
+    toTimeSpaced: function(options){
+        options = options != undefined ? options : {};
         // Re-position all article revision elements using the x axis time scale.
         d3.selectAll('.datum')
             .attr('transform', $.proxy(function(d) {return 'translate(' + this.model.timeX(d.date) + ',0)';}, this))
@@ -1986,7 +2197,9 @@ WikiVizView = Backbone.View.extend({
             .attr('transform', $.proxy(function(d) {return 'translate(' + this.model.timeX(d.date) + ',0)';}, this))
     
         // Update the month view.
-        this.buildMonths();
+        if(!options.silent){
+            this.buildMonths();
+        }
     
         // Show the month view if we are in TS talk page mode.
         // This is because the month view is hidden in adj-talk page mode, but we want it for TS anyway.
@@ -1997,7 +2210,8 @@ WikiVizView = Backbone.View.extend({
     
     // Switch visualization to adacent-spacing mode
     // Currently called by the slider element when a mode change event occurs.
-    toAdjacentSpaced: function(){
+    toAdjacentSpaced: function(options){
+        options = options != undefined ? options : {};
         // Hide the month view if we are in adjacent spacing talk-page mode.
         // (The month view does not make any sense in this mode)
         if (this.model.get('mode') == "talk") {
@@ -2013,13 +2227,15 @@ WikiVizView = Backbone.View.extend({
             .attr('transform', $.proxy(function(d, i) {return 'translate(' + this.model.get('view').tx(i) + ',0)';}, this));
         
         // Update the month view.
-        this.buildMonths();
+        if(!options.silent){
+            this.buildMonths();
+        }
     },
     
     // Function to map revision data to rectangle groups that represent the data as a stacked bar graph.
     buildBars: function(barsGroup, barWidth){
-        var posFields = ['add', 'unsure', 'reorganize', 'edit', 'cite', 'vand', 'unclassified'];
-        var negFields = ['unvand', 'remove'];
+        var posFields = new Backbone.Collection(classifications.filter(function(c){ return c.get('weight') >= 0; })).pluck('id');
+        var negFields = new Backbone.Collection(classifications.filter(function(c){ return c.get('weight') < 0; })).pluck('id');
     
         // For brevity
         var y = this.model.get('view').y;
@@ -2074,11 +2290,16 @@ WikiVizView = Backbone.View.extend({
             var curDate;
             var lastIndex = 0;
             var lastRev = _.first(this.model.get('data').get('revisions'));
+            var qualities = this.model.get('data').get('quality');
+            var events = this.model.get('data').get('events');
+            var googles = this.model.get('data').get('google');
+            var startq = 0;
+            var starte = 0;
+            var startg = 0;
             for (var i = 1; i < revdata.length; ++i) {
                 // We need to build width and offset positions for the various month groups
                 // We do this by scanning through our bar graph data and appending to the month data as we go.
                 curDate = new Date(revdata[i].timestamp);
-                
                 if (curDate.getMonth() !== lastDate.getMonth() || curDate.getYear() !== lastDate.getYear()) {
                     var left = this.getOffset(lastIndex);
                     var right = this.getOffset(i);
@@ -2087,27 +2308,41 @@ WikiVizView = Backbone.View.extend({
                     lastDate = curDate;
                     lastIndex = i;
                 }
-                _.each(this.model.get('data').get('quality'), $.proxy(function(quality, ind){
+                for(var q = startq; q < qualities.length; q++){
+                    var quality = qualities[q];
                     var cutoff = new Date(quality.cutoff);
                     cutoff = new Date(cutoff.getTime() + (24 * 60 * 60 * 1000));
-                    if((curDate >= cutoff || finalDate.valueOf() == curDate.valueOf()) && qualityData[ind] == undefined){
-                        qualityData[ind] = {l: this.getOffset(i+0.5), q: quality};
+                    if((curDate >= cutoff || finalDate.valueOf() == curDate.valueOf())){
+                        startq = q + 1;
+                        qualityData[q] = {l: this.getOffset(i+0.5), 'q': quality};
                     }
-                }, this));
-                _.each(this.model.get('data').get('events'), $.proxy(function(event, ind){
+                    else{
+                        break;
+                    }
+                }
+                for(var e = starte; e < events.length; e++){
+                    var event = events[e];
                     var time = new Date(event.timestamp);
-                    if(curDate >= time && eventsData[ind] == undefined){
-                        eventsData[ind] = {l: this.getOffset(i+0.5), e: event};
+                    if(curDate >= time){
+                        starte = e + 1;
+                        eventsData[e] = {l: this.getOffset(i+0.5), 'e': event};
                     }
-                }, this));
-                _.each(this.model.get('data').get('google'), $.proxy(function(google, ind){
+                    else{
+                        break;
+                    }
+                }
+                for(var g = startg; g < googles.length; g++){
+                    var google = googles[g];
                     var time = new Date(google.timestamp);
-                    if(curDate >= time && googleData[ind] == undefined){
-                        googleData[ind] = {l: this.getOffset(i+0.5), g: google};
+                    if(curDate >= time){
+                        startg = g + 1;
+                        googleData[g] = {l: this.getOffset(i+0.5), 'g': google};
                     }
-                }, this));
+                    else{
+                        break;
+                    }
+                }
             }
-        
             var left = this.getOffset(lastIndex);
             var right = this.getOffset(revdata.length);
             data.push({l: left, r:right, m:lastDate.getMonth(), y:lastDate.getFullYear()});
@@ -2168,7 +2403,7 @@ WikiVizView = Backbone.View.extend({
         mts.select('text.mtext').filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) >= blankThreshold;}).attr('opacity', 1);
         mts.select('text.ytext').filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) < blankThreshold;}).attr('opacity', 0);
         mts.select('text.ytext').filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) >= blankThreshold;}).attr('opacity', 1);
-    
+        
         bg.selectAll('.bar').remove();
         var bar_g = bg.append('g').attr('class', 'bar');
         bar_g.append('rect').attr('class', 'bar_bg')
@@ -2202,8 +2437,8 @@ WikiVizView = Backbone.View.extend({
                 text += "<tr><td colspan='2'><a style='float:right;' href='http://dl.acm.org/citation.cfm?id=2069609' target='_blank'>Source</a></td></tr>";
             }
             text += "</table>";
-            var clone = $(_.template($("#tooltip_template").html(), {
-                title: d.q.metric + " Ranking",
+            var clone = $(_.template($("#tooltip_template").html())({
+                title: "CoDNA Ranking",
                 text: text
             }));
             this.$('#view').append(clone);
@@ -2273,13 +2508,17 @@ WikiVizView = Backbone.View.extend({
         parent.filter(function(d) { return Math.log(d.lev+1)*fact <= maxR; }).append('circle').attr('r', function(d) { return Math.log(d.lev+1)*fact; }).attr('class', 'tcircle');
         parent.filter(function(d) { return Math.log(d.lev+1)*fact > maxR; }).append('circle').attr('r', maxR).attr('class', 'tcircle_full');
     
+        var that = this;
+        var filtered = parent.filter(function(d) { return that.genCalloutImageSet(d).length != 0; });
+    
         // Generate the tooltip for this element.
-        parent.append('title').text(function(d) {
+        filtered.append('title').text(function(d) {
             return 'User: ' + d.contributor + '\n' + Helper.formatDate(d.date) + '\n' + 'Revision Categories: ' + Helper.toTalkClassString(d) + '\n' + 'Revision Size: ' + d.lev;
         });
     
         // Generate the path that defines the shape of the callout.
-        var callout = parent.append('path');
+        
+        var callout = filtered.append('path');
         callout.attr('d', $.proxy(function(d) { return "M 0 0 l {0} {1} l 0 {2} a {3} {3} 0 0 0 {3} {3} l {4} 0 a {3} {3} 0 0 0 {3} -{3} l 0 -{5} a {3} {3} 0 0 0 -{3} -{3} l -{6} 0 z".format(
             // Coords of left bottom of callout "box" rel. to "origin"
             ox, oy,
@@ -2298,30 +2537,32 @@ WikiVizView = Backbone.View.extend({
         var x = 0;
     
         // Create image groups based on talk-page classifications and append these image groups to their respective callouts.
-        var igroup = parent.append('g').attr('class', 'igroup').attr('transform', 'translate(' + (ox+px) + ',' + (oy+py) +')scale(1,-1)').datum($.proxy(function(d) { return this.genCalloutImageSet(d); }, this));
+        var igroup = filtered.append('g').attr('class', 'igroup').attr('transform', 'translate(' + (ox+px) + ',' + (oy+py) +')scale(1,-1)').datum($.proxy(function(d) { return this.genCalloutImageSet(d); }, this));
         igroup.each(function (d) {
             d3.select(this).selectAll('image').data(d).enter().append('image').attr('xlink:href', function(dm) { return "img/" + dm + ".png"; }).attr('y', function(dm, i) { return -29*i-24; })
                 .attr('width', 24).attr('height', 24).attr('x', 3).attr('class', function(dm) { return dm; } );
         });
     
         // Append to each callout an x-axis label corresponding to its ID.
-        parent.append('text').attr('class', 'xlabel').text(function(d, i) { return i + 1; })
+        filtered.append('text').attr('class', 'xlabel').text($.proxy(function(d, i) { if(this.genCalloutImageSet(d).length == 0){ return "";} return i + 1; }, this))
             .attr('transform', function(d) { return 'translate(' + (ox+px/2) + ',' + (oy+py/2) + ')scale(1,-1)'; });
     },
     
     // Updates the view based on whether or not the view is set to time spaced or adjacent spaced
-    updateSpacing: function(){
+    updateSpacing: function(options){
+        options = (options != undefined) ? options : {};
         if(this.model.get('isTimeSpaced')){
             this.navctl.toTimeSpaced();
-            this.toTimeSpaced();
+            this.toTimeSpaced(options);
         } else {
             this.navctl.toAdjacentSpaced();
-            this.toAdjacentSpaced();
+            this.toAdjacentSpaced(options);
         }
     },
     
     // Updates the view based on the type of mode it is in
-    updateMode: function(){
+    updateMode: function(options){
+        options = (options != undefined) ? options : {};
         if(this.model.get('mode') == 'art'){
             this.$('#view').appendTo(this.$('#artview'));
             this.model.get('view').data.selectAll('.datum').attr('opacity', 1);
@@ -2339,14 +2580,20 @@ WikiVizView = Backbone.View.extend({
             if (this.model.get('isTimeSpaced') === false) {
                 this.$('#toAdj').button('disable');
                 this.$('#toTime').button('enable');
-                this.navctl.toAdjacentSpaced();
+                if(!options.silent){
+                    this.navctl.toAdjacentSpaced();
+                }
             } else {
                 this.$('#toAdj').button('enable');
                 this.$('#toTime').button('disable');
-                this.navctl.toTimeSpaced();
+                if(!options.silent){
+                    this.navctl.toTimeSpaced();
+                }
             }
             
-            this.navctl.onScale();
+            if(!options.silent){
+                this.navctl.onScale();
+            }
         
             var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
             $('.talkrow', dialog).addClass('invisible');
@@ -2370,14 +2617,20 @@ WikiVizView = Backbone.View.extend({
                 d3.selectAll('.month').attr('opacity', 0);
                 this.$('#toAdj').button('disable');
                 this.$('#toTime').button('enable');
-                this.navctl.toAdjacentSpaced();
+                if(!options.silent){
+                    this.navctl.toAdjacentSpaced();
+                }
             } else {
                 this.$('#toAdj').button('enable');
                 this.$('#toTime').button('disable');
-                this.navctl.toTimeSpaced();
+                if(!options.silent){
+                    this.navctl.toTimeSpaced();
+                }
             }
-        
-            this.navctl.onScale();
+            
+            if(!options.silent){
+                this.navctl.onScale();
+            }
         
             var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
             $('.talkrow', dialog).removeClass('invisible');
@@ -2477,8 +2730,8 @@ WikiVizView = Backbone.View.extend({
         // Width of mask over which y label is written
         var maskWidth = this.model.get('maskWidth');
         var view = this.model.get('view');
+        
         view.svg = d3.select(this.$('#view')[0]).append('svg').attr('width', this.model.get('width')).attr('height', this.model.get('height'));
-    
         // Re-arrange coordinate system by setting x=0 to the center of the SVG and flipping the y-axis values.
         // Also, set y=0 offset by maskWidth to the left to simplify math regarding the position of the y-axis title and masking rect.
         view.sview = view.svg.append('g').attr('width', this.model.get('width')).attr('transform', 'translate(' + (maskWidth) + ',' + (this.model.get('height')/2) + ')scale(1,-1)');
@@ -2535,7 +2788,6 @@ WikiVizView = Backbone.View.extend({
         neglabels.selectAll('.yl').data(view.y.ticks(5)).enter().append('text').attr('class', 'yl')
             .attr('transform', function(d, i) { return 'translate(-8,' + (-view.y(d)) + ')scale(1,-1)' }).text(function(d, i) {return (-Math.exp(d)+1).toPrecision(3);});
     
-    
         // Set up layers for the body
         body.append('g').attr('class', 'bg');
         body.append('g').attr('class', 'mid');
@@ -2553,11 +2805,11 @@ WikiVizView = Backbone.View.extend({
         this.buildBars(bars, barWidth);
         datum.append('text').attr('class', 'xlabel').text($.proxy(function(d) { return 1+this.model.index(d); }, this))
             .attr('transform', function() { return 'translate(0,' + String(-7) + ')scale(1,-1)rotate(90,0,0)'; });
-        this.buildMonths();
     
         // Group for talk page data entries
         view.tdata = body.select('g.fg').append('g').attr('class', 'tdata');
-        var tentries = view.tdata.selectAll('.tdatum').data(this.model.get('data').get('talk')).enter().append('g').attr('class', 'tdatum')
+        var tentries = view.tdata.selectAll('.tdatum').data(this.model.get('data').get('talk')).enter()
+            .append('g').attr('class', 'tdatum')
             .attr('transform', $.proxy(function(d) { return 'translate(' + view.x(this.model.index(d)) + ', 0)'; }, this)).attr('opacity', 0);
         this.appendCallout(tentries);
     
@@ -2699,7 +2951,8 @@ WikiVizView = Backbone.View.extend({
             }
         });
         rows.append('td').text(function (d) {
-            return d.sections.join("; ");
+            return "";
+            //return d.sections.join("; ");
         });
         rows.attr('class', function (d) {
             if (d.type === 'talk') return 'data talkrow';
@@ -2712,8 +2965,8 @@ WikiVizView = Backbone.View.extend({
         // In our default mode hide the talk page entries
         $('.talkrow', dialog).addClass('invisible');
         
-        this.updateMode();
-        this.updateSpacing();
+        this.updateMode({silent:true});
+        this.updateSpacing({silent:true});
     },
     
     render: function(){
@@ -2740,6 +2993,10 @@ String.prototype.format = function() {
 
 // ## Helper
 Helper = function() {};
+
+Helper.numberFormat = function(x){
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
 
 // Takes in a javascript date object and pretty-prints it to a string which is returned.
 Helper.formatDate = function(dt, time) {
@@ -2782,16 +3039,7 @@ Helper.isSubset = function(subset_l, superset_l) {
 
 // Generate a string describing a given article revisions' edit categories
 Helper.toClassString = function(rc){
-    return rc.split(';').map(function(c) { return ({
-            'a': 'edit',
-            'b': 'add',
-            'c': 'remove',
-            'd': 'reorganize',
-            'e': 'cite',
-            'f': 'vandalize',
-            'g': 'unvandalize',
-            'x': 'unclassified'
-        })[c]; }).join(', ');
+    return rc.split(';').map(function(c) { return classifications.findWhere({id: c.trim()}).get('codna'); }).join(', ');
 };
 
 // Generate a string describing a given talk page revision entry's revision categories.
@@ -2818,7 +3066,8 @@ Helper.absMax = function(arr, func){
 $.ajaxSetup({ cache: false });
 
 articles = new ArticleCollection();
-articles.fetch();
+classifications = new ClassificationCollection();
+classifications.fetch();
 topTabs = new TopTabCollection();
 topTabsView = new TopTabsView({model: topTabs, el: "#topTabs"});
 

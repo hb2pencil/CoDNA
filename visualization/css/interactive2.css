@@ -891,6 +891,13 @@ table.new_article .header {
     background: #EEEEEE;
 }
 
+table.new_article .footer {
+    position: absolute !important;
+    margin-right: 45px;
+    padding: 5px;
+    bottom: -40px;
+}
+
 table.new_article .select {
     position: absolute;
     left: 0;
@@ -950,6 +957,12 @@ table.new_article .header .count {
     width: 40%;
 }
 
+
+
+button::-moz-focus-inner {
+    border: 0;
+}
+
 table.new_article button {
     -webkit-transition: background 0.20s ease-in-out;
     -moz-transition: background 0.20s ease-in-out;
@@ -968,10 +981,30 @@ table.new_article button {
     font-family: sans-serif;
 }
 
+table.new_article button.selected {
+    background: #70B323;
+}
+
 table.new_article button:hover {
     background: #70B323;
     cursor: pointer;
 }
+
+table.new_article button.selected:hover {
+    background: #60991F;
+}
+
+table.new_article button.small {
+    line-height: 12px;
+    font-size: 14px;
+    padding: 6px 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -khtml-border-radius: 3px;
+    border-radius: 3px;
+}
+
+
 
 .green_arrow {
     position: absolute;

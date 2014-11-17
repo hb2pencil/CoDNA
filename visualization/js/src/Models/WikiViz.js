@@ -5,7 +5,7 @@ WikiViz = Backbone.Model.extend({
         // Create a fetch a new WikiVizData
         var data = null;
         if(this.get('user') != ""){
-            data = new WikiVizData({user: this.get('user'), 
+            data = new WikiVizData({user: this.get('user'),
                                     set: this.get('set'),
                                     wikiviz: this});
         }

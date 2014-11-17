@@ -63,6 +63,11 @@
                             <input id="filter" type="text" class="ui-corner-all" placeholder="Search..." autofocus />
                             <span id="clearFilter">&#215;</span>
                         </span>
+                        <div class="footer">
+                            <button class="small selected class_filter" name="users">Users Only</button>&nbsp;
+                            <button class="small class_filter" name="bots">Bots Only</button>&nbsp;
+                            <button class="small class_filter" name="all">All Users</button>
+                        </div>
                     </div>
                 </td>
                 <td valign="middle" align="center">
@@ -84,7 +89,7 @@
 </script>
 
 <script type="text/template" id="user_option_template"></>
-    <span class="label"><%= name %></span><span class="count"><%= Helper.numberFormat(edits) %></span>
+    <span class="label"><%= id %></span><% if(edits > 0){ %><span class="count"><%= Helper.numberFormat(edits) %></span><% } %>
 </script>
 
 <script type="text/template" id="article_container_template"></>
@@ -232,9 +237,9 @@
 </script>
 
 <script type="text/template" id="user_info_template"></>
-    <h3 class="article_title"><%= name %></h3>
+    <h3 class="article_title"><%= id %></h3>
     <h4 class="article_subTitle">Wikipedia Contributor</h4>
-    <div style="text-align:center;width:100%;"><a class="info_link" target="_blank" href="http://en.wikipedia.org/wiki/User:<%= name %>"><img src="img/face.png" alt="<%= name %>" /></a></div>
+    <div style="text-align:center;width:100%;"><a class="info_link" target="_blank" href="http://en.wikipedia.org/wiki/User:<%= id %>"><img src="img/face.png" alt="<%= id %>" /></a></div>
     <b>Key Statistics</b>
     <div>
         <%= _.size(data.get('revisions')) %> edits in <%= _.size(_.uniq(_.pluck(data.get('revisions'), 'page_title'))) %> projects.<br />

@@ -63,10 +63,10 @@ WikiVizView = Backbone.View.extend({
         var ret = 0;
         // Width of icon + padding
         var el_w = 29;
-        if (d.att !== 0) { ret += el_w; }
-        if (d.crit !== 0) { ret += el_w; }
-        if (d.inf !== 0) { ret += el_w; }
-        if (d.perf !== 0) { ret += el_w; }
+        if (d.att !== 0 && d.att !== null) { ret += el_w; }
+        if (d.crit !== 0 && d.crit !== null) { ret += el_w; }
+        if (d.inf !== 0 && d.inf !== null) { ret += el_w; }
+        if (d.perf !== 0 && d.perf !== null) { ret += el_w; }
         return ret;
     },
     
@@ -74,10 +74,10 @@ WikiVizView = Backbone.View.extend({
     // entry that is represented by that callout.
     genCalloutImageSet: function(d){
         var imgs = [];
-        if (d.att !== 0) { imgs.push('att'); }
-        if (d.crit !== 0) { imgs.push('crit'); }
-        if (d.inf !== 0) { imgs.push('inf'); }
-        if (d.perf !== 0) { imgs.push('perf'); }
+        if (d.att !== 0 && d.att !== null) { imgs.push('att'); }
+        if (d.crit !== 0 && d.crit !== null) { imgs.push('crit'); }
+        if (d.inf !== 0 && d.inf !== null) { imgs.push('inf'); }
+        if (d.perf !== 0 && d.perf !== null) { imgs.push('perf'); }
         return imgs;
     },
     
@@ -221,13 +221,14 @@ WikiVizView = Backbone.View.extend({
         this.navctl.spikes.transition().duration(500).attr('opacity', 1);
     
         // Re-enable any previously disabled selection controls
-        this.$('#diag_legend input').removeAttr('disabled');
-        this.$('#d_select_groups_accordion input').removeAttr('disabled');
+        $('#diag_legend input').prop('disabled', false);
+        $('#d_select_groups_accordion input').prop('disabled', false);
     },
     
     // Switch visualization to time-spaced mode, or update time-spaced visualization
     // This is currently called by the slider element on a switch mode event.
-    toTimeSpaced: function(){
+    toTimeSpaced: function(options){
+        options = options != undefined ? options : {};
         // Re-position all article revision elements using the x axis time scale.
         d3.selectAll('.datum')
             .attr('transform', $.proxy(function(d) {return 'translate(' + this.model.timeX(d.date) + ',0)';}, this))
@@ -238,7 +239,9 @@ WikiVizView = Backbone.View.extend({
             .attr('transform', $.proxy(function(d) {return 'translate(' + this.model.timeX(d.date) + ',0)';}, this))
     
         // Update the month view.
-        this.buildMonths();
+        if(!options.silent){
+            this.buildMonths();
+        }
     
         // Show the month view if we are in TS talk page mode.
         // This is because the month view is hidden in adj-talk page mode, but we want it for TS anyway.
@@ -249,7 +252,8 @@ WikiVizView = Backbone.View.extend({
     
     // Switch visualization to adacent-spacing mode
     // Currently called by the slider element when a mode change event occurs.
-    toAdjacentSpaced: function(){
+    toAdjacentSpaced: function(options){
+        options = options != undefined ? options : {};
         // Hide the month view if we are in adjacent spacing talk-page mode.
         // (The month view does not make any sense in this mode)
         if (this.model.get('mode') == "talk") {
@@ -265,13 +269,13 @@ WikiVizView = Backbone.View.extend({
             .attr('transform', $.proxy(function(d, i) {return 'translate(' + this.model.get('view').tx(i) + ',0)';}, this));
         
         // Update the month view.
-        this.buildMonths();
+        if(!options.silent){
+            this.buildMonths();
+        }
     },
     
     // Function to map revision data to rectangle groups that represent the data as a stacked bar graph.
     buildBars: function(barsGroup, barWidth){
-        //var posFields = ['add', 'unsure', 'reorganize', 'edit', 'cite', 'vand', 'unclassified'];
-        //var negFields = ['unvand', 'remove'];
         var posFields = new Backbone.Collection(classifications.filter(function(c){ return c.get('weight') >= 0; })).pluck('id');
         var negFields = new Backbone.Collection(classifications.filter(function(c){ return c.get('weight') < 0; })).pluck('id');
     
@@ -328,11 +332,16 @@ WikiVizView = Backbone.View.extend({
             var curDate;
             var lastIndex = 0;
             var lastRev = _.first(this.model.get('data').get('revisions'));
+            var qualities = this.model.get('data').get('quality');
+            var events = this.model.get('data').get('events');
+            var googles = this.model.get('data').get('google');
+            var startq = 0;
+            var starte = 0;
+            var startg = 0;
             for (var i = 1; i < revdata.length; ++i) {
                 // We need to build width and offset positions for the various month groups
                 // We do this by scanning through our bar graph data and appending to the month data as we go.
                 curDate = new Date(revdata[i].timestamp);
-                
                 if (curDate.getMonth() !== lastDate.getMonth() || curDate.getYear() !== lastDate.getYear()) {
                     var left = this.getOffset(lastIndex);
                     var right = this.getOffset(i);
@@ -341,27 +350,41 @@ WikiVizView = Backbone.View.extend({
                     lastDate = curDate;
                     lastIndex = i;
                 }
-                _.each(this.model.get('data').get('quality'), $.proxy(function(quality, ind){
+                for(var q = startq; q < qualities.length; q++){
+                    var quality = qualities[q];
                     var cutoff = new Date(quality.cutoff);
                     cutoff = new Date(cutoff.getTime() + (24 * 60 * 60 * 1000));
-                    if((curDate >= cutoff || finalDate.valueOf() == curDate.valueOf()) && qualityData[ind] == undefined){
-                        qualityData[ind] = {l: this.getOffset(i+0.5), q: quality};
+                    if((curDate >= cutoff || finalDate.valueOf() == curDate.valueOf())){
+                        startq = q + 1;
+                        qualityData[q] = {l: this.getOffset(i+0.5), 'q': quality};
                     }
-                }, this));
-                _.each(this.model.get('data').get('events'), $.proxy(function(event, ind){
+                    else{
+                        break;
+                    }
+                }
+                for(var e = starte; e < events.length; e++){
+                    var event = events[e];
                     var time = new Date(event.timestamp);
-                    if(curDate >= time && eventsData[ind] == undefined){
-                        eventsData[ind] = {l: this.getOffset(i+0.5), e: event};
+                    if(curDate >= time){
+                        starte = e + 1;
+                        eventsData[e] = {l: this.getOffset(i+0.5), 'e': event};
                     }
-                }, this));
-                _.each(this.model.get('data').get('google'), $.proxy(function(google, ind){
+                    else{
+                        break;
+                    }
+                }
+                for(var g = startg; g < googles.length; g++){
+                    var google = googles[g];
                     var time = new Date(google.timestamp);
-                    if(curDate >= time && googleData[ind] == undefined){
-                        googleData[ind] = {l: this.getOffset(i+0.5), g: google};
+                    if(curDate >= time){
+                        startg = g + 1;
+                        googleData[g] = {l: this.getOffset(i+0.5), 'g': google};
                     }
-                }, this));
+                    else{
+                        break;
+                    }
+                }
             }
-        
             var left = this.getOffset(lastIndex);
             var right = this.getOffset(revdata.length);
             data.push({l: left, r:right, m:lastDate.getMonth(), y:lastDate.getFullYear()});
@@ -527,13 +550,17 @@ WikiVizView = Backbone.View.extend({
         parent.filter(function(d) { return Math.log(d.lev+1)*fact <= maxR; }).append('circle').attr('r', function(d) { return Math.log(d.lev+1)*fact; }).attr('class', 'tcircle');
         parent.filter(function(d) { return Math.log(d.lev+1)*fact > maxR; }).append('circle').attr('r', maxR).attr('class', 'tcircle_full');
     
+        var that = this;
+        var filtered = parent.filter(function(d) { return that.genCalloutImageSet(d).length != 0; });
+    
         // Generate the tooltip for this element.
-        parent.append('title').text(function(d) {
+        filtered.append('title').text(function(d) {
             return 'User: ' + d.contributor + '\n' + Helper.formatDate(d.date) + '\n' + 'Revision Categories: ' + Helper.toTalkClassString(d) + '\n' + 'Revision Size: ' + d.lev;
         });
     
         // Generate the path that defines the shape of the callout.
-        var callout = parent.append('path');
+        
+        var callout = filtered.append('path');
         callout.attr('d', $.proxy(function(d) { return "M 0 0 l {0} {1} l 0 {2} a {3} {3} 0 0 0 {3} {3} l {4} 0 a {3} {3} 0 0 0 {3} -{3} l 0 -{5} a {3} {3} 0 0 0 -{3} -{3} l -{6} 0 z".format(
             // Coords of left bottom of callout "box" rel. to "origin"
             ox, oy,
@@ -552,30 +579,32 @@ WikiVizView = Backbone.View.extend({
         var x = 0;
     
         // Create image groups based on talk-page classifications and append these image groups to their respective callouts.
-        var igroup = parent.append('g').attr('class', 'igroup').attr('transform', 'translate(' + (ox+px) + ',' + (oy+py) +')scale(1,-1)').datum($.proxy(function(d) { return this.genCalloutImageSet(d); }, this));
+        var igroup = filtered.append('g').attr('class', 'igroup').attr('transform', 'translate(' + (ox+px) + ',' + (oy+py) +')scale(1,-1)').datum($.proxy(function(d) { return this.genCalloutImageSet(d); }, this));
         igroup.each(function (d) {
             d3.select(this).selectAll('image').data(d).enter().append('image').attr('xlink:href', function(dm) { return "img/" + dm + ".png"; }).attr('y', function(dm, i) { return -29*i-24; })
                 .attr('width', 24).attr('height', 24).attr('x', 3).attr('class', function(dm) { return dm; } );
         });
     
         // Append to each callout an x-axis label corresponding to its ID.
-        parent.append('text').attr('class', 'xlabel').text(function(d, i) { return i + 1; })
+        filtered.append('text').attr('class', 'xlabel').text($.proxy(function(d, i) { if(this.genCalloutImageSet(d).length == 0){ return "";} return i + 1; }, this))
             .attr('transform', function(d) { return 'translate(' + (ox+px/2) + ',' + (oy+py/2) + ')scale(1,-1)'; });
     },
     
     // Updates the view based on whether or not the view is set to time spaced or adjacent spaced
-    updateSpacing: function(){
+    updateSpacing: function(options){
+        options = (options != undefined) ? options : {};
         if(this.model.get('isTimeSpaced')){
             this.navctl.toTimeSpaced();
-            this.toTimeSpaced();
+            this.toTimeSpaced(options);
         } else {
             this.navctl.toAdjacentSpaced();
-            this.toAdjacentSpaced();
+            this.toAdjacentSpaced(options);
         }
     },
     
     // Updates the view based on the type of mode it is in
-    updateMode: function(){
+    updateMode: function(options){
+        options = (options != undefined) ? options : {};
         if(this.model.get('mode') == 'art'){
             this.$('#view').appendTo(this.$('#artview'));
             this.model.get('view').data.selectAll('.datum').attr('opacity', 1);
@@ -593,14 +622,20 @@ WikiVizView = Backbone.View.extend({
             if (this.model.get('isTimeSpaced') === false) {
                 this.$('#toAdj').button('disable');
                 this.$('#toTime').button('enable');
-                this.navctl.toAdjacentSpaced();
+                if(!options.silent){
+                    this.navctl.toAdjacentSpaced();
+                }
             } else {
                 this.$('#toAdj').button('enable');
                 this.$('#toTime').button('disable');
-                this.navctl.toTimeSpaced();
+                if(!options.silent){
+                    this.navctl.toTimeSpaced();
+                }
             }
             
-            this.navctl.onScale();
+            if(!options.silent){
+                this.navctl.onScale();
+            }
         
             var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
             $('.talkrow', dialog).addClass('invisible');
@@ -624,14 +659,20 @@ WikiVizView = Backbone.View.extend({
                 d3.selectAll('.month').attr('opacity', 0);
                 this.$('#toAdj').button('disable');
                 this.$('#toTime').button('enable');
-                this.navctl.toAdjacentSpaced();
+                if(!options.silent){
+                    this.navctl.toAdjacentSpaced();
+                }
             } else {
                 this.$('#toAdj').button('enable');
                 this.$('#toTime').button('disable');
-                this.navctl.toTimeSpaced();
+                if(!options.silent){
+                    this.navctl.toTimeSpaced();
+                }
             }
-        
-            this.navctl.onScale();
+            
+            if(!options.silent){
+                this.navctl.onScale();
+            }
         
             var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
             $('.talkrow', dialog).removeClass('invisible');
@@ -731,8 +772,8 @@ WikiVizView = Backbone.View.extend({
         // Width of mask over which y label is written
         var maskWidth = this.model.get('maskWidth');
         var view = this.model.get('view');
+        
         view.svg = d3.select(this.$('#view')[0]).append('svg').attr('width', this.model.get('width')).attr('height', this.model.get('height'));
-    
         // Re-arrange coordinate system by setting x=0 to the center of the SVG and flipping the y-axis values.
         // Also, set y=0 offset by maskWidth to the left to simplify math regarding the position of the y-axis title and masking rect.
         view.sview = view.svg.append('g').attr('width', this.model.get('width')).attr('transform', 'translate(' + (maskWidth) + ',' + (this.model.get('height')/2) + ')scale(1,-1)');
@@ -789,7 +830,6 @@ WikiVizView = Backbone.View.extend({
         neglabels.selectAll('.yl').data(view.y.ticks(5)).enter().append('text').attr('class', 'yl')
             .attr('transform', function(d, i) { return 'translate(-8,' + (-view.y(d)) + ')scale(1,-1)' }).text(function(d, i) {return (-Math.exp(d)+1).toPrecision(3);});
     
-    
         // Set up layers for the body
         body.append('g').attr('class', 'bg');
         body.append('g').attr('class', 'mid');
@@ -807,7 +847,6 @@ WikiVizView = Backbone.View.extend({
         this.buildBars(bars, barWidth);
         datum.append('text').attr('class', 'xlabel').text($.proxy(function(d) { return 1+this.model.index(d); }, this))
             .attr('transform', function() { return 'translate(0,' + String(-7) + ')scale(1,-1)rotate(90,0,0)'; });
-        this.buildMonths();
     
         // Group for talk page data entries
         view.tdata = body.select('g.fg').append('g').attr('class', 'tdata');
@@ -968,8 +1007,8 @@ WikiVizView = Backbone.View.extend({
         // In our default mode hide the talk page entries
         $('.talkrow', dialog).addClass('invisible');
         
-        this.updateMode();
-        this.updateSpacing();
+        this.updateMode({silent:true});
+        this.updateSpacing({silent:true});
     },
     
     render: function(){
