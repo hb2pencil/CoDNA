@@ -101,11 +101,22 @@ header h1 {
 }
 
 .info_link > img {
+    width: 200px;
+    height: 108px;
     border: 1px solid #AAAAAA;
 }
 
 .info_link > img:hover {
     border: 1px solid #80CC28;
+}
+
+#article_info .iframe_overlay {
+    z-index: 2;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top:0;
+    left:0;
 }
 
 #toolbar_wrapper {

@@ -8,20 +8,26 @@ WikiVizView = Backbone.View.extend({
         this.listenTo(this.model.get('data'), "sync", this.initViz);
         this.navctl = new NavCtlView({viz: this});
         this.view = options.view;
-        this.listenTo(this.model, "change:width", this.initViz);
-        this.listenTo(this.model, "change:height", this.initViz);
+        this.listenTo(this.model, "change:width", $.proxy(function(){
+            this.initViz();
+            this.buildMonths();
+        }, this));
+        this.listenTo(this.model, "change:height", $.proxy(function(){
+            this.initViz();
+            this.buildMonths();
+        }, this));
         this.listenTo(this.model, "change:numDots", this.updateDots);
         this.listenTo(this.model, "change:numBars", this.updateBars);
         this.listenTo(this.model, "change:mode", this.updateMode);
         this.listenTo(this.model, "change:isTimeSpaced", this.updateSpacing);
         this.$el.click($.proxy(function(e){
-            if($(e.target).closest(".tooltip").length == 0){
+            if(!$(e.target).hasClass('quality') && !$(e.target).hasClass('event')){
                 this.$(".tooltip").hide();
             }
         }, this));
         this.$("#view").mousemove($.proxy(function(e){
-            this.mouseX = e.offsetX;
-            this.mouseY = e.offsetY;
+            this.mouseX = e.offsetX==undefined?e.originalEvent.layerX:e.offsetX;
+            this.mouseY = e.offsetY==undefined?e.originalEvent.layerY:e.offsetY;
         }, this));
         $(window).resize($.proxy(function(){
             if(this.$("#view").width() > 0){
@@ -113,6 +119,20 @@ WikiVizView = Backbone.View.extend({
         this.model.get('view').body.select('.bg').selectAll('.month').data([]).exit().remove();
     },
     
+    // Calls the correct update function depending on the current mode
+    update: function(){
+        if(this.model.get('mode') == 'art'){
+            this.updateBars();
+        }
+        else if(this.model.get('mode') == 'talk'){
+            this.updateDots();
+        }
+        else if(this.model.get('mode') == 'hybrid'){
+            this.updateBars();
+            this.updateDots();
+        }
+    },
+    
     // Redraw dots here for talk page entries after changing numDots
     updateDots: function(){
         this.model.get('view').tx.range([0, this.calcTalkWidth()]);
@@ -126,7 +146,7 @@ WikiVizView = Backbone.View.extend({
     // Rescale x-axis based on the number of bars that should fit into a screen after changing numBars
     updateBars: function(){
         this.model.get('view').x.range([0, this.calcBarWidth()]);
-        if (!this.model.get('isTimeSpaced')){
+        if(!this.model.get('isTimeSpaced')){
             this.model.get('view').data.selectAll('.datum')
                 .attr('transform', $.proxy(function(d) { return 'translate(' + this.model.get('view').x(this.model.index(d)) + ', 0)'; }, this));
         }
@@ -313,6 +333,7 @@ WikiVizView = Backbone.View.extend({
     // These are the shaded rectangles in the background of the visualization that indicate periods of 1 month.
     // We need to build these to the correct scale so that they line up with the correct revisions.
     buildMonths: function (){
+        var that = this;
         var barWidth = this.calcBarWidth();
         var revdata = this.model.get('data').get('revisions');
         var qualityData = Array();
@@ -376,7 +397,7 @@ WikiVizView = Backbone.View.extend({
                 for(var g = startg; g < googles.length; g++){
                     var google = googles[g];
                     var time = new Date(google.timestamp);
-                    if(curDate >= time){
+                    if(curDate >= time || finalDate.valueOf() == curDate.valueOf()){
                         startg = g + 1;
                         googleData[g] = {l: this.getOffset(i+0.5), 'g': google};
                     }
@@ -427,7 +448,7 @@ WikiVizView = Backbone.View.extend({
     
         var bg = this.model.get('view').body.select('.bg');
     
-        var mts_e = bg.selectAll('.month').data(data, function(d, i) { return i; }).enter();
+        var mts_e = bg.selectAll('.months').selectAll('.month').data(data, function(d, i) { return i; }).enter();
         var mts_g = mts_e.append('g').attr('class', 'month').attr('transform', function(d) { return 'translate(' + d.l + ',0)'; });
         mts_g.append('rect').attr('height', String(this.model.get('height'))).attr('width', function(d) { return (d.r-d.l); })
             .attr('class', function(d, i) { return (i%2 === 0)?('m_odd'):('m_even');}).attr('y', String(-this.model.get('height')/2));
@@ -446,78 +467,88 @@ WikiVizView = Backbone.View.extend({
         mts.select('text.ytext').filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) < blankThreshold;}).attr('opacity', 0);
         mts.select('text.ytext').filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) >= blankThreshold;}).attr('opacity', 1);
         
-        bg.selectAll('.bar').remove();
-        var bar_g = bg.append('g').attr('class', 'bar');
-        bar_g.append('rect').attr('class', 'bar_bg')
-                            .attr('width', '100%')
-                            .attr('height', 35)
-                            .attr('fill', '#F2E4CB');
         this.repositionBar();
-        var lastX = 0;
-        var lastY = -(this.model.get('height')/2);
-        _.each(googleData, $.proxy(function(d){
-            var newX = d.l;
-            var newY = -(this.model.get('height')/2) + (35*(d.g.value/100));
-            bar_g.append('line')
-                .attr('x1', lastX)
-                .attr('y1', lastY)
-                .attr('x2', newX)
-                .attr('y2', newY)
-                .attr('class', 'google');
-            lastX = newX;
-            lastY = newY;
-        }, this));
+        
+        // Render Google Trend Data
+        var lastX1 = 0;
+        var lastY1 = -(this.model.get('height')/2);
+        var bar_g = bg.selectAll('.bar').selectAll('.google').data(googleData, function(d, i) { return i; }).enter();
+        var half_height = this.model.get('height')/2;
+        bar_g.append('line')
+             .attr('class', 'google');
+        bg.selectAll('.google')
+             .attr('x1', function(d){ var lastX = lastX1; lastX1 = d.l; return lastX;})
+             .attr('y1', function(d){ var lastY = lastY1; lastY1 = -half_height + (35*(d.g.value/100)); return lastY;})
+             .attr('x2', function(d){ return d.l; })
+             .attr('y2', function(d){ return -half_height + (35*(d.g.value/100));});
+        
+        // Render Quality Data
         var r = 8;
-        _.each(qualityData, $.proxy(function(d){
-            var text = "<table>";
-            _.each(d.q.description, function(val, i){
-                text += "<tr><td align='right'>" + i + ":&nbsp;</td><td>" + val + "</td></tr>";
-            });
-            text += "<tr><td colspan='2'>" + Helper.formatDate(new Date(d.q.cutoff), false) + "</td></tr>"
-            
-            if(d.q.metric == 'CoDNA'){
-                text += "<tr><td colspan='2'><a style='float:right;' href='http://dl.acm.org/citation.cfm?id=2069609' target='_blank'>Source</a></td></tr>";
+        var bar_g = bg.selectAll('.bar').selectAll('.quality').data(qualityData, function(d, i) { return i; }).enter();
+        bar_g.append('circle')
+             .attr('class', 'quality');
+        bg.selectAll('.quality')
+          .attr('r', r)
+          .attr('transform', function(d){ return 'translate(' + (d.l-r) + ',-' + (half_height - r*2) + ')'; })
+          .attr('fill', '#2C5C7D')
+          .on('click', function(d){
+            var uid = 'quality-' + d.q.cuttoff;
+            var clone = that.$("#" + uid);
+            that.$(".tooltip").not(clone).hide();
+            if(clone.length == 0){
+                var text = "<table>";
+                _.each(d.q.description, function(val, i){
+                    text += "<tr><td align='right'>" + i + ":&nbsp;</td><td>" + val + "</td></tr>";
+                });
+                text += "<tr><td colspan='2'>" + Helper.formatDate(new Date(d.q.cutoff), false) + "</td></tr>"
+
+                if(d.q.metric == 'CoDNA'){
+                    text += "<tr><td colspan='2'><a style='float:right;' href='http://dl.acm.org/citation.cfm?id=2069609' target='_blank'>Source</a></td></tr>";
+                }
+                text += "</table>";
+                var clone = $(_.template($("#tooltip_template").html())({
+                    title: "CoDNA Ranking",
+                    text: text,
+                    uid: uid
+                }));
+                that.$('#view').append(clone);
+                clone = that.$("#" + uid);
             }
-            text += "</table>";
-            var clone = $(_.template($("#tooltip_template").html())({
-                title: "CoDNA Ranking",
-                text: text
-            }));
-            this.$('#view').append(clone);
-            bar_g.append('circle').attr('r', r)
-                                  .attr('transform', 'translate(' + (d.l) + ',-' + (this.model.get('height')/2 - r*2) + ')')
-                                  .attr('fill', '#2C5C7D');
-            $(".bar circle").last().click($.proxy(function(){
-                _.defer($.proxy(function(){
-                    $(".tooltip").not(clone).fadeOut();
-                    clone.fadeToggle();
-                    var height = $(clone[1]).outerHeight();
-                    var width = $(clone[1]).outerWidth();
-                    clone.css('left', this.mouseX - width/2)
-                         .css('top', this.mouseY - r*2 - height);
-                }, this));
-            }, this));
-        }, this));
-        _.each(eventsData, $.proxy(function(d){
-            var clone = $(_.template($("#tooltip_template").html(), {
-                title: d.e.title,
-                text: d.e.description + "<br />Date:&nbsp;" + Helper.formatDate(new Date(d.e.timestamp), false),
-            }));
-            this.$('#view').append(clone);
-            bar_g.append('circle').attr('r', r)
-                                  .attr('transform', 'translate(' + (d.l) + ',-' + (this.model.get('height')/2 - r*2) + ')')
-                                  .attr('fill', '#8B2C0D');
-            $(".bar circle").last().click($.proxy(function(){
-                _.defer($.proxy(function(){
-                    $(".tooltip").not(clone).fadeOut();
-                    clone.fadeToggle();
-                    var height = $(clone[1]).outerHeight();
-                    var width = $(clone[1]).outerWidth();
-                    clone.css('left', this.mouseX - width/2)
-                         .css('top', this.mouseY - r*2 - height);
-                }, this));
-            }, this));
-        }, this));
+            clone.toggle();
+            var height = clone.outerHeight(true);
+            var width = clone.outerWidth(true);
+            clone.css('left', Math.floor((that.mouseX - width/2)/10)*10)
+                 .css('top', Math.floor((that.mouseY - r*2 - height)/10)*10);
+          });
+
+        // Render Google Events Data
+        var r = 8;
+        var bar_g = bg.selectAll('.bar').selectAll('.event').data(eventsData, function(d, i) { return i; }).enter();
+        bar_g.append('circle')
+             .attr('class', 'event');
+        bg.selectAll('.event')
+          .attr('r', r)
+          .attr('transform', function(d){ return 'translate(' + (d.l) + ',-' + (half_height - r*2) + ')'; })
+          .attr('fill', '#8B2C0D')
+          .on('click', function(d){
+            var uid = 'event-' + d.e.cuttoff;
+            var clone = that.$("#" + uid);
+            that.$(".tooltip").not(clone).hide();
+            if(clone.length == 0){
+                var clone = $(_.template($("#tooltip_template").html(), {
+                    title: d.e.title,
+                    text: d.e.description + "<br />Date:&nbsp;" + Helper.formatDate(new Date(d.e.timestamp), false),
+                    uid: uid
+                }));
+                that.$('#view').append(clone);
+                clone = that.$("#" + uid);
+            }
+            clone.toggle();
+            var height = clone.outerHeight(true);
+            var width = clone.outerWidth(true);
+            clone.css('left', Math.floor((that.mouseX - width/2)/10)*10)
+                 .css('top', Math.floor((that.mouseY - r*2 - height)/10)*10);
+          });
     
         var mts_x = mts.exit();
         mts_x.attr('opacity', 0).remove();
@@ -527,7 +558,15 @@ WikiVizView = Backbone.View.extend({
         this.$(".tooltip").hide();
         var bg = this.model.get('view').body.select('.bg');
         var bar_g = bg.selectAll('.bar_bg');
-        bar_g.attr('transform', 'translate(' + this.navctl.getPanOffset() + ',-' + (this.model.get('height')/2) + ')');
+        if(bar_g.empty()){
+            var bar = bg.append('g').attr('class', 'bar');
+            bar.append('rect').attr('class', 'bar_bg')
+                              .attr('width', '100%')
+                              .attr('height', 35)
+                              .attr('fill', '#F2E4CB');
+            bar_g = bg.selectAll('.bar_bg');
+        }
+        bar_g.attr('transform', 'translate(' + (-50 + this.navctl.getPanOffset()) + ',-' + (this.model.get('height')/2) + ')');
     },
     
     // Append the callouts that correspond to the talk-page entries for our article to the given element.
@@ -599,6 +638,9 @@ WikiVizView = Backbone.View.extend({
         } else {
             this.navctl.toAdjacentSpaced();
             this.toAdjacentSpaced(options);
+        }
+        if(!options.silent){
+            this.update();
         }
     },
     
@@ -706,6 +748,9 @@ WikiVizView = Backbone.View.extend({
             d3.select(this.$('.fg')[0]).attr('transform', 'translate(0, 0)');
             d3.selectAll('g.ylabel').attr('opacity', 1);
         }
+        if(!options.silent){
+            this.update();
+        }
     },
     
     // Init visualization with a given article.
@@ -776,7 +821,7 @@ WikiVizView = Backbone.View.extend({
         view.svg = d3.select(this.$('#view')[0]).append('svg').attr('width', this.model.get('width')).attr('height', this.model.get('height'));
         // Re-arrange coordinate system by setting x=0 to the center of the SVG and flipping the y-axis values.
         // Also, set y=0 offset by maskWidth to the left to simplify math regarding the position of the y-axis title and masking rect.
-        view.sview = view.svg.append('g').attr('width', this.model.get('width')).attr('transform', 'translate(' + (maskWidth) + ',' + (this.model.get('height')/2) + ')scale(1,-1)');
+        view.sview = view.svg.append('g').attr('width', this.model.get('width')).attr('transform', 'translate(' + (maskWidth) + ',' + (Math.floor(this.model.get('height')/2)) + ')scale(1,-1)');
     
         // Init the x and y scale objects.
         view.x = d3.scale.linear();
@@ -815,12 +860,14 @@ WikiVizView = Backbone.View.extend({
     
         var body = view.body;
         // Append x-axis
-        view.sview.append('g').attr('class', 'xaxis').append('line').attr('x2', this.model.get('width'));
+        view.sview.append('g').attr('class', 'xaxis').append('line')
+                                                     .attr('x2', this.model.get('width') + 50)
+                                                     .attr('x1', -50);
     
         // Y-label and mask group
         var ylabel = view.sview.append('g').attr('class', 'ylabel');
         // Append mask for y-label
-        ylabel.append('rect').attr('class', 'ymask').attr('width', maskWidth).attr('height', this.model.get('height')).attr('y', -this.model.get('height')/2).attr('x', -maskWidth);
+        ylabel.append('rect').attr('class', 'ymask').attr('width', maskWidth).attr('height', this.model.get('height')).attr('y', -Math.floor(this.model.get('height')/2)).attr('x', -maskWidth);
         // Append y-label string
         ylabel.append('text').attr('transform', 'translate(' + -(maskWidth-10) + ', 0)rotate(90, 0, 0)scale(1, -1)').text('Revision Size');
         var poslabels = ylabel.append('g');
@@ -834,6 +881,8 @@ WikiVizView = Backbone.View.extend({
         body.append('g').attr('class', 'bg');
         body.append('g').attr('class', 'mid');
         body.append('g').attr('class', 'fg');
+        
+        body.selectAll('.bg').append('g').attr('class', 'months');
     
         // Create a group for the article revision datum elements.
         view.data = body.select('g.mid').append('g').attr('class', 'data');
@@ -854,8 +903,6 @@ WikiVizView = Backbone.View.extend({
             .append('g').attr('class', 'tdatum')
             .attr('transform', $.proxy(function(d) { return 'translate(' + view.x(this.model.index(d)) + ', 0)'; }, this)).attr('opacity', 0);
         this.appendCallout(tentries);
-    
-        //this.model.set('isTimeSpaced', false);
         
         // Init the timeX scale with the min and max dates
         var minDate = _.first(this.model.get('data').get('revisions')).date;
@@ -907,7 +954,6 @@ WikiVizView = Backbone.View.extend({
                 return d;
             });
         }
-
         
         // Clicking on one of the option elements should deselect all checkboxes
         $('#userselect option', dialog).click(function() {

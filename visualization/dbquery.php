@@ -110,19 +110,19 @@
             $stmt->bind_result($userid, $user, $timestamp, $userclass, $flagged);
             $history = array();
             while ($stmt->fetch()) {
-                $group = "Anon";
+                $group = "Unregistered User";
                 switch(trim($userclass)){
                     case "Unregistered Users":
-                        $group = "Anon";
+                        $group = "Unregistered User";
                         break;
                     case "Registered Users":
-                        $group = "User";
+                        $group = "Registered User";
                         break;
                     case "Executives":
-                        $group = "Admin";
+                        $group = "Executive";
                         break;
                     case "Super Users":
-                        $group = "Power User";
+                        $group = "Super User";
                         break;
                     case "Bot":
                         $group = "Bot";

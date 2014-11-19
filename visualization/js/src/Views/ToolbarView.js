@@ -59,9 +59,11 @@ ToolbarView = Backbone.View.extend({
                             // If the event is the checking of a checkbox
                             if ($(this).attr('checked')) {
                                 wikiviz.get('view').data.selectAll('.datum').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 1);
+                                article.viz.navctl.bg.selectAll('rect').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 1);
                             // Checkbox was unchecked
                             } else {
                                 wikiviz.get('view').data.selectAll('.datum').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 0.2);
+                                article.viz.navctl.bg.selectAll('rect').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 0.2);
                             }
                             $('#t_deselect', dialog).button('enable');
                         });
@@ -245,8 +247,6 @@ ToolbarView = Backbone.View.extend({
                         }
                         classMap[c.get('codna')].push(c.get('id'));
                     });
-                    
-                    
                 
                     // Legend selection functionality (by varying opacity)
                     $('#d_legend_accordion h3', dialog).each(function (i, el) {

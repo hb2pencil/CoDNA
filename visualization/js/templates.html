@@ -228,7 +228,7 @@
 <script type="text/template" id="article_info_template"></>
     <h3 class="article_title"><%= title.replace(/_/g, ' ') %></h3>
     <h4 class="article_subTitle">Wikipedia Project</h4>
-    <div style="text-align:center;width:100%;"><a class="info_link" target="_blank" href="http://en.wikipedia.org/wiki/<%= title %>"><img src="img/thumb_ex.png" alt="<%= title %>" /></a></div>
+    <div style="text-align:center;width:100%;"><a class="info_link" target="_blank" href="http://en.wikipedia.org/wiki/<%= title %>"><img src="lib/screen/shot.php?url=http://en.wikipedia.org/wiki/<%= title %>&w=1024&h=552&clipw=1024&cliph=552" alt="<%= title %>" /></a></div>
     <b>Key Statistics</b>
     <div>
         <%= _.size(data.get('revisions')) %> edits by <%= _.size(data.get('users')) %> contributors<br />
@@ -272,16 +272,6 @@
                 <li><a href="#groups_select">Groups</a></li>
             </ul>
             <div id="users_select">
-                <div id="select_checkboxes">
-                    <h3>Quick Select:</h3>
-                    <table>
-                        <tr><td><input type="checkbox" name="userclassselect" value="Anon" /></td><td>Anonymous Users</td></tr>
-                        <tr><td><input type="checkbox" name="userclassselect" value="User" /></td><td>Registered Users</td></tr>
-                        <tr><td><input type="checkbox" name="userclassselect" value="Power User" /></td><td>Power Users</td></tr>
-                        <tr><td><input type="checkbox" name="userclassselect" value="Admin" /></td><td>Administrators</td></tr>
-                        <tr><td><input type="checkbox" name="userclassselect" value="Bot" /></td><td>Bots</td></tr>
-                    </table>
-                </div>
                 <div id="select_users">
                     <select size="7" name="userselect" id="userselect" multiple="yes">
                         
@@ -293,13 +283,13 @@
             </div>
             <div id="groups_select">
                 <div id="d_select_groups_accordion">
-                    <h3><a href="#" class="leganchor"><input type="checkbox" name="groupselect" value="Anon" checked="checked" /><span class="leglabel">Anonymous Users</span></a></h3>
+                    <h3><a href="#" class="leganchor"><input type="checkbox" name="groupselect" value="Unregistered User" checked="checked" /><span class="leglabel">Unregistered Users</span></a></h3>
                     <div><p>Users who are not logged in. These users are associated with an IP address and usually not have a wikipedia account.</p></div>
-                    <h3><a href="#" class="leganchor"><input type="checkbox" name="groupselect" value="User" checked="checked" /><span class="leglabel">Registered Users</span></a></h3>
+                    <h3><a href="#" class="leganchor"><input type="checkbox" name="groupselect" value="Registered User" checked="checked" /><span class="leglabel">Registered Users</span></a></h3>
                     <div><p>Users who are logged in with a Wikipedia account without significant additional privileges. These users may edit some articles that anonymous users cannot.</p></div>
-                    <h3><a href="#" class="leganchor"><input type="checkbox" name="groupselect" value="Power User" checked="checked" /><span class="leglabel">Power Users</span></a></h3>
+                    <h3><a href="#" class="leganchor"><input type="checkbox" name="groupselect" value="Super User" checked="checked" /><span class="leglabel">Super Users</span></a></h3>
                     <div><p>Registered users with a selection of enhanced privileges and access rights. These privileges are given to editors that are trusted by the community.</p></div>
-                    <h3><a href="#" class="leganchor"><input type="checkbox" name="groupselect" value="Admin" checked="checked" /><span class="leglabel">Administrators</span></a></h3>
+                    <h3><a href="#" class="leganchor"><input type="checkbox" name="groupselect" value="Executive" checked="checked" /><span class="leglabel">Executives</span></a></h3>
                     <div><p>Registered users with many advanced and/or restricted privileges, such as the ability to delete articles, sanction users, or change user privileges. These users are highly trusted by the community.</p></div>
                     <h3><a href="#" class="leganchor"><input type="checkbox" name="groupselect" value="Bot" checked="checked" /><span class="leglabel">Bots</span></a></h3>
                     <div><p>Autonomous or semi-autonomous computer programs that are approved by the community to operate on Wikipedia. Bots exist to remove spam, fix typos or spelling mistakes, and to perform routine maintenance tasks on Wikipedia.</p></div>
@@ -440,8 +430,8 @@
     </div>
 </script>
 <script type="text/template" id="tooltip_template"></>
-    <div style='display:none;' class='tooltip'>
-        <div class='title'><%= title %></div>
-        <div class='body'><%= text %></div>
+    <div style="display:none;" class="tooltip" id="<%= uid %>">
+        <div class="title"><%= title %></div>
+        <div class="body"><%= text %></div>
     </div>
 </script>

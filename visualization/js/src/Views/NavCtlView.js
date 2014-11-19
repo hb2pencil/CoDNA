@@ -15,7 +15,8 @@ NavCtlView = Backbone.View.extend({
     
     // Adjust the slider when we switch to time-spaced mode.
     // Use a new time-spaced scale for display.
-    toTimeSpaced: function() {
+    toTimeSpaced: function(options) {
+        options = options != undefined ? options : {silent: true};
         var minDate = _.first(this.viz.model.get('data').get('revisions')).date;
     
         this.xscale = d3.time.scale();
@@ -38,12 +39,13 @@ NavCtlView = Backbone.View.extend({
         this.bg.select('g.navbars').selectAll('circle.tcircle').data(this.viz.model.get('data').get('talk'))
             .attr('cx', function(d) { return that.xscale(d.date); });
     
-        this.onSlide({silent: true});
-        this.onScale({silent: true});
+        this.onSlide(options);
+        this.onScale(options);
     },
 
     // When we switch to adjacent-spaced mode, switch back to using a linear scale for display.
-    toAdjacentSpaced: function() {
+    toAdjacentSpaced: function(options) {
+        options = options != undefined ? options : {silent: true};
         this.xscale = d3.scale.linear();
         if (this.viz.model.get('mode') == 'talk')
             this.xscale.domain([0, this.viz.model.get('data').get('talk').length-1]);
@@ -66,8 +68,8 @@ NavCtlView = Backbone.View.extend({
         this.bg.select('g.navbars').selectAll('circle').data(this.viz.model.get('data').get('talk'))
             .attr('cx', function(d, i) { return that.xscale(i); });
     
-        this.onSlide({silent: true});
-        this.onScale({silent: false});
+        this.onSlide(options);
+        this.onScale(options);
     },
     
     // Change the apperance of the navctl based on the current mode
@@ -95,7 +97,6 @@ NavCtlView = Backbone.View.extend({
 
     // Increase/Decrease the range of the chart
     onScale: function(options) {
-        
         options = options != undefined ? options : {};
         if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'art') {
             this.viz.model.set('numBars', this.getNumBars(), options);
