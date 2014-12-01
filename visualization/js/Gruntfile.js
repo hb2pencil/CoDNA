@@ -51,7 +51,7 @@ module.exports = function(grunt) {
   // Load tasks
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-docco2');
+  grunt.loadNpmTasks('grunt-docco3');
 
   // Default task.
   grunt.registerTask('build', ['concat', 'uglify', 'docco']);

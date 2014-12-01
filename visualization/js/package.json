@@ -2,7 +2,7 @@
   "title": "CoDNA",
   "name": "codna",
   "description": "Wikipedia Collaboration Visualization",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "Henry Brausen, David Turner"
   },
@@ -13,7 +13,7 @@
     "grunt": ">=0.4.1",
     "grunt-contrib-concat": "*",
     "grunt-contrib-uglify": "*",
-    "grunt-docco2": "*",
+    "grunt-docco3": "*",
     "docco": "*"
   },
   "homepage": "https://github.com/hb2pencil/CoDNA",

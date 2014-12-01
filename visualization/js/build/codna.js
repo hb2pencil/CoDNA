@@ -2104,19 +2104,19 @@ WikiVizView = Backbone.View.extend({
     
     // Rescale x-axis based on the number of bars that should fit into a screen after changing numBars
     updateBars: function(){
-        this.model.get('view').x.range([0, this.calcBarWidth()]);
+        var barWidth = this.calcBarWidth();
+        this.model.get('view').x.range([0, barWidth]);
         if(!this.model.get('isTimeSpaced')){
             this.model.get('view').data.selectAll('.datum')
                 .attr('transform', $.proxy(function(d) { return 'translate(' + this.model.get('view').x(this.model.index(d)) + ', 0)'; }, this));
         }
-        var that = this;
-        this.model.get('view').data.selectAll('.datum').selectAll('.bars rect').attr('width', this.calcBarWidth());
+        this.model.get('view').data.selectAll('.datum').selectAll('.bars rect').attr('width', barWidth);
         // Hide x labels that would overlap!
         try{
             // This can sometimes fail, so gracefully fail if it does
-            this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width <= that.calcBarWidth(); })
+            this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width <= barWidth; })
                 .attr('opacity', 1);
-            this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width > that.calcBarWidth(); })
+            this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width > barWidth; })
                 .attr('opacity', 0);
         }
         catch (e){
@@ -2407,14 +2407,27 @@ WikiVizView = Backbone.View.extend({
     
         var bg = this.model.get('view').body.select('.bg');
     
-        var mts_e = bg.selectAll('.months').selectAll('.month').data(data, function(d, i) { return i; }).enter();
-        var mts_g = mts_e.append('g').attr('class', 'month').attr('transform', function(d) { return 'translate(' + d.l + ',0)'; });
-        mts_g.append('rect').attr('height', String(this.model.get('height'))).attr('width', function(d) { return (d.r-d.l); })
-            .attr('class', function(d, i) { return (i%2 === 0)?('m_odd'):('m_even');}).attr('y', String(-this.model.get('height')/2));
-        mts_g.append('text').attr('class', 'mtext').text(function(d) { return months[d.m]; }).attr('transform', $.proxy(function(d) { return 'translate(5,' + (this.model.get('height')/2 - 15) + ')scale(1,-1)';}, this)).attr('opacity', 1).filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) < blankThreshold;}).attr('opacity', 0);
-        mts_g.append('text').attr('class', 'ytext').text(function(d) { return String(d.y); }).attr('transform', $.proxy(function(d) { return 'translate(5,' + (this.model.get('height')/2 - 30) + ')scale(1,-1)';}, this)).attr('opacity', 1).filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) < blankThreshold;}).attr('opacity', 0);
+        var mts_e = bg.selectAll('.months').selectAll('.month').data(data).enter();
+        var mts_g = mts_e.append('g').attr('class', 'month')
+                                     .attr('transform', function(d) { return 'translate(' + d.l + ',0)'; });
+        mts_g.append('rect').attr('height', String(this.model.get('height')))
+                            .attr('width', function(d) { return (d.r-d.l); })
+                            .attr('class', function(d, i) { return (i%2 === 0)?('m_odd'):('m_even');})
+                            .attr('y', String(-this.model.get('height')/2));
+        mts_g.append('text').attr('class', 'mtext')
+                            .text(function(d) { return months[d.m]; })
+                            .attr('transform', 'translate(5,' + (this.model.get('height')/2 - 15) + ')scale(1,-1)')
+                            .attr('opacity', 1)
+                            .filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) < blankThreshold;})
+                            .attr('opacity', 0);
+        mts_g.append('text').attr('class', 'ytext')
+                            .text(function(d) { return String(d.y); })
+                            .attr('transform', 'translate(5,' + (this.model.get('height')/2 - 30) + ')scale(1,-1)')
+                            .attr('opacity', 1)
+                            .filter(function(d) { return ((d.r-d.l) - this.getComputedTextLength()) < blankThreshold;})
+                            .attr('opacity', 0);
     
-        mts = this.model.get('view').body.selectAll('.month').data(data, function(d, i) { return i; });
+        mts = this.model.get('view').body.selectAll('.month').data(data);
         var mts_t = mts;
         mts_t.attr('transform', function(d) { return 'translate(' + d.l + ',0)'; });
         mts_t.select('rect').attr('width', function(d) { return (d.r-d.l); });;
@@ -2431,7 +2444,7 @@ WikiVizView = Backbone.View.extend({
         // Render Google Trend Data
         var lastX1 = 0;
         var lastY1 = -(this.model.get('height')/2);
-        var bar_g = bg.selectAll('.bar').selectAll('.google').data(googleData, function(d, i) { return i; }).enter();
+        var bar_g = bg.selectAll('.bar').selectAll('.google').data(googleData).enter();
         var half_height = this.model.get('height')/2;
         bar_g.append('line')
              .attr('class', 'google');
@@ -2443,7 +2456,7 @@ WikiVizView = Backbone.View.extend({
         
         // Render Quality Data
         var r = 8;
-        var bar_g = bg.selectAll('.bar').selectAll('.quality').data(qualityData, function(d, i) { return i; }).enter();
+        var bar_g = bg.selectAll('.bar').selectAll('.quality').data(qualityData).enter();
         bar_g.append('circle')
              .attr('class', 'quality');
         bg.selectAll('.quality')
@@ -2482,7 +2495,7 @@ WikiVizView = Backbone.View.extend({
 
         // Render Google Events Data
         var r = 8;
-        var bar_g = bg.selectAll('.bar').selectAll('.event').data(eventsData, function(d, i) { return i; }).enter();
+        var bar_g = bg.selectAll('.bar').selectAll('.event').data(eventsData).enter();
         bar_g.append('circle')
              .attr('class', 'event');
         bg.selectAll('.event')
@@ -2517,14 +2530,6 @@ WikiVizView = Backbone.View.extend({
         this.$(".tooltip").hide();
         var bg = this.model.get('view').body.select('.bg');
         var bar_g = bg.selectAll('.bar_bg');
-        if(bar_g.empty()){
-            var bar = bg.append('g').attr('class', 'bar');
-            bar.append('rect').attr('class', 'bar_bg')
-                              .attr('width', '100%')
-                              .attr('height', 35)
-                              .attr('fill', '#F2E4CB');
-            bar_g = bg.selectAll('.bar_bg');
-        }
         bar_g.attr('transform', 'translate(' + (-50 + this.navctl.getPanOffset()) + ',-' + (this.model.get('height')/2) + ')');
     },
     
@@ -2842,6 +2847,11 @@ WikiVizView = Backbone.View.extend({
         body.append('g').attr('class', 'fg');
         
         body.selectAll('.bg').append('g').attr('class', 'months');
+        var bar = body.selectAll('.bg').append('g').attr('class', 'bar');
+            bar.append('rect').attr('class', 'bar_bg')
+                              .attr('width', '100%')
+                              .attr('height', 35)
+                              .attr('fill', '#F2E4CB');
     
         // Create a group for the article revision datum elements.
         view.data = body.select('g.mid').append('g').attr('class', 'data');
