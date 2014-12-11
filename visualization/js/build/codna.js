@@ -2325,8 +2325,10 @@ WikiVizView = Backbone.View.extend({
         }, this));
         $(window).resize($.proxy(function(){
             if(this.$("#view").width() > 0 || this.$("#ownershipvis").width() > 0){
-                this.model.set('width', this.$("#view").width());
-                this.model.set('height', this.$("#view").height());
+                var width = Math.max(this.$("#view").width(), this.$("#ownershipvis").width());
+                var height = Math.max(this.$("#view").height(), this.$("#ownershipvis").height());
+                this.model.set('width', width);
+                this.model.set('height', height);
             }
         }, this));
     },

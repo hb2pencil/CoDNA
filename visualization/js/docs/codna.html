@@ -4457,8 +4457,10 @@ UserInfoView = Backbone.View.extend({
         }, <span class="hljs-keyword">this</span>));
         $(<span class="hljs-built_in">window</span>).resize($.proxy(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
             <span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.$(<span class="hljs-string">"#view"</span>).width() &gt; <span class="hljs-number">0</span> || <span class="hljs-keyword">this</span>.$(<span class="hljs-string">"#ownershipvis"</span>).width() &gt; <span class="hljs-number">0</span>){
-                <span class="hljs-keyword">this</span>.model.set(<span class="hljs-string">'width'</span>, <span class="hljs-keyword">this</span>.$(<span class="hljs-string">"#view"</span>).width());
-                <span class="hljs-keyword">this</span>.model.set(<span class="hljs-string">'height'</span>, <span class="hljs-keyword">this</span>.$(<span class="hljs-string">"#view"</span>).height());
+                <span class="hljs-keyword">var</span> width = <span class="hljs-built_in">Math</span>.max(<span class="hljs-keyword">this</span>.$(<span class="hljs-string">"#view"</span>).width(), <span class="hljs-keyword">this</span>.$(<span class="hljs-string">"#ownershipvis"</span>).width());
+                <span class="hljs-keyword">var</span> height = <span class="hljs-built_in">Math</span>.max(<span class="hljs-keyword">this</span>.$(<span class="hljs-string">"#view"</span>).height(), <span class="hljs-keyword">this</span>.$(<span class="hljs-string">"#ownershipvis"</span>).height());
+                <span class="hljs-keyword">this</span>.model.set(<span class="hljs-string">'width'</span>, width);
+                <span class="hljs-keyword">this</span>.model.set(<span class="hljs-string">'height'</span>, height);
             }
         }, <span class="hljs-keyword">this</span>));
     },</pre></div></div>
