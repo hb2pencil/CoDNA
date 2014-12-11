@@ -52,6 +52,7 @@
 	        <script type="text/javascript" src="js/src/Models/ArticleSet.js"></script>
 	        <script type="text/javascript" src="js/src/Models/Classification.js"></script>
 	        <script type="text/javascript" src="js/src/Models/WikiViz.js"></script>
+	        <script type="text/javascript" src="js/src/Models/Sentences.js"></script>
 	        
 	        <!-- Views -->
 	        <script type="text/javascript" src="js/src/Views/DialogView.js"></script>
@@ -64,6 +65,7 @@
 	        <script type="text/javascript" src="js/src/Views/UserInfoView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/ToolbarView.js"></script>
 	        <script type="text/javascript" src="js/src/Views/NavCtlView.js"></script>
+	        <script type="text/javascript" src="js/src/Views/SentencesView.js"></script>
 	        
 	        <!-- Other -->
 	        <script type="text/javascript" src="js/src/helpers.js"></script>

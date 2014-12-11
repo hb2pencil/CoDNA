@@ -110,15 +110,6 @@ header h1 {
     border: 1px solid #80CC28;
 }
 
-#article_info .iframe_overlay {
-    z-index: 2;
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    top:0;
-    left:0;
-}
-
 #toolbar_wrapper {
 	width: 52px;
 	text-align: center;
@@ -398,7 +389,7 @@ table.new_article .ui-tabs-selected {
 	margin-right: 50px;
 }
 
-#userselect {
+#userselect, #userselect2 {
 	width: 100%;
 }
 
@@ -1054,4 +1045,12 @@ table.new_article button.small {
 
 .tooltip a {
     color: #33AAFF;
+}
+
+/* Ownership Vis */
+
+g.section > .outline {
+    fill: white;
+    stroke: black; 
+    stroke-width: 1;
 }

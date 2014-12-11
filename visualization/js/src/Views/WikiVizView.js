@@ -7,14 +7,17 @@ WikiVizView = Backbone.View.extend({
     initialize: function(options){
         this.listenTo(this.model.get('data'), "sync", this.initViz);
         this.navctl = new NavCtlView({viz: this});
+        this.sentences = new SentencesView({model: new Sentences({articleId: this.model.get('article_id'), setId: this.model.get('set')}), viz: this});
         this.view = options.view;
         this.listenTo(this.model, "change:width", $.proxy(function(){
             this.initViz();
             this.buildMonths();
+            this.sentences.render();
         }, this));
         this.listenTo(this.model, "change:height", $.proxy(function(){
             this.initViz();
             this.buildMonths();
+            this.sentences.render();
         }, this));
         this.listenTo(this.model, "change:numDots", this.updateDots);
         this.listenTo(this.model, "change:numBars", this.updateBars);
@@ -30,7 +33,7 @@ WikiVizView = Backbone.View.extend({
             this.mouseY = e.offsetY==undefined?e.originalEvent.layerY:e.offsetY;
         }, this));
         $(window).resize($.proxy(function(){
-            if(this.$("#view").width() > 0){
+            if(this.$("#view").width() > 0 || this.$("#ownershipvis").width() > 0){
                 this.model.set('width', this.$("#view").width());
                 this.model.set('height', this.$("#view").height());
             }
@@ -39,7 +42,15 @@ WikiVizView = Backbone.View.extend({
 
     // Calculate bar width based on number of bars per screen
     calcBarWidth: function(){
-        var w = (this.model.get('width') - this.model.get('maskWidth'))/(this.model.get('numBars'));
+        var w;
+        if(this.model.get('mode') == 'ownership'){
+            // When using the ownership visualization, there is no mask
+            w = this.model.get('width')/(this.model.get('numBars')*2 - 1);
+        }
+        else{
+            // Consider the ymask when calculation the bar width
+            w = (this.model.get('width') - this.model.get('maskWidth'))/(this.model.get('numBars'));
+        }
         if (this.model.get('isTimeSpaced')) { w = Math.min(w, 7); }
         return w;
     },
@@ -145,6 +156,9 @@ WikiVizView = Backbone.View.extend({
     
     // Rescale x-axis based on the number of bars that should fit into a screen after changing numBars
     updateBars: function(){
+        if(this.model.get('mode') == 'ownership'){
+            return false;
+        }
         var barWidth = this.calcBarWidth();
         this.model.get('view').x.range([0, barWidth]);
         if(!this.model.get('isTimeSpaced')){
@@ -155,10 +169,10 @@ WikiVizView = Backbone.View.extend({
         // Hide x labels that would overlap!
         try{
             // This can sometimes fail, so gracefully fail if it does
-            this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width <= barWidth; })
+            /*this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width <= barWidth; })
                 .attr('opacity', 1);
             this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width > barWidth; })
-                .attr('opacity', 0);
+                .attr('opacity', 0);*/
         }
         catch (e){
         
@@ -568,6 +582,9 @@ WikiVizView = Backbone.View.extend({
     },
     
     repositionBar: function(){
+        if(this.model.get('mode') == 'ownership'){
+            return false;
+        }
         this.$(".tooltip").hide();
         var bg = this.model.get('view').body.select('.bg');
         var bar_g = bg.selectAll('.bar_bg');
@@ -685,6 +702,8 @@ WikiVizView = Backbone.View.extend({
             }
         
             var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
+            $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.talkrow', dialog).addClass('invisible');
             $('.defaultrow', dialog).removeClass('invisible');
         
@@ -722,6 +741,8 @@ WikiVizView = Backbone.View.extend({
             }
         
             var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
+            $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.talkrow', dialog).removeClass('invisible');
             $('.defaultrow', dialog).addClass('invisible');
         
@@ -747,11 +768,19 @@ WikiVizView = Backbone.View.extend({
             d3.selectAll('.month').attr('opacity', 1);
         
             var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
+            $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.talkrow', dialog).removeClass('invisible');
             $('.defaultrow', dialog).removeClass('invisible');
         
             d3.select(this.$('.fg')[0]).attr('transform', 'translate(0, 0)');
             d3.selectAll('g.ylabel').attr('opacity', 1);
+        }
+        else if(this.model.get('mode') == 'ownership'){
+            this.model.set('isTimeSpaced', false);
+            $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
+            $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            this.sentences.updateSentences();
         }
         if(!options.silent){
             this.update();
@@ -797,6 +826,9 @@ WikiVizView = Backbone.View.extend({
         }, this));
         this.$('a[href=#hybridview]').click($.proxy(function(event, ui) {
             this.model.set('mode', 'hybrid');
+        }, this));
+        this.$('a[href=#ownershipview]').click($.proxy(function(event, ui) {
+            this.model.set('mode', 'ownership');
         }, this));
     
         // In the default configuration, we are already in adjacent spacing mode, so we can disable the adjacent spacing button.
@@ -904,8 +936,8 @@ WikiVizView = Backbone.View.extend({
         });
         var bars = datum.append('g').attr('class', 'bars');
         this.buildBars(bars, barWidth);
-        datum.append('text').attr('class', 'xlabel').text($.proxy(function(d) { return 1+this.model.index(d); }, this))
-            .attr('transform', function() { return 'translate(0,' + String(-7) + ')scale(1,-1)rotate(90,0,0)'; });
+        /*datum.append('text').attr('class', 'xlabel').text($.proxy(function(d) { return 1+this.model.index(d); }, this))
+            .attr('transform', function() { return 'translate(0,' + String(-7) + ')scale(1,-1)rotate(90,0,0)'; });*/
     
         // Group for talk page data entries
         view.tdata = body.select('g.fg').append('g').attr('class', 'tdata');
@@ -932,7 +964,6 @@ WikiVizView = Backbone.View.extend({
         if(this.view.subviews.toolbar.subviews.diag_select != undefined){
             dialog = this.view.subviews.toolbar.subviews.diag_select.dialog;
             // Populate user list in the 'select users' dialog.
-            // TODO: Use the values from ownership_results instead
             var userMap = {};
             var revdata = this.model.get('data').get('revisions');
             var totalLev = 0;
@@ -1049,8 +1080,10 @@ WikiVizView = Backbone.View.extend({
             }
         });
         rows.append('td').text(function (d) {
-            return "";
-            //return d.sections.join("; ");
+            if(d.sections == undefined){
+                return "";
+            }
+            return d.sections.join("; ");
         });
         rows.attr('class', function (d) {
             if (d.type === 'talk') return 'data talkrow';

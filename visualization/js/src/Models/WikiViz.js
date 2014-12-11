@@ -24,8 +24,8 @@ WikiViz = Backbone.Model.extend({
             this.set('numDots', Math.max(1, this.get('numDots')));
         });
         this.on("change:numBars", function(){
-            // Make sure numBars is at least 1
-            this.set('numBars', Math.max(1, this.get('numBars')));
+            // Make sure numBars is greater than 0.1
+            this.set('numBars', Math.max(0.1, this.get('numBars')));
         });
     },
     

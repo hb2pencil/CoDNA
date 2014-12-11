@@ -101,13 +101,14 @@
         <div id="right">
             <div id="viewtabs">
                 <ul>
-                    <li><a href="#artview">Project</a></li>
+                    <li><a href="#artview">Production</a></li>
                     <li><a href="#talkview">Discussion</a></li>
-                    <li><a href="#hybridview">Hybrid</a></li>
+                    <li><a href="#hybridview">Production&amp;Discussion</a></li>
+                    <li><a href="#ownershipview">Artifact</a></li>
                     <div id="page_title" style="float: right;"><%= title %></div>
                 </ul>
                 <div id="artview">
-                    <div id="view" class="view ui-corner-all">
+                    <div id="view" class="view">
                         <div id="view_loading">Loading . . .</div>
                         <div class="spacing_wrapper ui-corner-all">
                             <div id="toAdj" class="t_button"></div>
@@ -117,6 +118,9 @@
                 </div>
                 <div id="talkview"></div>
                 <div id="hybridview"></div>
+                <div id="ownershipview">
+                    <div id="ownershipvis" class="view"></div>
+                </div>
                 </div>
             </div>
         </div>
@@ -133,7 +137,7 @@
         <div id="right">
             <div id="viewtabs">
                 <ul>
-                    <li><a href="#artview">Project</a></li>
+                    <li><a href="#artview">Production</a></li>
                     <li><a href="#talkview">Discussion</a></li>
                     <li><a href="#hybridview">Hybrid</a></li>
                     <div id="page_title" style="float: right;"><%= name %></div>
@@ -276,6 +280,9 @@
                     <select size="7" name="userselect" id="userselect" multiple="yes">
                         
                     </select>
+                    <select size="7" name="userselect2" id="userselect2" multiple="yes">
+                        
+                    </select>
                 </div>
                 <div class="select_apply_div">
                     <a id="select_apply">Apply Selection</a>
@@ -401,7 +408,21 @@
 <script type="text/template" id="diag_legend_template"></>
     <div id="<%= _.uniqueId('diag_legend') %>" title="Article Revision Categories">
         <div id="d_legend_accordion" class="d_checkable">
-            <% _.each(_.uniq(classifications.pluck('codna')), function(c){ %>
+            <h3>
+                <a href="#" class="leganchor">
+                    <input type="checkbox" name="editcatselect" value="addrem" checked="checked" />
+                        <div class="l_addremove l_colour"></div>
+                    <span class="leglabel">Content [Addition or Deletion]</span>
+                </a>
+            </h3>
+            <div>
+                <p>The textual description of the encyclopedic entry.</p>
+                <table style="">
+                    <tbody><tr><td class="legLabelTCell"><div class="l_add l_colour"></div></td><td style="text-align: left;">Content Addition</td><td>Addition of substantive new content to the Article</td></tr>
+                    <tr><td class="legLabelBCell"><div class="l_rem l_colour"></div></td><td style="text-align: left;">Content Deletion</td><td>Removal of substantive content from the article.</td></tr>
+                </tbody></table>
+            </div>
+            <% _.each(_.without(_.uniq(classifications.pluck('codna')), "Add New Content", "Delete Content", "Insert Vandalism", "Remove Vandalism"), function(c){ %>
                 <h3>
                     <a href="#" class="leganchor">
                         <input type="checkbox" name="editcatselect" value="<%= c %>" checked="checked" />
@@ -421,6 +442,22 @@
                     </p>
                 </div>
             <% }); %>
+            <h3>
+                <a href="#" class="leganchor">
+                    <input type="checkbox" name="editcatselect" value="vandunvand" checked="checked" />
+                        <div class="l_vandunvand l_colour"></div>
+                    <span class="leglabel">Vandalism [Addition or Deletion]</span>
+                </a>
+            </h3>
+            <div>
+                <p>
+                    Edits that are irrelevant or inappropriate for a particular article, including the deliberate damaging of others’ edits.
+                </p>
+                <table style="margin: 0 auto; clear: both; float: center; width: 100%;">
+                    <tbody><tr><td class="legLabelTCell"><div class="l_vand l_colour"></div></td><td style="text-align: left;">Vandalism Addition</td><td>Insertion of inappropriate content.</td></tr>
+                    <tr><td class="legLabelBCell"><div class="l_unvand l_colour"></div></td><td style="text-align: left;">Vandalism Deletion</td><td>Quality assurance efforts to remove vandalism.</td></tr>
+                </tbody></table>
+            </div>
         </div>
     </div>
 </script>

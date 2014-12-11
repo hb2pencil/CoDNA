@@ -81,7 +81,7 @@ ToolbarView = Backbone.View.extend({
                             });
                             // Use choices to generate selection in Select By User
                             // User names are stored in the "value" property of the options in the select element.
-                            $('#userselect option', dialog).each(function(i, e) {
+                            $('#userselect option, #userselect option', dialog).each(function(i, e) {
                                 if (Helper.isSubset([wikiviz.getGroupsByName($(e).val())], filt)) {
                                     $(e).attr('selected', true);
                                 } else {
@@ -96,7 +96,7 @@ ToolbarView = Backbone.View.extend({
                     // Clicking "Apply User Selection"
                     $('#select_apply', dialog).click(function() {
                         var users = Array();
-                        $('#userselect option:selected', dialog).each(function() { users.push($(this).val()); });
+                        $('#userselect:visible option:selected, #userselect2:visible option:selected', dialog).each(function() { users.push($(this).val()); });
                         article.viz.applyUserSelection(users);
                     });
                 }
@@ -154,7 +154,7 @@ ToolbarView = Backbone.View.extend({
                             });
                             // Use choices to generate selection in Select By User
                             // User names are stored in the "value" property of the options in the select element.
-                            $('#userselect option', dialog).each(function(i, e) {
+                            $('#userselect option, #userselect2 option', dialog).each(function(i, e) {
                                 if (Helper.isSubset([wikiviz.getGroupsByName($(e).val())], filt)) {
                                     $(e).attr('selected', true);
                                 } else {
@@ -169,7 +169,7 @@ ToolbarView = Backbone.View.extend({
                     // Clicking "Apply User Selection"
                     $('#select_apply', dialog).click(function() {
                         var users = Array();
-                        $('#userselect option:selected', dialog).each(function() { users.push($(this).val()); });
+                        $('#userselect:visible option:selected, #userselect2:visible option:selected', dialog).each(function() { users.push($(this).val()); });
                         article.viz.applyUserSelection(users);
                     });
                 }
@@ -231,15 +231,6 @@ ToolbarView = Backbone.View.extend({
                         });
                     });
                     // Mapping from checkbox value to visualization rectangle classes
-                    var classMap = {
-                        addrem: ['add', 'remove'],
-                        edit: ['edit'],
-                        reorganize: ['reorganize'],
-                        cite: ['cite'],
-                        unsure: ['unsure'],
-                        vandunvand: ['vand', 'unvand']
-                    };
-                    
                     var classMap = {};
                     classifications.each(function(c){
                         if(classMap[c.get('codna')] == undefined){
@@ -247,6 +238,9 @@ ToolbarView = Backbone.View.extend({
                         }
                         classMap[c.get('codna')].push(c.get('id'));
                     });
+                
+                    classMap['addrem'] = ['b', 'e'];
+                    classMap['vandunvand'] = ['i', 'j'];
                 
                     // Legend selection functionality (by varying opacity)
                     $('#d_legend_accordion h3', dialog).each(function (i, el) {

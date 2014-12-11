@@ -18,12 +18,13 @@ NavCtlView = Backbone.View.extend({
     toTimeSpaced: function(options) {
         options = options != undefined ? options : {silent: true};
         var minDate = _.first(this.viz.model.get('data').get('revisions')).date;
+        var maxDate = _.last(this.viz.model.get('data').get('revisions')).date;
     
         this.xscale = d3.time.scale();
         // Todo: domain of talk entries may exceed revisions
         this.xscale.domain([new Date(minDate.getFullYear(), minDate.getMonth()),
-            _.last(this.viz.model.get('data').get('revisions')).date]);
-        this.xscale.rangeRound([0, this.dim.w - 2*this.handleWidth]);
+                            maxDate]);
+        this.xscale.rangeRound([0, this.dim.w - 2*this.handleWidth - 50]);
     
         var that = this;
     
@@ -48,9 +49,9 @@ NavCtlView = Backbone.View.extend({
         options = options != undefined ? options : {silent: true};
         this.xscale = d3.scale.linear();
         if (this.viz.model.get('mode') == 'talk')
-            this.xscale.domain([0, this.viz.model.get('data').get('talk').length-1]);
+            this.xscale.domain([0, this.viz.model.get('data').get('talk').length]);
         else
-            this.xscale.domain([0, this.viz.model.get('data').get('revisions').length-1]);
+            this.xscale.domain([0, this.viz.model.get('data').get('revisions').length]);
         
         this.xscale.rangeRound([0, this.dim.w - 2*this.handleWidth]);
     
@@ -91,17 +92,19 @@ NavCtlView = Backbone.View.extend({
 
     // Slide the view when we slide the slider.
     onSlide: function(options) {
-        d3.select(this.viz.$('g.body')[0]).attr('transform', 'translate(' + -Math.round(this.getPanOffset()) + ',0)');
-        this.viz.repositionBar();
+        if(this.viz.model.get('mode') != 'ownership'){
+            d3.selectAll(this.viz.$('g.body')).attr('transform', 'translate(' + -Math.round(this.getPanOffset()) + ',0)');
+            this.viz.repositionBar();
+        }
     },
 
     // Increase/Decrease the range of the chart
     onScale: function(options) {
         options = options != undefined ? options : {};
-        if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'art') {
+        if ((!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'art') || this.viz.model.get('mode') == 'ownership') {
             this.viz.model.set('numBars', this.getNumBars(), options);
         }
-        else if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'talk') {
+        else if ((!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'talk') || this.viz.model.get('mode') == 'ownership') {
             this.viz.model.set('numDots', this.getNumBars(), options);
         }
         else if (this.viz.model.get('isTimeSpaced')) {
@@ -110,8 +113,7 @@ NavCtlView = Backbone.View.extend({
             var d1 = this.xscale.invert(this.sdim.x0);
             var d2 = this.xscale.invert(this.sdim.x0+this.sdim.w-this.handleWidth);
         
-            // The multiplier 0.9 is a quick fix for getting the rightmost bars in TS mode visible.
-            this.viz.model.timeX.rangeRound([0, 0.9*this.viz.model.get('width') * (df-d0) / (d2 - d1)]);
+            this.viz.model.timeX.rangeRound([0, this.viz.model.get('width') * (df-d0) / (d2 - d1)]);
             this.viz.toTimeSpaced(options);
         }
     },
@@ -119,7 +121,10 @@ NavCtlView = Backbone.View.extend({
     // Map slider motion to an offset by which to pan the main view. Behaves differently for time and adjacent spaced modes.
     getPanOffset: function() {
         try{
-            if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'art') {
+            if(this.viz.model.get('mode') == 'ownership'){
+                return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*((this.viz.model.get('data').get('revisions').length*2 + 1)*this.viz.calcBarWidth());
+            }
+            if ((!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'art')) {
                 return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*(this.viz.model.get('data').get('revisions').length*this.viz.calcBarWidth());
             }
             else if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'talk') {
@@ -187,7 +192,7 @@ NavCtlView = Backbone.View.extend({
         this.slider.append('g').attr('class', 'rhandlegrp').attr('transform', 'translate(' + (this.sdim.x0 + this.sdim.w) + ',0)').append('path').attr('d','M0,0 A' + handleWidth + ',' + handleWidth + ' 0 0,1 0,' + handleWidth * 2).attr('class', 'rhandle').attr('width', handleWidth).attr('height', this.dim.h);
     
         this.xscale = d3.scale.linear();
-        this.xscale.domain([0, this.viz.model.get('data').get('revisions').length-1]);
+        this.xscale.domain([0, this.viz.model.get('data').get('revisions').length]);
         this.xscale.rangeRound([0, this.dim.w - 2*handleWidth]);
     
         this.yscale = d3.scale.linear();
@@ -260,12 +265,11 @@ NavCtlView = Backbone.View.extend({
                 var newX0 = (event.pageX - this.sd.dx);
                 if (newX0 < 0) newX0 = 0;
                 if (newX0 > this.sdim.x0 + this.sdim.w - handleWidth) newX0 = this.sdim.x0 + this.sdim.w - handleWidth;
-            
                 var newW = +this.sdim.w - (+newX0 - +this.sdim.x0);
                 if (newW < handleWidth) {
                     newW = handleWidth;
                 }
-            
+                
                 this.sdim.x0 = newX0;
                 this.sdim.w = newW;
             
@@ -281,7 +285,13 @@ NavCtlView = Backbone.View.extend({
                 if (this.sdim.x0 < 0) this.sdim.x0 = 0;
                 if (this.sdim.x0 > this.dim.w - ((handleWidth) + this.sdim.w)) this.sdim.x0 = this.dim.w - ((handleWidth) + this.sdim.w);
                 this.viz.$('.slider').attr('transform', 'translate(' + (this.sdim.x0) + ',0)');
-                this.onSlide();
+                if(this.viz.model.get('mode') == 'ownership'){
+                    // For the ownership view, scaling does both
+                    this.viz.sentences.updateSentences();
+                }
+                else{
+                    this.onSlide();
+                }
             }
         }, this));
         // Once the mouse is released, reset the slider "dragging" state.

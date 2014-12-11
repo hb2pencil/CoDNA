@@ -9,6 +9,7 @@
     session_write_close();
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
+    ini_set('memory_limit','512M');
     require_once('lib/WikiRevision.inc.php');
     
     header('Content-type: application/json');
@@ -69,19 +70,23 @@
         $revdata = array();
         
         $sections = array();
-        /*$stmt = $mysqli->prepare("SELECT DISTINCT a.`rev_id`, r.`attr`
-                                  FROM  `{$table}` a, `ownership_relations` r
-                                  WHERE a.`page_title`=?
-                                  AND r.`rev_id` = a.`rev_id`
-                                  ORDER BY a.`timestamp`");
+        $stmt = $mysqli->prepare("SELECT DISTINCT a.`rev_id`, s.section
+                                  FROM  `{$table}` a, `ownership_relations_jmis` r, `ownership_sentences_jmis` s
+                                  WHERE a.`article_id`=?
+                                  AND a.`rev_id` = s.`rev_id`
+                                  AND s.id = r.sent_id");
         $stmt->bind_param("s", $article);
         $stmt->execute();
-        $stmt->bind_result($revid, $attr);
+        $stmt->bind_result($revid, $section);
         while ($stmt->fetch()) {
-            $attr = json_decode($attr);
-            $section = str_replace("[edit]", "", $attr->section);
+            $section = str_replace("[edit]", "", $section);
+            if($section == $article){
+                $revs = array_values($wikirevs);
+                $section = $revs[0]['page_title'];
+            }
+            $section = utf8_encode($section);
             $sections[$revid][$section] = $section;
-        }*/
+        }
         
         if (!empty($wikirevs)){
             foreach ($wikirevs as $revobj) {
@@ -90,6 +95,7 @@
                 $revdata[] = $array;
             }
         }
+        
         // Build array of all users associated with our selection of revisions
         // and remove duplicates
         $users = array();
@@ -226,6 +232,78 @@
                           'events' => $events,
                           'google' => $google,
                           'talk' => $talk);
+        echo json_encode($response);
+    } else if(isset($_REQUEST['sentences'])){ // Client is requesting article sentence data
+        $colors = array("#33A02C",
+                        "#E31A1C",
+                        "#1F78B4",
+                        "#FF7F00",
+                        "#6A3D9A",
+                        "#B15928",
+                        "#B2DF8A",
+                        "#FDBF6F",
+                        "#CAB2D6",
+                        "#FB9A99",
+                        "#A6CEE3");
+        $article = $mysqli->real_escape_string($_REQUEST['sentences']);
+        $set = $mysqli->real_escape_string($_REQUEST['set']);
+        $table = $set_mappings['articles'][$set];
+        $revdata = array();      
+        $stmt = $mysqli->prepare("SELECT s.id, s.rev_id, s.section, s.owner, s.sentence, s.last_id as last
+                                  FROM `ownership_sentences_jmis` s, `{$table}` t, `articles_to_sets` ss
+                                  WHERE s.talk = 0
+                                  AND t.talk = 0
+                                  AND s.article_id={$article}
+                                  AND t.article_id = s.article_id
+                                  AND t.rev_id = s.rev_id
+                                  AND ss.set_id = {$set}
+                                  AND t.article_id = ss.article_id
+                                  AND ss.cutoff_date > t.rev_date
+                                  ORDER BY id ASC");
+        $stmt->execute();
+        $stmt->bind_result($id, $rev_id, $section, $owner, $sentence, $last);
+        $sentences = array(); // Sentence Hash for compression
+        $users = array();
+        $userColors = array();
+        while ($stmt->fetch()) {
+            $sentence = utf8_encode(strip_tags($sentence));
+            if($sentence == ""){
+                continue;
+            }
+            if($owner == ""){
+                $owner = "Public Domain";
+            }
+            else{
+                @$users[utf8_encode($owner)]++;
+            }
+            
+            if(isset($sentences[$sentence])){
+                $sId = $sentences[$sentence];
+            }
+            else {
+                $sId = count($sentences);
+                $sentences[$sentence] = $sId;
+            }
+            $section = str_replace("[edit]", "", $section);
+            $revdata[$rev_id][$section][] = array('i' => $id,
+                                                  'o' => utf8_encode($owner),
+                                                  's' => $sId,
+                                                  'l' => $last);
+        }
+        asort($users);
+        $users = array_keys(array_reverse($users));
+        foreach($users as $key => $user){
+            if(isset($colors[$key])){
+                $userColors[$user] = $colors[$key];
+            }
+            else{
+                $userColors[$user] = "#C41AA2";
+            }
+        }
+        $userColors["Public Domain"] = "#C41AA2";
+        $response = array('revisions' => $revdata,
+                          'users' => $userColors,
+                          'sentences' => array_flip($sentences));
         echo json_encode($response);
     } else if(isset($_REQUEST['user'])){ // Client is requesting article/revision data
         $user = $_REQUEST['user'];
