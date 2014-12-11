@@ -1,4 +1,4 @@
-//     CoDNA 0.1.0
+//     CoDNA 0.2.0
 //     (c) 2014 Henry Brausen, David Turner
 //     https://github.com/hb2pencil/CoDNA
 //     Released under GPLv2 License
@@ -210,6 +210,27 @@ Backbone.NonUniqueCollection = Backbone.Collection.extend({
 
 });
 
+// ## Sentences
+Sentences = Backbone.Model.extend({
+
+    initialize: function(){
+        
+    },
+    
+    urlRoot: function(){
+        return "dbquery.php?sentences=" + this.get('articleId') + "&set=" + this.get('setId');
+    },
+
+    defaults: {
+        articleId: 0,
+        setId: 0,
+        revisions: {},
+        sentences: {}, // Used for storing unique sentences so that duplicates are not in revisions wasting space
+        users: {}, // Used for storing unique users so that duplicates are not in revisions wasting space
+    }
+
+});
+
 // ## TopTab
 TopTab = Backbone.Model.extend({
 
@@ -361,8 +382,8 @@ WikiViz = Backbone.Model.extend({
             this.set('numDots', Math.max(1, this.get('numDots')));
         });
         this.on("change:numBars", function(){
-            // Make sure numBars is at least 1
-            this.set('numBars', Math.max(1, this.get('numBars')));
+            // Make sure numBars is greater than 0.1
+            this.set('numBars', Math.max(0.1, this.get('numBars')));
         });
     },
     
@@ -657,12 +678,13 @@ NavCtlView = Backbone.View.extend({
     toTimeSpaced: function(options) {
         options = options != undefined ? options : {silent: true};
         var minDate = _.first(this.viz.model.get('data').get('revisions')).date;
+        var maxDate = _.last(this.viz.model.get('data').get('revisions')).date;
     
         this.xscale = d3.time.scale();
         // Todo: domain of talk entries may exceed revisions
         this.xscale.domain([new Date(minDate.getFullYear(), minDate.getMonth()),
-            _.last(this.viz.model.get('data').get('revisions')).date]);
-        this.xscale.rangeRound([0, this.dim.w - 2*this.handleWidth]);
+                            maxDate]);
+        this.xscale.rangeRound([0, this.dim.w - 2*this.handleWidth - 50]);
     
         var that = this;
     
@@ -687,9 +709,9 @@ NavCtlView = Backbone.View.extend({
         options = options != undefined ? options : {silent: true};
         this.xscale = d3.scale.linear();
         if (this.viz.model.get('mode') == 'talk')
-            this.xscale.domain([0, this.viz.model.get('data').get('talk').length-1]);
+            this.xscale.domain([0, this.viz.model.get('data').get('talk').length]);
         else
-            this.xscale.domain([0, this.viz.model.get('data').get('revisions').length-1]);
+            this.xscale.domain([0, this.viz.model.get('data').get('revisions').length]);
         
         this.xscale.rangeRound([0, this.dim.w - 2*this.handleWidth]);
     
@@ -730,17 +752,19 @@ NavCtlView = Backbone.View.extend({
 
     // Slide the view when we slide the slider.
     onSlide: function(options) {
-        d3.select(this.viz.$('g.body')[0]).attr('transform', 'translate(' + -Math.round(this.getPanOffset()) + ',0)');
-        this.viz.repositionBar();
+        if(this.viz.model.get('mode') != 'ownership'){
+            d3.selectAll(this.viz.$('g.body')).attr('transform', 'translate(' + -Math.round(this.getPanOffset()) + ',0)');
+            this.viz.repositionBar();
+        }
     },
 
     // Increase/Decrease the range of the chart
     onScale: function(options) {
         options = options != undefined ? options : {};
-        if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'art') {
+        if ((!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'art') || this.viz.model.get('mode') == 'ownership') {
             this.viz.model.set('numBars', this.getNumBars(), options);
         }
-        else if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'talk') {
+        else if ((!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'talk') || this.viz.model.get('mode') == 'ownership') {
             this.viz.model.set('numDots', this.getNumBars(), options);
         }
         else if (this.viz.model.get('isTimeSpaced')) {
@@ -749,8 +773,7 @@ NavCtlView = Backbone.View.extend({
             var d1 = this.xscale.invert(this.sdim.x0);
             var d2 = this.xscale.invert(this.sdim.x0+this.sdim.w-this.handleWidth);
         
-            // The multiplier 0.9 is a quick fix for getting the rightmost bars in TS mode visible.
-            this.viz.model.timeX.rangeRound([0, 0.9*this.viz.model.get('width') * (df-d0) / (d2 - d1)]);
+            this.viz.model.timeX.rangeRound([0, this.viz.model.get('width') * (df-d0) / (d2 - d1)]);
             this.viz.toTimeSpaced(options);
         }
     },
@@ -758,7 +781,10 @@ NavCtlView = Backbone.View.extend({
     // Map slider motion to an offset by which to pan the main view. Behaves differently for time and adjacent spaced modes.
     getPanOffset: function() {
         try{
-            if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'art') {
+            if(this.viz.model.get('mode') == 'ownership'){
+                return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*((this.viz.model.get('data').get('revisions').length*2 + 1)*this.viz.calcBarWidth());
+            }
+            if ((!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'art')) {
                 return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*(this.viz.model.get('data').get('revisions').length*this.viz.calcBarWidth());
             }
             else if (!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'talk') {
@@ -826,7 +852,7 @@ NavCtlView = Backbone.View.extend({
         this.slider.append('g').attr('class', 'rhandlegrp').attr('transform', 'translate(' + (this.sdim.x0 + this.sdim.w) + ',0)').append('path').attr('d','M0,0 A' + handleWidth + ',' + handleWidth + ' 0 0,1 0,' + handleWidth * 2).attr('class', 'rhandle').attr('width', handleWidth).attr('height', this.dim.h);
     
         this.xscale = d3.scale.linear();
-        this.xscale.domain([0, this.viz.model.get('data').get('revisions').length-1]);
+        this.xscale.domain([0, this.viz.model.get('data').get('revisions').length]);
         this.xscale.rangeRound([0, this.dim.w - 2*handleWidth]);
     
         this.yscale = d3.scale.linear();
@@ -899,12 +925,11 @@ NavCtlView = Backbone.View.extend({
                 var newX0 = (event.pageX - this.sd.dx);
                 if (newX0 < 0) newX0 = 0;
                 if (newX0 > this.sdim.x0 + this.sdim.w - handleWidth) newX0 = this.sdim.x0 + this.sdim.w - handleWidth;
-            
                 var newW = +this.sdim.w - (+newX0 - +this.sdim.x0);
                 if (newW < handleWidth) {
                     newW = handleWidth;
                 }
-            
+                
                 this.sdim.x0 = newX0;
                 this.sdim.w = newW;
             
@@ -920,7 +945,13 @@ NavCtlView = Backbone.View.extend({
                 if (this.sdim.x0 < 0) this.sdim.x0 = 0;
                 if (this.sdim.x0 > this.dim.w - ((handleWidth) + this.sdim.w)) this.sdim.x0 = this.dim.w - ((handleWidth) + this.sdim.w);
                 this.viz.$('.slider').attr('transform', 'translate(' + (this.sdim.x0) + ',0)');
-                this.onSlide();
+                if(this.viz.model.get('mode') == 'ownership'){
+                    // For the ownership view, scaling does both
+                    this.viz.sentences.updateSentences();
+                }
+                else{
+                    this.onSlide();
+                }
             }
         }, this));
         // Once the mouse is released, reset the slider "dragging" state.
@@ -1285,6 +1316,313 @@ ProjectView = Backbone.View.extend({
 
 });
 
+// ## SentencesView
+SentencesView = Backbone.View.extend({
+
+    initialize: function(options){
+        this.viz = options.viz;
+        this.listenTo(this.model, "sync", this.render);
+        this.model.fetch();
+    },
+    
+    // Returns the number of sentences in the largest revision
+    getMaxSentences: function(){
+        return Helper.absMax(_.values(this.model.get('revisions')), function(elem){ return _.reduce(_.values(elem), function(sum, e){return sum += e.length; }, 0); });
+    },
+    
+    // Returns the number of sections in the largest revision
+    getMaxSections: function(){
+        return Helper.absMax(_.values(this.model.get('revisions')), function(elem){ return _.values(elem).length; });
+    },
+    
+    // Calculates the width of each sentence
+    calcBarWidth: function(){
+        return this.viz.calcBarWidth();
+    },
+    
+    // Calculates the height each sentence should be
+    calcBarHeight: function(){
+        return this.viz.model.get('height')/(this.getMaxSentences() + (this.getMaxSections()/2));
+    },
+    
+    // Calculates where the sentence appears vertically
+    calcYPos: function(sentId, barHeight){
+        var ret = 0;
+        var revId = $("#sent_" + sentId).parents(".revision").attr("data-revid");
+        var sections = _.values(this.model.get('revisions')[revId]);
+        var curr = 0;
+        _.each(sections, function(sec){
+            var sentences = _.values(sec);
+            curr += barHeight/2;
+            _.each(sentences, function(s){
+                if(s.i == sentId){
+                    ret = curr;
+                }
+                curr += barHeight;
+            });
+        });
+        return ret;
+    },
+    
+    // Calculates where the section appears vertically
+    calcSecYPos: function(sect, revId, barHeight){
+        var ret = 0;
+        var sections = this.model.get('revisions')[revId];
+        var curr = 0;
+        _.each(sections, function(sec, secText){
+            if(secText == sect){
+                ret = curr;
+            }
+            var sentences = _.values(sec);
+            curr += barHeight/2 + sentences.length*barHeight;
+        });
+        return ret;
+    },
+    
+    // Transforms the svg body so that it scales and translates based on the slider position
+    updateSentences: function(){
+        if(this.viz.model.get('mode') != 'ownership'){
+            return false;
+        }
+        var barWidth = this.calcBarWidth();
+        this.svg.selectAll(".body")
+                .attr("transform", "translate(" + -(this.viz.navctl.getPanOffset()) + ",0) scale(" + barWidth + ", 1)");
+    },
+    
+    buildSentences: function(){
+        var that = this;
+        var barWidth = this.calcBarWidth();
+        var barHeight = this.calcBarHeight();
+        
+        // Create body
+        var body = this.svg.append("g")
+                           .attr("class", "body");
+        
+        // Create Transitions Group
+        var transitions = this.svg.selectAll(".body")
+                                  .selectAll(".transitions")
+                                  .data(_.rest(_.values(this.model.get('revisions')))).enter();
+        
+        // Create Revisions Group
+        var revIds = _.keys(this.model.get('revisions'));
+        var revisions = this.svg.selectAll(".body")
+                                .selectAll(".revision")
+                                .data(_.values(this.model.get('revisions')))
+                                .enter();
+        
+        // Clicking the revision will open the revision in a new tab
+        transitions.append("a")
+                   .attr("class", "transition")
+                   .attr("xlink:href", function(d, i) { return "http://en.wikipedia.org/wiki/" + that.viz.model.get('title') + "?diff=next&oldid=" + revIds[i]; })
+                   .attr("target", "_blank")
+                   .attr("transform", function(d, i) { return "translate(" + that.x(1 + i*2) + ", 0)"; });
+        
+        // Clicking the revision will open the revision in a new tab
+        revisions.append("a")
+                 .attr("class", "revision")
+                 .attr("data-revid", function(d, i) { return revIds[i]; })
+                 .attr("xlink:href", function(d, i) { return "http://en.wikipedia.org/wiki/" + that.viz.model.get('title') + "?oldid=" + revIds[i]; })
+                 .attr("target", "_blank")
+                 .attr("transform", function(d, i) { return "translate(" + that.x(i*2) + ", 0)"; });
+        
+        // Create Sections Group
+        var offset = 0;
+        var sections = this.svg.selectAll(".body")
+                               .selectAll(".revision")
+                               .selectAll(".section")
+                               .data(function(d, i){
+                                   return d3.entries(d); 
+                               }).enter();
+        
+        var sents = new Array();
+        _.each(_.values(this.model.get('revisions')), function(r){
+            _.each(_.values(r), function(sec){
+                _.each(_.values(sec), function(sent){
+                    sents[sent.i] = sent.s;
+                });
+            });
+        });
+        var lastSentences = this.svg.selectAll(".body")
+                                    .selectAll(".transition")
+                                    .selectAll(".lastSentence")
+                                    .data(function(d, i){
+                                        return _.filter(_.flatten(_.values(d), true), function(v){
+                                            return (v.l != 0 && sents[v.l] != undefined); 
+                                        }) 
+                                    }).enter();
+                                    
+        var lastSections = this.svg.selectAll(".body")
+                                   .selectAll(".transition")
+                                   .selectAll(".lastSection")
+                                   .data(function(d, i){
+                                        var ret = new Array();
+                                        var currId = revIds[i+1];
+                                        var lastId = revIds[i];
+                                        var sects = that.model.get('revisions')[lastId];
+                                        var keys = _.keys(d);
+                                        keys = _.filter(keys, function(key){
+                                            return (sects[key] != undefined);
+                                        });
+                                        _.each(keys, function(key){
+                                            ret.push({s: key, i: currId, l: lastId});
+                                        });
+                                        return ret;
+                                   }).enter();
+        
+        sections.append("g")
+                 .attr("class", "section")
+                 .attr("transform", function(d, i) {
+                    if(i == 0){
+                        // If i == 0, then it means this is a new revision
+                        offset = 0;
+                    }
+                    var ret = "translate(0," + that.y(offset) + ")";
+                    // Increment the offset
+                    offset += _.size(d.value) + 0.5; 
+                    return ret;
+                 }).append("rect")
+                   .attr("height", barHeight/2)
+                   .attr("width", 1)
+                   .attr("fill", "black")
+                   .on("mouseover", function(){
+                       // Highlight Color
+                       d3.select(this).attr("fill", "#555555");
+                   })
+                   .on("mouseout", function(){
+                       // Reset Color
+                       d3.select(this).attr("fill", "#000000");
+                   })
+                   .append("title")
+                   .text(function(d, i) { return d.key; });
+        
+        // Create Sentences Rectangles
+        var sentences = this.svg.selectAll(".body")
+                                .selectAll(".revision")
+                                .selectAll(".section")
+                                .selectAll(".sentence")
+                                .data(function(d, i){ return _.values(d.value); })
+                                .enter();
+        
+        sentences.append("rect")
+                 .attr("class", "sentence")
+                 .attr("id", function(d, i){ return "sent_" + d.i; })
+                 .attr("height", Math.max(0.5, barHeight-0.5))
+                 .attr("width", 1)
+                 .attr("transform", function(d, i) { return "translate(0," + that.y(0.5 + i) + ")"; })
+                 .attr("fill", function(d) { return that.model.get("users")[d.o]; })
+                 .on("mouseover", function(){
+                    // Highlight Color
+                    d3.select(this).attr("fill", function(d) { return d3.rgb(that.model.get("users")[d.o]).brighter(0.7); });
+                 })
+                 .on("mouseout", function(){
+                    // Reset Color
+                    d3.select(this).attr("fill", function(d) { return that.model.get("users")[d.o]; });
+                 })
+                 .append("title")
+                 .text(function(d) { return "Owner: " + d.o + "\n" + "\n" + that.model.get('sentences')[d.s]; });
+                
+        lastSentences.append("polygon")
+                     .attr("class", "lastSentence")
+                     .attr("points", function(d) {
+                        var y1_last = that.calcYPos(d.l, barHeight);
+                        var y2_last = y1_last + barHeight;
+                        var y1_curr = that.calcYPos(d.i, barHeight);
+                        var y2_curr = y1_curr + barHeight;
+                        return "0.00," + (y1_last + barHeight/5) + " " +
+                               "1.00," + (y1_curr + barHeight/5) + " " +
+                               "1.00," + (y2_curr - barHeight/5) + " " +
+                               "0.00," + (y2_last - barHeight/5) + " " +
+                               "0.00," + (y1_last + barHeight/5) + " ";
+                     })
+                     .attr("fill", function(d){
+                        if(sents[d.i] == sents[d.l]){ return "#888888"; }
+                        return "#BBBBBB";
+                     })
+                     .on("mouseover", function(){
+                        // Highlight Color
+                        d3.select(this).attr("fill", function(d) {
+                            if(sents[d.i] == sents[d.l]){ return d3.rgb("#888888").brighter(0.3); }
+                            return d3.rgb("#BBBBBB").brighter(0.3);
+                        })
+                     })
+                     .on("mouseout", function(){
+                        // Reset Color
+                        d3.select(this).attr("fill", function(d) {
+                            if(sents[d.i] == sents[d.l]){ return "#888888"; }
+                            return "#BBBBBB";
+                        })
+                     });
+                     
+        lastSections.append("polygon")
+                    .attr("class", "lastSection")
+                    .attr("points", function(d) {
+                        var y1_last = that.calcSecYPos(d.s, d.l, barHeight);
+                        var y2_last = y1_last + barHeight/2;
+                        var y1_curr = that.calcSecYPos(d.s, d.i, barHeight);
+                        var y2_curr = y1_curr + barHeight/2;
+                        return "0.00," + (y1_last) + " " +
+                               "1.00," + (y1_curr) + " " +
+                               "1.00," + (y2_curr) + " " +
+                               "0.00," + (y2_last) + " " +
+                               "0.00," + (y1_last) + " ";
+                    })
+                    .attr("fill", "black")
+                    .on("mouseover", function(){
+                        // Highlight Color
+                        d3.select(this).attr("fill", "#555555");
+                    })
+                    .on("mouseout", function(){
+                        // Reset Color
+                        d3.select(this).attr("fill", "#000000");
+                    });
+                     
+        this.updateSentences();
+    },
+    
+    render: function() {
+        this.viz.$('#ownershipvis').empty();
+        this.svg = d3.select(this.viz.$('#ownershipvis')[0]).append('svg').attr('width', this.viz.model.get('width')).attr('height', this.viz.model.get('height'));
+        this.x = d3.scale.linear();
+        this.y = d3.scale.linear();
+        
+        var barWidth = this.calcBarWidth();
+        var barHeight = this.calcBarHeight();
+        // Set up x and y ranges for the visualization. The x-range is designed so that x(n) gives the x-position of the nth bar's left edge.
+        this.x.range([0, 1]);
+        // Leave a little bit of room.
+        this.y.range([0, this.viz.model.get('height')]);
+        // Y domain determined using largest magnitude y-value
+        this.y.domain([0, this.getMaxSentences() + (this.getMaxSections()/2)]);
+        
+        if(_.size(this.model.get('users')) > 0){
+            dialog = this.viz.view.subviews.toolbar.subviews.diag_select.dialog;
+            // Populate user list in the 'select users' dialog.
+            var userMap = {};
+            var users = this.model.get('users');
+            
+            // Use d3 to populate the select element in the select users dialog with option elements
+            d3.select($('#userselect2', dialog)[0])
+                .selectAll('option')
+                .data(d3.entries(users))
+                .enter()
+                .append('option')
+                .attr('value', function(d, i){
+                    return d.key; 
+                })
+                .style('background', function(d, i){
+                    return d.value;
+                })
+                .text(function(d, i) {
+                    return d.key;
+                });
+        }
+        
+        this.buildSentences();
+        this.listenTo(this.viz.model, "change:numBars", this.updateSentences);
+    }
+    
+});
+
 // ## ToolbarView
 ToolbarView = Backbone.View.extend({
 
@@ -1368,7 +1706,7 @@ ToolbarView = Backbone.View.extend({
                             });
                             // Use choices to generate selection in Select By User
                             // User names are stored in the "value" property of the options in the select element.
-                            $('#userselect option', dialog).each(function(i, e) {
+                            $('#userselect option, #userselect option', dialog).each(function(i, e) {
                                 if (Helper.isSubset([wikiviz.getGroupsByName($(e).val())], filt)) {
                                     $(e).attr('selected', true);
                                 } else {
@@ -1383,7 +1721,7 @@ ToolbarView = Backbone.View.extend({
                     // Clicking "Apply User Selection"
                     $('#select_apply', dialog).click(function() {
                         var users = Array();
-                        $('#userselect option:selected', dialog).each(function() { users.push($(this).val()); });
+                        $('#userselect:visible option:selected, #userselect2:visible option:selected', dialog).each(function() { users.push($(this).val()); });
                         article.viz.applyUserSelection(users);
                     });
                 }
@@ -1441,7 +1779,7 @@ ToolbarView = Backbone.View.extend({
                             });
                             // Use choices to generate selection in Select By User
                             // User names are stored in the "value" property of the options in the select element.
-                            $('#userselect option', dialog).each(function(i, e) {
+                            $('#userselect option, #userselect2 option', dialog).each(function(i, e) {
                                 if (Helper.isSubset([wikiviz.getGroupsByName($(e).val())], filt)) {
                                     $(e).attr('selected', true);
                                 } else {
@@ -1456,7 +1794,7 @@ ToolbarView = Backbone.View.extend({
                     // Clicking "Apply User Selection"
                     $('#select_apply', dialog).click(function() {
                         var users = Array();
-                        $('#userselect option:selected', dialog).each(function() { users.push($(this).val()); });
+                        $('#userselect:visible option:selected, #userselect2:visible option:selected', dialog).each(function() { users.push($(this).val()); });
                         article.viz.applyUserSelection(users);
                     });
                 }
@@ -1518,15 +1856,6 @@ ToolbarView = Backbone.View.extend({
                         });
                     });
                     // Mapping from checkbox value to visualization rectangle classes
-                    var classMap = {
-                        addrem: ['add', 'remove'],
-                        edit: ['edit'],
-                        reorganize: ['reorganize'],
-                        cite: ['cite'],
-                        unsure: ['unsure'],
-                        vandunvand: ['vand', 'unvand']
-                    };
-                    
                     var classMap = {};
                     classifications.each(function(c){
                         if(classMap[c.get('codna')] == undefined){
@@ -1534,6 +1863,9 @@ ToolbarView = Backbone.View.extend({
                         }
                         classMap[c.get('codna')].push(c.get('id'));
                     });
+                
+                    classMap['addrem'] = ['b', 'e'];
+                    classMap['vandunvand'] = ['i', 'j'];
                 
                     // Legend selection functionality (by varying opacity)
                     $('#d_legend_accordion h3', dialog).each(function (i, el) {
@@ -1966,14 +2298,17 @@ WikiVizView = Backbone.View.extend({
     initialize: function(options){
         this.listenTo(this.model.get('data'), "sync", this.initViz);
         this.navctl = new NavCtlView({viz: this});
+        this.sentences = new SentencesView({model: new Sentences({articleId: this.model.get('article_id'), setId: this.model.get('set')}), viz: this});
         this.view = options.view;
         this.listenTo(this.model, "change:width", $.proxy(function(){
             this.initViz();
             this.buildMonths();
+            this.sentences.render();
         }, this));
         this.listenTo(this.model, "change:height", $.proxy(function(){
             this.initViz();
             this.buildMonths();
+            this.sentences.render();
         }, this));
         this.listenTo(this.model, "change:numDots", this.updateDots);
         this.listenTo(this.model, "change:numBars", this.updateBars);
@@ -1989,7 +2324,7 @@ WikiVizView = Backbone.View.extend({
             this.mouseY = e.offsetY==undefined?e.originalEvent.layerY:e.offsetY;
         }, this));
         $(window).resize($.proxy(function(){
-            if(this.$("#view").width() > 0){
+            if(this.$("#view").width() > 0 || this.$("#ownershipvis").width() > 0){
                 this.model.set('width', this.$("#view").width());
                 this.model.set('height', this.$("#view").height());
             }
@@ -1998,7 +2333,15 @@ WikiVizView = Backbone.View.extend({
 
     // Calculate bar width based on number of bars per screen
     calcBarWidth: function(){
-        var w = (this.model.get('width') - this.model.get('maskWidth'))/(this.model.get('numBars'));
+        var w;
+        if(this.model.get('mode') == 'ownership'){
+            // When using the ownership visualization, there is no mask
+            w = this.model.get('width')/(this.model.get('numBars')*2 - 1);
+        }
+        else{
+            // Consider the ymask when calculation the bar width
+            w = (this.model.get('width') - this.model.get('maskWidth'))/(this.model.get('numBars'));
+        }
         if (this.model.get('isTimeSpaced')) { w = Math.min(w, 7); }
         return w;
     },
@@ -2104,6 +2447,9 @@ WikiVizView = Backbone.View.extend({
     
     // Rescale x-axis based on the number of bars that should fit into a screen after changing numBars
     updateBars: function(){
+        if(this.model.get('mode') == 'ownership'){
+            return false;
+        }
         var barWidth = this.calcBarWidth();
         this.model.get('view').x.range([0, barWidth]);
         if(!this.model.get('isTimeSpaced')){
@@ -2114,10 +2460,10 @@ WikiVizView = Backbone.View.extend({
         // Hide x labels that would overlap!
         try{
             // This can sometimes fail, so gracefully fail if it does
-            this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width <= barWidth; })
+            /*this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width <= barWidth; })
                 .attr('opacity', 1);
             this.model.get('view').data.selectAll('.datum').select('.xlabel').filter(function(d) { return this.getBBox().width > barWidth; })
-                .attr('opacity', 0);
+                .attr('opacity', 0);*/
         }
         catch (e){
         
@@ -2527,6 +2873,9 @@ WikiVizView = Backbone.View.extend({
     },
     
     repositionBar: function(){
+        if(this.model.get('mode') == 'ownership'){
+            return false;
+        }
         this.$(".tooltip").hide();
         var bg = this.model.get('view').body.select('.bg');
         var bar_g = bg.selectAll('.bar_bg');
@@ -2644,6 +2993,8 @@ WikiVizView = Backbone.View.extend({
             }
         
             var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
+            $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.talkrow', dialog).addClass('invisible');
             $('.defaultrow', dialog).removeClass('invisible');
         
@@ -2681,6 +3032,8 @@ WikiVizView = Backbone.View.extend({
             }
         
             var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
+            $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.talkrow', dialog).removeClass('invisible');
             $('.defaultrow', dialog).addClass('invisible');
         
@@ -2706,11 +3059,19 @@ WikiVizView = Backbone.View.extend({
             d3.selectAll('.month').attr('opacity', 1);
         
             var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
+            $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.talkrow', dialog).removeClass('invisible');
             $('.defaultrow', dialog).removeClass('invisible');
         
             d3.select(this.$('.fg')[0]).attr('transform', 'translate(0, 0)');
             d3.selectAll('g.ylabel').attr('opacity', 1);
+        }
+        else if(this.model.get('mode') == 'ownership'){
+            this.model.set('isTimeSpaced', false);
+            $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
+            $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            this.sentences.updateSentences();
         }
         if(!options.silent){
             this.update();
@@ -2756,6 +3117,9 @@ WikiVizView = Backbone.View.extend({
         }, this));
         this.$('a[href=#hybridview]').click($.proxy(function(event, ui) {
             this.model.set('mode', 'hybrid');
+        }, this));
+        this.$('a[href=#ownershipview]').click($.proxy(function(event, ui) {
+            this.model.set('mode', 'ownership');
         }, this));
     
         // In the default configuration, we are already in adjacent spacing mode, so we can disable the adjacent spacing button.
@@ -2863,8 +3227,8 @@ WikiVizView = Backbone.View.extend({
         });
         var bars = datum.append('g').attr('class', 'bars');
         this.buildBars(bars, barWidth);
-        datum.append('text').attr('class', 'xlabel').text($.proxy(function(d) { return 1+this.model.index(d); }, this))
-            .attr('transform', function() { return 'translate(0,' + String(-7) + ')scale(1,-1)rotate(90,0,0)'; });
+        /*datum.append('text').attr('class', 'xlabel').text($.proxy(function(d) { return 1+this.model.index(d); }, this))
+            .attr('transform', function() { return 'translate(0,' + String(-7) + ')scale(1,-1)rotate(90,0,0)'; });*/
     
         // Group for talk page data entries
         view.tdata = body.select('g.fg').append('g').attr('class', 'tdata');
@@ -2891,7 +3255,6 @@ WikiVizView = Backbone.View.extend({
         if(this.view.subviews.toolbar.subviews.diag_select != undefined){
             dialog = this.view.subviews.toolbar.subviews.diag_select.dialog;
             // Populate user list in the 'select users' dialog.
-            // TODO: Use the values from ownership_results instead
             var userMap = {};
             var revdata = this.model.get('data').get('revisions');
             var totalLev = 0;
@@ -3008,8 +3371,10 @@ WikiVizView = Backbone.View.extend({
             }
         });
         rows.append('td').text(function (d) {
-            return "";
-            //return d.sections.join("; ");
+            if(d.sections == undefined){
+                return "";
+            }
+            return d.sections.join("; ");
         });
         rows.attr('class', function (d) {
             if (d.type === 'talk') return 'data talkrow';
