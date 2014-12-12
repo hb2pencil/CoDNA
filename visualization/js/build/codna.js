@@ -220,6 +220,18 @@ Sentences = Backbone.Model.extend({
     urlRoot: function(){
         return "dbquery.php?sentences=" + this.get('articleId') + "&set=" + this.get('setId');
     },
+    
+    // Returns an Array containing all of the unique Section titles
+    // It will be ordered based on the time of creation
+    getSections: function(){
+        var sections = new Array();
+        _.each(this.get('revisions'), $.proxy(function(rev){
+            _.each(rev, $.proxy(function(sec, sectText){
+                sections[sectText] = true;
+            }, this));
+        }, this));
+        return _.keys(sections);
+    },
 
     defaults: {
         articleId: 0,
@@ -1391,7 +1403,8 @@ SentencesView = Backbone.View.extend({
     
     // Resets all of the selections so that all sentences are opaque
     clearAllSelections: function(){
-        this.svg.selectAll(".sentence, .lastSentence").transition().duration(500).attr('opacity', 1);
+        this.svg.selectAll(".sentence, .lastSentence, .section, .lastSection").transition().duration(500).attr('opacity', 1);
+        $("#section_filter input", this.viz.view.subviews.toolbar.subviews.diag_sections.dialog).prop("checked", false);
     },
     
     // Makes all sentences who are not owned by users in the userlist to be semi-transparent
@@ -1482,6 +1495,7 @@ SentencesView = Backbone.View.extend({
         
         sections.append("g")
                  .attr("class", "section")
+                 .attr("opacity", 1)
                  .attr("transform", function(d, i) {
                     if(i == 0){
                         // If i == 0, then it means this is a new revision
@@ -1568,6 +1582,7 @@ SentencesView = Backbone.View.extend({
                      
         lastSections.append("polygon")
                     .attr("class", "lastSection")
+                    .attr("opacity", 1)
                     .attr("points", function(d) {
                         var y1_last = that.calcSecYPos(d.s, d.l, barHeight);
                         var y2_last = y1_last + barHeight/2;
@@ -1625,6 +1640,23 @@ SentencesView = Backbone.View.extend({
                     var ret = '<input style="float:left;margin-right:16px;" type="checkbox" name="userselect2[]" value="' + d.key + '" />';
                     ret += '<div class="l_colour" style="background: ' + d.value + ';height:16px;width:16px;margin-right:16px;"></div>';
                     ret += '<span>' + d.key + '</span>';
+                    return ret;
+                });
+        }
+        
+        var sections = this.model.getSections();
+        if(_.size(sections) > 0){
+            dialog = this.viz.view.subviews.toolbar.subviews.diag_sections.dialog;
+            d3.select($('#section_filter', dialog)[0])
+                .selectAll('div')
+                .data(sections)
+                .enter()
+                .append('div')
+                .style('height', '16px')
+                .style('padding', '2px 3px 2px 16px')
+                .html(function(d, i){
+                    var ret = '<input style="float:left;margin-right:16px;" type="checkbox" name="section_filter[]" value="' + d + '" />';
+                    ret += '<span>' + d + '</span>';
                     return ret;
                 });
         }
@@ -1694,7 +1726,7 @@ ToolbarView = Backbone.View.extend({
                         $(el).find('input').change(function(e) {
                             var that = $(this);
                             // If the event is the checking of a checkbox
-                            if ($(this).attr('checked')) {
+                            if ($(this).is(':checked')) {
                                 wikiviz.get('view').data.selectAll('.datum').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 1);
                                 article.viz.navctl.bg.selectAll('rect').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 1);
                                 article.viz.sentences.svg.selectAll('.sentence, .lastSentence').filter(function(d) { return (wikiviz.getGroupsByName(d.o) == that.val() || _.contains(wikiviz.getGroupsByName(d.o), that.val())); }).transition().duration(500).attr('opacity', 1);
@@ -1726,7 +1758,7 @@ ToolbarView = Backbone.View.extend({
                                     $(e).prop('checked', true);
                                 } else {
                                     $(e).attr('selected', false);
-                                    $(e).removeProp('checked');
+                                    $(e).prop('checked', false);
                                 }
                                 // Force visual update on stubborn browsers (Chrome !!!)
                                 $(e).addClass('invisible');
@@ -1778,7 +1810,7 @@ ToolbarView = Backbone.View.extend({
                         $(el).find('input').change(function(e) {
                             var that = $(this);
                             // If the event is the checking of a checkbox
-                            if ($(this).attr('checked')) {
+                            if ($(this).is(':checked')) {
                                 wikiviz.get('view').data.selectAll('.datum').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 1);
                             // Checkbox was unchecked
                             } else {
@@ -1806,7 +1838,7 @@ ToolbarView = Backbone.View.extend({
                                     $(e).prop('checked', true);
                                 } else {
                                     $(e).attr('selected', false);
-                                    $(e).removeProp('checked');
+                                    $(e).prop('checked', false);
                                 }
                                 // Force visual update on stubborn browsers (Chrome !!!)
                                 $(e).addClass('invisible');
@@ -1824,12 +1856,35 @@ ToolbarView = Backbone.View.extend({
             });
         },
         "diag_sections": function(){
+            var wikiviz = this.view.wikiviz;
+            var article = this.view;
             return new DialogView({
                 template: "diag_sections_template",
                 options: {
                     autoOpen: false,
                     width: 400,
                     resizable: false
+                },
+                onCreate: function(dialog){
+                    // Section selection functionality.
+                    $("#section_filter", dialog).click(function(e) {
+                        if($("input:checked", $(this)).length == 0){
+                            article.viz.sentences.svg.selectAll('.section, .lastSection').transition().duration(500).attr('opacity', 1);
+                        }
+                        else{
+                            $("input", $(this)).each(function(el){
+                                var that = $(this);
+                                // If the event is the checking of a checkbox
+                                if ($(this).is(':checked')) {
+                                    article.viz.sentences.svg.selectAll('.section, .lastSection').filter(function(d) { return (d.key == that.val() || d.s == that.val()); }).transition().duration(500).attr('opacity', 1);
+                                // Checkbox was unchecked
+                                } else {
+                                    article.viz.sentences.svg.selectAll('.section, .lastSection').filter(function(d) { return (d.key == that.val() || d.s == that.val()); }).transition().duration(500).attr('opacity', 0.2);
+                                }
+                                $('#t_deselect', article.viz.$el).button('enable');
+                            });
+                        }
+                    });
                 }
             });
         },
@@ -1894,7 +1949,7 @@ ToolbarView = Backbone.View.extend({
                     $('#d_legend_accordion h3', dialog).each(function (i, el) {
                         $(el).find('input').change(function(e) {
                             // If the event is the checking of a checkbox
-                            if ($(this).attr('checked')) {
+                            if ($(this).is(':checked')) {
                                 for (var i in classMap[$(this).val()]) {
                                     wikiviz.get('view').data.selectAll('rect.' + classMap[$(this).val()][i]).transition().duration(500).attr('opacity', 1);
                                 }
@@ -1960,7 +2015,7 @@ ToolbarView = Backbone.View.extend({
                         $(el).find('input').change(function(e) {
                             var that = $(this);
                             // If the event is the checking of a checkbox
-                            if ($(this).attr('checked')) {
+                            if ($(this).is(':checked')) {
                                 d3.selectAll('.tdatum .'+that.val()).transition().duration(500).attr('opacity', 1);
                             // Checkbox was unchecked
                             } else {
@@ -2050,7 +2105,7 @@ ToolbarView = Backbone.View.extend({
         "click #t_info":    function(){this.subviews.diag_info.open();},
         "click #t_data":    function(){this.subviews.diag_data.open();},
         "click #t_legend":  function(){this.subviews.diag_legend.open();},
-        "click #t_deselect":function(){$('#userselect2 input').removeProp('checked'); this.view.viz.clearAllSelections(true);},
+        "click #t_deselect":function(){$('#userselect2 input').prop('checked', false); this.view.viz.clearAllSelections(true);},
         "click #t_talk":    function(){this.subviews.diag_talk.open();}
     },
     

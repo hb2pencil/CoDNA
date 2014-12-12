@@ -73,7 +73,8 @@ SentencesView = Backbone.View.extend({
     
     // Resets all of the selections so that all sentences are opaque
     clearAllSelections: function(){
-        this.svg.selectAll(".sentence, .lastSentence").transition().duration(500).attr('opacity', 1);
+        this.svg.selectAll(".sentence, .lastSentence, .section, .lastSection").transition().duration(500).attr('opacity', 1);
+        $("#section_filter input", this.viz.view.subviews.toolbar.subviews.diag_sections.dialog).prop("checked", false);
     },
     
     // Makes all sentences who are not owned by users in the userlist to be semi-transparent
@@ -164,6 +165,7 @@ SentencesView = Backbone.View.extend({
         
         sections.append("g")
                  .attr("class", "section")
+                 .attr("opacity", 1)
                  .attr("transform", function(d, i) {
                     if(i == 0){
                         // If i == 0, then it means this is a new revision
@@ -250,6 +252,7 @@ SentencesView = Backbone.View.extend({
                      
         lastSections.append("polygon")
                     .attr("class", "lastSection")
+                    .attr("opacity", 1)
                     .attr("points", function(d) {
                         var y1_last = that.calcSecYPos(d.s, d.l, barHeight);
                         var y2_last = y1_last + barHeight/2;
@@ -307,6 +310,23 @@ SentencesView = Backbone.View.extend({
                     var ret = '<input style="float:left;margin-right:16px;" type="checkbox" name="userselect2[]" value="' + d.key + '" />';
                     ret += '<div class="l_colour" style="background: ' + d.value + ';height:16px;width:16px;margin-right:16px;"></div>';
                     ret += '<span>' + d.key + '</span>';
+                    return ret;
+                });
+        }
+        
+        var sections = this.model.getSections();
+        if(_.size(sections) > 0){
+            dialog = this.viz.view.subviews.toolbar.subviews.diag_sections.dialog;
+            d3.select($('#section_filter', dialog)[0])
+                .selectAll('div')
+                .data(sections)
+                .enter()
+                .append('div')
+                .style('height', '16px')
+                .style('padding', '2px 3px 2px 16px')
+                .html(function(d, i){
+                    var ret = '<input style="float:left;margin-right:16px;" type="checkbox" name="section_filter[]" value="' + d + '" />';
+                    ret += '<span>' + d + '</span>';
                     return ret;
                 });
         }

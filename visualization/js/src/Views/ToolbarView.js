@@ -57,7 +57,7 @@ ToolbarView = Backbone.View.extend({
                         $(el).find('input').change(function(e) {
                             var that = $(this);
                             // If the event is the checking of a checkbox
-                            if ($(this).attr('checked')) {
+                            if ($(this).is(':checked')) {
                                 wikiviz.get('view').data.selectAll('.datum').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 1);
                                 article.viz.navctl.bg.selectAll('rect').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 1);
                                 article.viz.sentences.svg.selectAll('.sentence, .lastSentence').filter(function(d) { return (wikiviz.getGroupsByName(d.o) == that.val() || _.contains(wikiviz.getGroupsByName(d.o), that.val())); }).transition().duration(500).attr('opacity', 1);
@@ -89,7 +89,7 @@ ToolbarView = Backbone.View.extend({
                                     $(e).prop('checked', true);
                                 } else {
                                     $(e).attr('selected', false);
-                                    $(e).removeProp('checked');
+                                    $(e).prop('checked', false);
                                 }
                                 // Force visual update on stubborn browsers (Chrome !!!)
                                 $(e).addClass('invisible');
@@ -141,7 +141,7 @@ ToolbarView = Backbone.View.extend({
                         $(el).find('input').change(function(e) {
                             var that = $(this);
                             // If the event is the checking of a checkbox
-                            if ($(this).attr('checked')) {
+                            if ($(this).is(':checked')) {
                                 wikiviz.get('view').data.selectAll('.datum').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 1);
                             // Checkbox was unchecked
                             } else {
@@ -169,7 +169,7 @@ ToolbarView = Backbone.View.extend({
                                     $(e).prop('checked', true);
                                 } else {
                                     $(e).attr('selected', false);
-                                    $(e).removeProp('checked');
+                                    $(e).prop('checked', false);
                                 }
                                 // Force visual update on stubborn browsers (Chrome !!!)
                                 $(e).addClass('invisible');
@@ -187,12 +187,35 @@ ToolbarView = Backbone.View.extend({
             });
         },
         "diag_sections": function(){
+            var wikiviz = this.view.wikiviz;
+            var article = this.view;
             return new DialogView({
                 template: "diag_sections_template",
                 options: {
                     autoOpen: false,
                     width: 400,
                     resizable: false
+                },
+                onCreate: function(dialog){
+                    // Section selection functionality.
+                    $("#section_filter", dialog).click(function(e) {
+                        if($("input:checked", $(this)).length == 0){
+                            article.viz.sentences.svg.selectAll('.section, .lastSection').transition().duration(500).attr('opacity', 1);
+                        }
+                        else{
+                            $("input", $(this)).each(function(el){
+                                var that = $(this);
+                                // If the event is the checking of a checkbox
+                                if ($(this).is(':checked')) {
+                                    article.viz.sentences.svg.selectAll('.section, .lastSection').filter(function(d) { return (d.key == that.val() || d.s == that.val()); }).transition().duration(500).attr('opacity', 1);
+                                // Checkbox was unchecked
+                                } else {
+                                    article.viz.sentences.svg.selectAll('.section, .lastSection').filter(function(d) { return (d.key == that.val() || d.s == that.val()); }).transition().duration(500).attr('opacity', 0.2);
+                                }
+                                $('#t_deselect', article.viz.$el).button('enable');
+                            });
+                        }
+                    });
                 }
             });
         },
@@ -257,7 +280,7 @@ ToolbarView = Backbone.View.extend({
                     $('#d_legend_accordion h3', dialog).each(function (i, el) {
                         $(el).find('input').change(function(e) {
                             // If the event is the checking of a checkbox
-                            if ($(this).attr('checked')) {
+                            if ($(this).is(':checked')) {
                                 for (var i in classMap[$(this).val()]) {
                                     wikiviz.get('view').data.selectAll('rect.' + classMap[$(this).val()][i]).transition().duration(500).attr('opacity', 1);
                                 }
@@ -323,7 +346,7 @@ ToolbarView = Backbone.View.extend({
                         $(el).find('input').change(function(e) {
                             var that = $(this);
                             // If the event is the checking of a checkbox
-                            if ($(this).attr('checked')) {
+                            if ($(this).is(':checked')) {
                                 d3.selectAll('.tdatum .'+that.val()).transition().duration(500).attr('opacity', 1);
                             // Checkbox was unchecked
                             } else {
@@ -413,7 +436,7 @@ ToolbarView = Backbone.View.extend({
         "click #t_info":    function(){this.subviews.diag_info.open();},
         "click #t_data":    function(){this.subviews.diag_data.open();},
         "click #t_legend":  function(){this.subviews.diag_legend.open();},
-        "click #t_deselect":function(){$('#userselect2 input').removeProp('checked'); this.view.viz.clearAllSelections(true);},
+        "click #t_deselect":function(){$('#userselect2 input').prop('checked', false); this.view.viz.clearAllSelections(true);},
         "click #t_talk":    function(){this.subviews.diag_talk.open();}
     },
     
