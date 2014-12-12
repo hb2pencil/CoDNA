@@ -60,10 +60,12 @@ ToolbarView = Backbone.View.extend({
                             if ($(this).attr('checked')) {
                                 wikiviz.get('view').data.selectAll('.datum').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 1);
                                 article.viz.navctl.bg.selectAll('rect').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 1);
+                                article.viz.sentences.svg.selectAll('.sentence, .lastSentence').filter(function(d) { return (wikiviz.getGroupsByName(d.o) == that.val() || _.contains(wikiviz.getGroupsByName(d.o), that.val())); }).transition().duration(500).attr('opacity', 1);
                             // Checkbox was unchecked
                             } else {
                                 wikiviz.get('view').data.selectAll('.datum').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 0.2);
                                 article.viz.navctl.bg.selectAll('rect').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 0.2);
+                                article.viz.sentences.svg.selectAll('.sentence, .lastSentence').filter(function(d) { return (wikiviz.getGroupsByName(d.o) == that.val() || _.contains(wikiviz.getGroupsByName(d.o), that.val())); }).transition().duration(500).attr('opacity', 0.2);
                             }
                             $('#t_deselect', dialog).button('enable');
                         });
@@ -81,11 +83,13 @@ ToolbarView = Backbone.View.extend({
                             });
                             // Use choices to generate selection in Select By User
                             // User names are stored in the "value" property of the options in the select element.
-                            $('#userselect option, #userselect option', dialog).each(function(i, e) {
+                            $('#userselect option, #userselect2 input', dialog).each(function(i, e) {
                                 if (Helper.isSubset([wikiviz.getGroupsByName($(e).val())], filt)) {
                                     $(e).attr('selected', true);
+                                    $(e).prop('checked', true);
                                 } else {
                                     $(e).attr('selected', false);
+                                    $(e).removeProp('checked');
                                 }
                                 // Force visual update on stubborn browsers (Chrome !!!)
                                 $(e).addClass('invisible');
@@ -96,7 +100,12 @@ ToolbarView = Backbone.View.extend({
                     // Clicking "Apply User Selection"
                     $('#select_apply', dialog).click(function() {
                         var users = Array();
-                        $('#userselect:visible option:selected, #userselect2:visible option:selected', dialog).each(function() { users.push($(this).val()); });
+                        $('#userselect:visible option:selected, #userselect2:visible input:checked', dialog).each(function() { users.push($(this).val()); });
+                        article.viz.applyUserSelection(users);
+                    });
+                    $('#userselect2', dialog).click(function(){
+                        var users = Array();
+                        $('#userselect:visible option:selected, #userselect2:visible input:checked', dialog).each(function() { users.push($(this).val()); });
                         article.viz.applyUserSelection(users);
                     });
                 }
@@ -154,11 +163,13 @@ ToolbarView = Backbone.View.extend({
                             });
                             // Use choices to generate selection in Select By User
                             // User names are stored in the "value" property of the options in the select element.
-                            $('#userselect option, #userselect2 option', dialog).each(function(i, e) {
+                            $('#userselect option, #userselect2 input', dialog).each(function(i, e) {
                                 if (Helper.isSubset([wikiviz.getGroupsByName($(e).val())], filt)) {
                                     $(e).attr('selected', true);
+                                    $(e).prop('checked', true);
                                 } else {
                                     $(e).attr('selected', false);
+                                    $(e).removeProp('checked');
                                 }
                                 // Force visual update on stubborn browsers (Chrome !!!)
                                 $(e).addClass('invisible');
@@ -169,7 +180,7 @@ ToolbarView = Backbone.View.extend({
                     // Clicking "Apply User Selection"
                     $('#select_apply', dialog).click(function() {
                         var users = Array();
-                        $('#userselect:visible option:selected, #userselect2:visible option:selected', dialog).each(function() { users.push($(this).val()); });
+                        $('#userselect:visible option:selected, #userselect2:visible input:checked', dialog).each(function() { users.push($(this).val()); });
                         article.viz.applyUserSelection(users);
                     });
                 }
@@ -402,7 +413,7 @@ ToolbarView = Backbone.View.extend({
         "click #t_info":    function(){this.subviews.diag_info.open();},
         "click #t_data":    function(){this.subviews.diag_data.open();},
         "click #t_legend":  function(){this.subviews.diag_legend.open();},
-        "click #t_deselect":function(){this.view.viz.clearAllSelections(true);},
+        "click #t_deselect":function(){$('#userselect2 input').removeProp('checked'); this.view.viz.clearAllSelections(true);},
         "click #t_talk":    function(){this.subviews.diag_talk.open();}
     },
     

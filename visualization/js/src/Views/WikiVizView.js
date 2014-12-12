@@ -224,11 +224,12 @@ WikiVizView = Backbone.View.extend({
         });
     
         // Apply selection to the main article contribution view
-        this.model.get('view').data.selectAll('.datum').filter(function (d) { return jQuery.inArray(d.user, userlist) === -1; }).selectAll('.bars rect').transition().duration(500).attr('opacity', 0.2);
-    
+        this.model.get('view').data.selectAll('.datum').filter(function (d) { return jQuery.inArray(d.user, userlist) === -1; }).selectAll('.bars rect').transition().duration(500).attr('opacity', 0.2);    
         // Apply selection to nav "spikes"
         this.navctl.spikes.filter(function(d) { return jQuery.inArray(d.user, userlist) === -1; }).transition().duration(500).attr('opacity', 0.4);
-    
+        
+        // Apply selection to the sentence ownership view
+        this.sentences.applyUserSelection(userlist);
         return;
     },
     
@@ -255,6 +256,9 @@ WikiVizView = Backbone.View.extend({
     
         // Update nav control spikes
         this.navctl.spikes.transition().duration(500).attr('opacity', 1);
+    
+        // Clear the selection for the sentence ownership visualization
+        this.sentences.clearAllSelections();
     
         // Re-enable any previously disabled selection controls
         $('#diag_legend input').prop('disabled', false);
@@ -678,6 +682,7 @@ WikiVizView = Backbone.View.extend({
             d3.selectAll('.tdatum').attr('opacity', 0);
             d3.selectAll('.tcircle').attr('opacity', 0);
         
+            this.$('#t_sections').button('disable');
             this.$('#t_legend').button('enable');
             this.$('#t_talk').button('disable');
         
@@ -706,6 +711,7 @@ WikiVizView = Backbone.View.extend({
             var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
+            $('.select_apply_div', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('.talkrow', dialog).addClass('invisible');
             $('.defaultrow', dialog).removeClass('invisible');
         
@@ -720,8 +726,9 @@ WikiVizView = Backbone.View.extend({
             d3.selectAll('.tdatum').attr('opacity', 1);
             d3.selectAll('.tcircle').attr('opacity', 1);
         
-            $('#t_legend').button('disable');
-            $('#t_talk').button('enable');
+            this.$('#t_sections').button('disable');
+            this.$('#t_legend').button('disable');
+            this.$('#t_talk').button('enable');
         
             if (this.model.get('isTimeSpaced') === false) {
                 d3.selectAll('.month').attr('opacity', 0);
@@ -745,6 +752,7 @@ WikiVizView = Backbone.View.extend({
             var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
+            $('.select_apply_div', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('.talkrow', dialog).removeClass('invisible');
             $('.defaultrow', dialog).addClass('invisible');
         
@@ -762,6 +770,7 @@ WikiVizView = Backbone.View.extend({
             this.$('#t_legend').button('enable');
             this.$('#t_talk').button('enable');
         
+            this.$('#t_sections').button('disable');
             this.$('#toAdj').button('disable');
             this.$('#toTime').button('disable');
 
@@ -772,6 +781,7 @@ WikiVizView = Backbone.View.extend({
             var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
+            $('.select_apply_div', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('.talkrow', dialog).removeClass('invisible');
             $('.defaultrow', dialog).removeClass('invisible');
         
@@ -779,9 +789,15 @@ WikiVizView = Backbone.View.extend({
             d3.selectAll('g.ylabel').attr('opacity', 1);
         }
         else if(this.model.get('mode') == 'ownership'){
+            this.$('#t_legend').button('disable');
+            this.$('#t_talk').button('disable');
+            
+            this.$('#t_sections').button('enable');
+            
             this.model.set('isTimeSpaced', false);
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $('.select_apply_div', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             this.sentences.updateSentences();
         }
         if(!options.silent){

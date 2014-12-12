@@ -282,6 +282,7 @@
         $finalSentences = array();
         $previousArray = array();
         $sentenceArray = array();
+        $sectionCache = array();
         foreach($lastRevSentences as $key => $sentence){
             if($sentence['raw'] == ""){
                 unset($lastRevSentences[$key]);
@@ -295,12 +296,12 @@
         }
         foreach($sentences as $sentence){
             $sentenceArray[] = $sentence['sentence'];
+            $sectionCache[$sentence['sentence']][] = $sentence['section'];
         }
         $diff = diff($previousArray, $sentenceArray);
         $nInserts = 0;
         $nDeletes = 0;
         $i = 0;
-        $key = 0;
         foreach($diff as $sentence){
             if(is_array($sentence)){
                 $insertion = $sentence['i'];
@@ -309,7 +310,9 @@
                     // Insertion
                     $nIns = 0;
                     foreach($insertion as $kIns => $ins){
-                        $section = $sentences[$key]['section'];
+                        $section = $sectionCache[$ins][0];
+                        unset($sectionCache[$ins][0]);
+                        $sectionCache[$ins] = array_values($sectionCache[$ins]);
                         $wordsIns = 0;
                         $wordsDel = 0;
                         if(isset($deletion[$kIns])){
@@ -330,6 +333,7 @@
                         $adds_after = false;
                         $adds_before = false;
                         $adds_new = false;
+                        
                         if(isset($lastRevSentences[$i+$kIns]) && isset($deletion[$kIns])){
                             // Changes
                             $id = findSentenceInHistory($lastRevSentences[$i+$kIns]['raw']);
@@ -415,7 +419,6 @@
                             $adds_new = true;
                         }
                         $finalSentences[] = $new_sentence;
-                        $key++;
                     }
                 }
                 if(count($deletion) > count($insertion)){
@@ -458,7 +461,6 @@
                 }
                 if(count($deletion) > 0){
                     $i += count($deletion);
-                    $key--;
                 }
             }
             else{
@@ -481,7 +483,6 @@
                 addSentenceHistory($revId, $new_sentence['section'], count($finalSentences), $lastRevSentences[$i]['raw'], $relId);
                 $finalSentences[] = $new_sentence;
                 $i++;
-                $key++;
             }
         }
         $lastRevSentences = $finalSentences;

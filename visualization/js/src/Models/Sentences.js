@@ -2,7 +2,7 @@
 Sentences = Backbone.Model.extend({
 
     initialize: function(){
-        
+
     },
     
     urlRoot: function(){

@@ -71,6 +71,17 @@ SentencesView = Backbone.View.extend({
                 .attr("transform", "translate(" + -(this.viz.navctl.getPanOffset()) + ",0) scale(" + barWidth + ", 1)");
     },
     
+    // Resets all of the selections so that all sentences are opaque
+    clearAllSelections: function(){
+        this.svg.selectAll(".sentence, .lastSentence").transition().duration(500).attr('opacity', 1);
+    },
+    
+    // Makes all sentences who are not owned by users in the userlist to be semi-transparent
+    applyUserSelection: function(userlist){
+        this.svg.selectAll(".sentence, .lastSentence").filter(function(d){ return $.inArray(d.o, userlist) === -1; }).transition().duration(500).attr('opacity', 0.2);
+    },
+    
+    // Creates the initial svg visualization
     buildSentences: function(){
         var that = this;
         var barWidth = this.calcBarWidth();
@@ -190,6 +201,7 @@ SentencesView = Backbone.View.extend({
                  .attr("id", function(d, i){ return "sent_" + d.i; })
                  .attr("height", Math.max(0.5, barHeight-0.5))
                  .attr("width", 1)
+                 .attr("opacity", 1)
                  .attr("transform", function(d, i) { return "translate(0," + that.y(0.5 + i) + ")"; })
                  .attr("fill", function(d) { return that.model.get("users")[d.o]; })
                  .on("mouseover", function(){
@@ -205,6 +217,7 @@ SentencesView = Backbone.View.extend({
                 
         lastSentences.append("polygon")
                      .attr("class", "lastSentence")
+                     .attr("opacity", 1)
                      .attr("points", function(d) {
                         var y1_last = that.calcYPos(d.l, barHeight);
                         var y2_last = y1_last + barHeight;
@@ -284,18 +297,17 @@ SentencesView = Backbone.View.extend({
             
             // Use d3 to populate the select element in the select users dialog with option elements
             d3.select($('#userselect2', dialog)[0])
-                .selectAll('option')
+                .selectAll('div')
                 .data(d3.entries(users))
                 .enter()
-                .append('option')
-                .attr('value', function(d, i){
-                    return d.key; 
-                })
-                .style('background', function(d, i){
-                    return d.value;
-                })
-                .text(function(d, i) {
-                    return d.key;
+                .append('div')
+                .style('height', '16px')
+                .style('padding', '2px 3px 2px 16px')
+                .html(function(d, i){
+                    var ret = '<input style="float:left;margin-right:16px;" type="checkbox" name="userselect2[]" value="' + d.key + '" />';
+                    ret += '<div class="l_colour" style="background: ' + d.value + ';height:16px;width:16px;margin-right:16px;"></div>';
+                    ret += '<span>' + d.key + '</span>';
+                    return ret;
                 });
         }
         

@@ -214,7 +214,7 @@ Backbone.NonUniqueCollection = Backbone.Collection.extend({
 Sentences = Backbone.Model.extend({
 
     initialize: function(){
-        
+
     },
     
     urlRoot: function(){
@@ -1389,6 +1389,17 @@ SentencesView = Backbone.View.extend({
                 .attr("transform", "translate(" + -(this.viz.navctl.getPanOffset()) + ",0) scale(" + barWidth + ", 1)");
     },
     
+    // Resets all of the selections so that all sentences are opaque
+    clearAllSelections: function(){
+        this.svg.selectAll(".sentence, .lastSentence").transition().duration(500).attr('opacity', 1);
+    },
+    
+    // Makes all sentences who are not owned by users in the userlist to be semi-transparent
+    applyUserSelection: function(userlist){
+        this.svg.selectAll(".sentence, .lastSentence").filter(function(d){ return $.inArray(d.o, userlist) === -1; }).transition().duration(500).attr('opacity', 0.2);
+    },
+    
+    // Creates the initial svg visualization
     buildSentences: function(){
         var that = this;
         var barWidth = this.calcBarWidth();
@@ -1508,6 +1519,7 @@ SentencesView = Backbone.View.extend({
                  .attr("id", function(d, i){ return "sent_" + d.i; })
                  .attr("height", Math.max(0.5, barHeight-0.5))
                  .attr("width", 1)
+                 .attr("opacity", 1)
                  .attr("transform", function(d, i) { return "translate(0," + that.y(0.5 + i) + ")"; })
                  .attr("fill", function(d) { return that.model.get("users")[d.o]; })
                  .on("mouseover", function(){
@@ -1523,6 +1535,7 @@ SentencesView = Backbone.View.extend({
                 
         lastSentences.append("polygon")
                      .attr("class", "lastSentence")
+                     .attr("opacity", 1)
                      .attr("points", function(d) {
                         var y1_last = that.calcYPos(d.l, barHeight);
                         var y2_last = y1_last + barHeight;
@@ -1602,18 +1615,17 @@ SentencesView = Backbone.View.extend({
             
             // Use d3 to populate the select element in the select users dialog with option elements
             d3.select($('#userselect2', dialog)[0])
-                .selectAll('option')
+                .selectAll('div')
                 .data(d3.entries(users))
                 .enter()
-                .append('option')
-                .attr('value', function(d, i){
-                    return d.key; 
-                })
-                .style('background', function(d, i){
-                    return d.value;
-                })
-                .text(function(d, i) {
-                    return d.key;
+                .append('div')
+                .style('height', '16px')
+                .style('padding', '2px 3px 2px 16px')
+                .html(function(d, i){
+                    var ret = '<input style="float:left;margin-right:16px;" type="checkbox" name="userselect2[]" value="' + d.key + '" />';
+                    ret += '<div class="l_colour" style="background: ' + d.value + ';height:16px;width:16px;margin-right:16px;"></div>';
+                    ret += '<span>' + d.key + '</span>';
+                    return ret;
                 });
         }
         
@@ -1685,10 +1697,12 @@ ToolbarView = Backbone.View.extend({
                             if ($(this).attr('checked')) {
                                 wikiviz.get('view').data.selectAll('.datum').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 1);
                                 article.viz.navctl.bg.selectAll('rect').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 1);
+                                article.viz.sentences.svg.selectAll('.sentence, .lastSentence').filter(function(d) { return (wikiviz.getGroupsByName(d.o) == that.val() || _.contains(wikiviz.getGroupsByName(d.o), that.val())); }).transition().duration(500).attr('opacity', 1);
                             // Checkbox was unchecked
                             } else {
                                 wikiviz.get('view').data.selectAll('.datum').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 0.2);
                                 article.viz.navctl.bg.selectAll('rect').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 0.2);
+                                article.viz.sentences.svg.selectAll('.sentence, .lastSentence').filter(function(d) { return (wikiviz.getGroupsByName(d.o) == that.val() || _.contains(wikiviz.getGroupsByName(d.o), that.val())); }).transition().duration(500).attr('opacity', 0.2);
                             }
                             $('#t_deselect', dialog).button('enable');
                         });
@@ -1706,11 +1720,13 @@ ToolbarView = Backbone.View.extend({
                             });
                             // Use choices to generate selection in Select By User
                             // User names are stored in the "value" property of the options in the select element.
-                            $('#userselect option, #userselect option', dialog).each(function(i, e) {
+                            $('#userselect option, #userselect2 input', dialog).each(function(i, e) {
                                 if (Helper.isSubset([wikiviz.getGroupsByName($(e).val())], filt)) {
                                     $(e).attr('selected', true);
+                                    $(e).prop('checked', true);
                                 } else {
                                     $(e).attr('selected', false);
+                                    $(e).removeProp('checked');
                                 }
                                 // Force visual update on stubborn browsers (Chrome !!!)
                                 $(e).addClass('invisible');
@@ -1721,7 +1737,12 @@ ToolbarView = Backbone.View.extend({
                     // Clicking "Apply User Selection"
                     $('#select_apply', dialog).click(function() {
                         var users = Array();
-                        $('#userselect:visible option:selected, #userselect2:visible option:selected', dialog).each(function() { users.push($(this).val()); });
+                        $('#userselect:visible option:selected, #userselect2:visible input:checked', dialog).each(function() { users.push($(this).val()); });
+                        article.viz.applyUserSelection(users);
+                    });
+                    $('#userselect2', dialog).click(function(){
+                        var users = Array();
+                        $('#userselect:visible option:selected, #userselect2:visible input:checked', dialog).each(function() { users.push($(this).val()); });
                         article.viz.applyUserSelection(users);
                     });
                 }
@@ -1779,11 +1800,13 @@ ToolbarView = Backbone.View.extend({
                             });
                             // Use choices to generate selection in Select By User
                             // User names are stored in the "value" property of the options in the select element.
-                            $('#userselect option, #userselect2 option', dialog).each(function(i, e) {
+                            $('#userselect option, #userselect2 input', dialog).each(function(i, e) {
                                 if (Helper.isSubset([wikiviz.getGroupsByName($(e).val())], filt)) {
                                     $(e).attr('selected', true);
+                                    $(e).prop('checked', true);
                                 } else {
                                     $(e).attr('selected', false);
+                                    $(e).removeProp('checked');
                                 }
                                 // Force visual update on stubborn browsers (Chrome !!!)
                                 $(e).addClass('invisible');
@@ -1794,7 +1817,7 @@ ToolbarView = Backbone.View.extend({
                     // Clicking "Apply User Selection"
                     $('#select_apply', dialog).click(function() {
                         var users = Array();
-                        $('#userselect:visible option:selected, #userselect2:visible option:selected', dialog).each(function() { users.push($(this).val()); });
+                        $('#userselect:visible option:selected, #userselect2:visible input:checked', dialog).each(function() { users.push($(this).val()); });
                         article.viz.applyUserSelection(users);
                     });
                 }
@@ -2027,7 +2050,7 @@ ToolbarView = Backbone.View.extend({
         "click #t_info":    function(){this.subviews.diag_info.open();},
         "click #t_data":    function(){this.subviews.diag_data.open();},
         "click #t_legend":  function(){this.subviews.diag_legend.open();},
-        "click #t_deselect":function(){this.view.viz.clearAllSelections(true);},
+        "click #t_deselect":function(){$('#userselect2 input').removeProp('checked'); this.view.viz.clearAllSelections(true);},
         "click #t_talk":    function(){this.subviews.diag_talk.open();}
     },
     
@@ -2515,11 +2538,12 @@ WikiVizView = Backbone.View.extend({
         });
     
         // Apply selection to the main article contribution view
-        this.model.get('view').data.selectAll('.datum').filter(function (d) { return jQuery.inArray(d.user, userlist) === -1; }).selectAll('.bars rect').transition().duration(500).attr('opacity', 0.2);
-    
+        this.model.get('view').data.selectAll('.datum').filter(function (d) { return jQuery.inArray(d.user, userlist) === -1; }).selectAll('.bars rect').transition().duration(500).attr('opacity', 0.2);    
         // Apply selection to nav "spikes"
         this.navctl.spikes.filter(function(d) { return jQuery.inArray(d.user, userlist) === -1; }).transition().duration(500).attr('opacity', 0.4);
-    
+        
+        // Apply selection to the sentence ownership view
+        this.sentences.applyUserSelection(userlist);
         return;
     },
     
@@ -2546,6 +2570,9 @@ WikiVizView = Backbone.View.extend({
     
         // Update nav control spikes
         this.navctl.spikes.transition().duration(500).attr('opacity', 1);
+    
+        // Clear the selection for the sentence ownership visualization
+        this.sentences.clearAllSelections();
     
         // Re-enable any previously disabled selection controls
         $('#diag_legend input').prop('disabled', false);
@@ -2969,6 +2996,7 @@ WikiVizView = Backbone.View.extend({
             d3.selectAll('.tdatum').attr('opacity', 0);
             d3.selectAll('.tcircle').attr('opacity', 0);
         
+            this.$('#t_sections').button('disable');
             this.$('#t_legend').button('enable');
             this.$('#t_talk').button('disable');
         
@@ -2997,6 +3025,7 @@ WikiVizView = Backbone.View.extend({
             var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
+            $('.select_apply_div', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('.talkrow', dialog).addClass('invisible');
             $('.defaultrow', dialog).removeClass('invisible');
         
@@ -3011,8 +3040,9 @@ WikiVizView = Backbone.View.extend({
             d3.selectAll('.tdatum').attr('opacity', 1);
             d3.selectAll('.tcircle').attr('opacity', 1);
         
-            $('#t_legend').button('disable');
-            $('#t_talk').button('enable');
+            this.$('#t_sections').button('disable');
+            this.$('#t_legend').button('disable');
+            this.$('#t_talk').button('enable');
         
             if (this.model.get('isTimeSpaced') === false) {
                 d3.selectAll('.month').attr('opacity', 0);
@@ -3036,6 +3066,7 @@ WikiVizView = Backbone.View.extend({
             var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
+            $('.select_apply_div', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('.talkrow', dialog).removeClass('invisible');
             $('.defaultrow', dialog).addClass('invisible');
         
@@ -3053,6 +3084,7 @@ WikiVizView = Backbone.View.extend({
             this.$('#t_legend').button('enable');
             this.$('#t_talk').button('enable');
         
+            this.$('#t_sections').button('disable');
             this.$('#toAdj').button('disable');
             this.$('#toTime').button('disable');
 
@@ -3063,6 +3095,7 @@ WikiVizView = Backbone.View.extend({
             var dialog = this.view.subviews.toolbar.subviews.diag_data.dialog;
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
+            $('.select_apply_div', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('.talkrow', dialog).removeClass('invisible');
             $('.defaultrow', dialog).removeClass('invisible');
         
@@ -3070,9 +3103,15 @@ WikiVizView = Backbone.View.extend({
             d3.selectAll('g.ylabel').attr('opacity', 1);
         }
         else if(this.model.get('mode') == 'ownership'){
+            this.$('#t_legend').button('disable');
+            this.$('#t_talk').button('disable');
+            
+            this.$('#t_sections').button('enable');
+            
             this.model.set('isTimeSpaced', false);
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $('.select_apply_div', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             this.sentences.updateSentences();
         }
         if(!options.silent){
