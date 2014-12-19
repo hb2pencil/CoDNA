@@ -30,6 +30,7 @@
 
         
 		<script type="text/javascript" src="js/vendor/d3.v3.min.js"></script>
+		<script type="text/javascript" src="js/vendor/fisheye.js"></script>
 		<script type="text/javascript" src="js/sorttable.js"></script>
 		<script type="text/javascript" src="js/vendor/jquery_svg/jquery.svg.js"></script>
 		<script type="text/javascript" src="js/vendor/jquery_svg/jquery.svgdom.js"></script>
