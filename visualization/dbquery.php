@@ -265,7 +265,10 @@
         $sentences = array(); // Sentence Hash for compression
         $users = array();
         $userColors = array();
+        $revs = array();
         while ($stmt->fetch()) {
+            $revs[$rev_id] = true;
+            
             $sentence = utf8_encode(strip_tags($sentence));
             if($sentence == ""){
                 continue;
@@ -276,19 +279,21 @@
             else{
                 @$users[utf8_encode($owner)]++;
             }
-            
-            if(isset($sentences[$sentence])){
-                $sId = $sentences[$sentence];
+            if(count($revs) - 1 >= $_GET['start'] && 
+              (count($revdata) <= $_GET['limit'] || isset($revdata[$rev_id]))){
+                if(isset($sentences[$sentence])){
+                    $sId = $sentences[$sentence];
+                }
+                else {
+                    $sId = count($sentences);
+                    $sentences[$sentence] = $sId;
+                }
+                $section = str_replace("[edit]", "", utf8_encode($section));
+                $revdata[$rev_id][$section][] = array('i' => $id,
+                                                      'o' => utf8_encode($owner),
+                                                      's' => $sId,
+                                                      'l' => $last);
             }
-            else {
-                $sId = count($sentences);
-                $sentences[$sentence] = $sId;
-            }
-            $section = str_replace("[edit]", "", $section);
-            $revdata[$rev_id][$section][] = array('i' => $id,
-                                                  'o' => utf8_encode($owner),
-                                                  's' => $sId,
-                                                  'l' => $last);
         }
         asort($users);
         $users = array_keys(array_reverse($users));
@@ -301,7 +306,8 @@
             }
         }
         $userColors["Public Domain"] = "#C41AA2";
-        $response = array('revisions' => $revdata,
+        $response = array('nRevisions' => count($revs),
+                          'revisions' => $revdata,
                           'users' => $userColors,
                           'sentences' => array_flip($sentences));
         echo json_encode($response);

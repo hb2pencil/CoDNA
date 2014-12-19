@@ -47,7 +47,7 @@ WikiVizView = Backbone.View.extend({
         var w;
         if(this.model.get('mode') == 'ownership'){
             // When using the ownership visualization, there is no mask
-            w = this.model.get('width')/(this.model.get('numBars')*2 - 1);
+            w = this.model.get('width')/((this.model.get('numBars')*(_.size(this.sentences.model.get('revisions'))/this.sentences.model.get('nRevisions')))*2 - 1);
         }
         else{
             // Consider the ymask when calculation the bar width
@@ -685,6 +685,10 @@ WikiVizView = Backbone.View.extend({
             this.$('#t_sections').button('disable');
             this.$('#t_legend').button('enable');
             this.$('#t_talk').button('disable');
+            
+            this.view.$("#prev").prop('disabled', true);
+            this.view.$("#showAll").prop('disabled', true);
+            this.view.$("#next").prop('disabled', true);
         
             this.$('#toAdj').button('enable');
         
@@ -729,6 +733,10 @@ WikiVizView = Backbone.View.extend({
             this.$('#t_sections').button('disable');
             this.$('#t_legend').button('disable');
             this.$('#t_talk').button('enable');
+            
+            this.view.$("#prev").prop('disabled', true);
+            this.view.$("#showAll").prop('disabled', true);
+            this.view.$("#next").prop('disabled', true);
         
             if (this.model.get('isTimeSpaced') === false) {
                 d3.selectAll('.month').attr('opacity', 0);
@@ -773,6 +781,10 @@ WikiVizView = Backbone.View.extend({
             this.$('#t_sections').button('disable');
             this.$('#toAdj').button('disable');
             this.$('#toTime').button('disable');
+            
+            this.view.$("#prev").prop('disabled', true);
+            this.view.$("#showAll").prop('disabled', true);
+            this.view.$("#next").prop('disabled', true);
 
             this.model.set('isTimeSpaced', true);
         
@@ -793,6 +805,8 @@ WikiVizView = Backbone.View.extend({
             this.$('#t_talk').button('disable');
             
             this.$('#t_sections').button('enable');
+            
+            this.sentences.updatePrevNext();
             
             this.model.set('isTimeSpaced', false);
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();

@@ -3,6 +3,7 @@ SentencesView = Backbone.View.extend({
 
     initialize: function(options){
         this.viz = options.viz;
+        this.listenTo(this.model, "changePos", this.showLoading);
         this.listenTo(this.model, "sync", this.render);
         this.model.fetch();
     },
@@ -277,7 +278,38 @@ SentencesView = Backbone.View.extend({
         this.updateSentences();
     },
     
+    // Updates the state of the pagination buttons
+    updatePrevNext: function(){
+        if(this.viz.model.get('mode') == 'ownership'){
+            this.viz.view.$("#showAll").prop('disabled', false);
+            if(this.model.get('start') == 0 &&
+              !(this.model.get('nRevisions') > defaultLimit && this.model.get('limit') == this.model.get('nRevisions'))){
+                this.viz.view.$("#prev").prop('disabled', true);
+            }
+            else{
+                this.viz.view.$("#prev").prop('disabled', false);
+            }
+            if(this.model.get('start') + this.model.get('limit') >= this.model.get('nRevisions')){
+                this.viz.view.$("#next").prop('disabled', true);
+            }
+            else{
+                this.viz.view.$("#next").prop('disabled', false);
+            }
+            if(this.model.get('limit') >= this.model.get('nRevisions')){
+                this.viz.view.$("#showAll").prop('disabled', true);
+            }
+            else{
+                this.viz.view.$("#showAll").prop('disabled', false);
+            }
+        }
+    },
+    
+    showLoading: function(){
+        this.viz.$("#ownershipvis").append("<div style='position:absolute;top:0;bottom:0;left:0;right:0;background:rgba(0,0,0,0.75);color:#FFFFFF;font-size:12px;padding:5px;'>Loading...</div>");
+    },
+    
     render: function() {
+        this.updatePrevNext();
         this.viz.$('#ownershipvis').empty();
         this.svg = d3.select(this.viz.$('#ownershipvis')[0]).append('svg').attr('width', this.viz.model.get('width')).attr('height', this.viz.model.get('height'));
         this.x = d3.scale.linear();

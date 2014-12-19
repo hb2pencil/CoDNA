@@ -41,7 +41,7 @@ header h1 {
 	position: absolute;
 	left: 0;
 	right: 0;
-	bottom: 55px;
+	bottom: 70px;
 	top: 0;
 }
 
@@ -267,17 +267,29 @@ table.new_article .ui-tabs-selected {
 #navctl {
 	font-size: 80%;
 	position: absolute;
-	bottom: 0;
+	bottom: 27px;
 	right: 0;
 	left: 228px;
-	height: 26px;
+	height: 28px;
 	border-width: 1px 0 0 1px;
 	border-color: #AAAAAA;
 	border-style: solid;
-	padding-top: 13px;
+	padding-top: 10px;
 	padding-left: 20px;
 	padding-right: 20px;
-	padding-bottom: 15px;
+	padding-bottom: 5px;
+}
+
+#pagination {
+    position: absolute;
+    bottom: 0;
+    left: 228px;
+    right: 0;
+    height: 27px;
+    border-width: 0 0 0 1px;
+	border-color: #AAAAAA;
+	border-style: solid;
+	text-align: center;
 }
 
 #t_select {
@@ -965,7 +977,7 @@ button::-moz-focus-inner {
     border: 0;
 }
 
-table.new_article button {
+button {
     -webkit-transition: background 0.20s ease-in-out;
     -moz-transition: background 0.20s ease-in-out;
     -ms-transition: background 0.20s ease-in-out;
@@ -983,20 +995,24 @@ table.new_article button {
     font-family: sans-serif;
 }
 
-table.new_article button.selected {
+button.selected {
     background: #70B323;
 }
 
-table.new_article button:hover {
+button:hover {
     background: #70B323;
     cursor: pointer;
 }
 
-table.new_article button.selected:hover {
+button:active {
+    background: #50801A;
+}
+
+button.selected:hover {
     background: #60991F;
 }
 
-table.new_article button.small {
+button.small {
     line-height: 12px;
     font-size: 14px;
     padding: 6px 3px;
@@ -1006,7 +1022,10 @@ table.new_article button.small {
     border-radius: 3px;
 }
 
-
+button:disabled {
+    background: #B3B3B3 !important;
+    cursor: default;
+}
 
 .green_arrow {
     position: absolute;

@@ -1,3 +1,5 @@
+var defaultLimit = 200;
+
 // ## Sentences
 Sentences = Backbone.Model.extend({
 
@@ -6,7 +8,10 @@ Sentences = Backbone.Model.extend({
     },
     
     urlRoot: function(){
-        return "dbquery.php?sentences=" + this.get('articleId') + "&set=" + this.get('setId');
+        return "dbquery.php?sentences=" + this.get('articleId') + 
+               "&set=" + this.get('setId') + 
+               "&start=" + this.get('start') + 
+               "&limit=" + this.get('limit');
     },
     
     // Returns an Array containing all of the unique Section titles
@@ -20,10 +25,37 @@ Sentences = Backbone.Model.extend({
         }, this));
         return _.keys(sections);
     },
+    
+    // Loads the previous 'limit' revisions
+    prev: function(){
+        this.set('limit', defaultLimit);
+        this.set('start', Math.max(0, this.get('start') - this.get('limit')));
+        this.trigger("changePos");
+        this.fetch();
+    },
+    
+    // Loads all of the revisions
+    showAll: function(){
+        this.set('start', 0);
+        this.set('limit', this.get('nRevisions'));
+        this.trigger("changePos");
+        this.fetch();
+    },
+    
+    // Loads the next 'limit' revisions
+    next: function(){
+        this.set('limit', defaultLimit);
+        this.set('start', Math.min(this.get('nRevisions') - this.get('limit'), this.get('start') + this.get('limit')));
+        this.trigger("changePos");
+        this.fetch();
+    },
 
     defaults: {
         articleId: 0,
+        nRevisions: 0,
         setId: 0,
+        start: 0,
+        limit: defaultLimit,
         revisions: {},
         sentences: {}, // Used for storing unique sentences so that duplicates are not in revisions wasting space
         users: {}, // Used for storing unique users so that duplicates are not in revisions wasting space

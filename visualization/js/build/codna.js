@@ -210,6 +210,8 @@ Backbone.NonUniqueCollection = Backbone.Collection.extend({
 
 });
 
+var defaultLimit = 200;
+
 // ## Sentences
 Sentences = Backbone.Model.extend({
 
@@ -218,7 +220,10 @@ Sentences = Backbone.Model.extend({
     },
     
     urlRoot: function(){
-        return "dbquery.php?sentences=" + this.get('articleId') + "&set=" + this.get('setId');
+        return "dbquery.php?sentences=" + this.get('articleId') + 
+               "&set=" + this.get('setId') + 
+               "&start=" + this.get('start') + 
+               "&limit=" + this.get('limit');
     },
     
     // Returns an Array containing all of the unique Section titles
@@ -232,10 +237,37 @@ Sentences = Backbone.Model.extend({
         }, this));
         return _.keys(sections);
     },
+    
+    // Loads the previous 'limit' revisions
+    prev: function(){
+        this.set('limit', defaultLimit);
+        this.set('start', Math.max(0, this.get('start') - this.get('limit')));
+        this.trigger("changePos");
+        this.fetch();
+    },
+    
+    // Loads all of the revisions
+    showAll: function(){
+        this.set('start', 0);
+        this.set('limit', this.get('nRevisions'));
+        this.trigger("changePos");
+        this.fetch();
+    },
+    
+    // Loads the next 'limit' revisions
+    next: function(){
+        this.set('limit', defaultLimit);
+        this.set('start', Math.min(this.get('nRevisions') - this.get('limit'), this.get('start') + this.get('limit')));
+        this.trigger("changePos");
+        this.fetch();
+    },
 
     defaults: {
         articleId: 0,
+        nRevisions: 0,
         setId: 0,
+        start: 0,
+        limit: defaultLimit,
         revisions: {},
         sentences: {}, // Used for storing unique sentences so that duplicates are not in revisions wasting space
         users: {}, // Used for storing unique users so that duplicates are not in revisions wasting space
@@ -620,6 +652,27 @@ ArticleView = Backbone.View.extend({
         }
     },
     
+    // Goes to the previous 'n' revisions
+    prev: function(){
+        this.viz.sentences.model.prev();
+    },
+    
+    // Shows all of the revisions
+    showAll: function(){
+        this.viz.sentences.model.showAll();
+    },
+    
+    // Goes to the next 'n' revisions
+    next: function(){
+        this.viz.sentences.model.next(); 
+    },
+    
+    events: {
+        "click #prev":    "prev",
+        "click #showAll": "showAll",
+        "click #next":    "next"
+    },
+    
     render: function(){
         this.$el.html(this.template(this.model.toJSON()));
         this.viz = new WikiVizView({model: this.wikiviz, view: this, el: this.el});
@@ -794,7 +847,7 @@ NavCtlView = Backbone.View.extend({
     getPanOffset: function() {
         try{
             if(this.viz.model.get('mode') == 'ownership'){
-                return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*((this.viz.model.get('data').get('revisions').length*2 + 1)*this.viz.calcBarWidth());
+                return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*((_.size(this.viz.sentences.model.get('revisions'))*2 + 1)*this.viz.calcBarWidth());
             }
             if ((!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'art')) {
                 return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*(this.viz.model.get('data').get('revisions').length*this.viz.calcBarWidth());
@@ -1333,6 +1386,7 @@ SentencesView = Backbone.View.extend({
 
     initialize: function(options){
         this.viz = options.viz;
+        this.listenTo(this.model, "changePos", this.showLoading);
         this.listenTo(this.model, "sync", this.render);
         this.model.fetch();
     },
@@ -1607,7 +1661,38 @@ SentencesView = Backbone.View.extend({
         this.updateSentences();
     },
     
+    // Updates the state of the pagination buttons
+    updatePrevNext: function(){
+        if(this.viz.model.get('mode') == 'ownership'){
+            this.viz.view.$("#showAll").prop('disabled', false);
+            if(this.model.get('start') == 0 &&
+              !(this.model.get('nRevisions') > defaultLimit && this.model.get('limit') == this.model.get('nRevisions'))){
+                this.viz.view.$("#prev").prop('disabled', true);
+            }
+            else{
+                this.viz.view.$("#prev").prop('disabled', false);
+            }
+            if(this.model.get('start') + this.model.get('limit') >= this.model.get('nRevisions')){
+                this.viz.view.$("#next").prop('disabled', true);
+            }
+            else{
+                this.viz.view.$("#next").prop('disabled', false);
+            }
+            if(this.model.get('limit') >= this.model.get('nRevisions')){
+                this.viz.view.$("#showAll").prop('disabled', true);
+            }
+            else{
+                this.viz.view.$("#showAll").prop('disabled', false);
+            }
+        }
+    },
+    
+    showLoading: function(){
+        this.viz.$("#ownershipvis").append("<div style='position:absolute;top:0;bottom:0;left:0;right:0;background:rgba(0,0,0,0.75);color:#FFFFFF;font-size:12px;padding:5px;'>Loading...</div>");
+    },
+    
     render: function() {
+        this.updatePrevNext();
         this.viz.$('#ownershipvis').empty();
         this.svg = d3.select(this.viz.$('#ownershipvis')[0]).append('svg').attr('width', this.viz.model.get('width')).attr('height', this.viz.model.get('height'));
         this.x = d3.scale.linear();
@@ -2416,7 +2501,7 @@ WikiVizView = Backbone.View.extend({
         var w;
         if(this.model.get('mode') == 'ownership'){
             // When using the ownership visualization, there is no mask
-            w = this.model.get('width')/(this.model.get('numBars')*2 - 1);
+            w = this.model.get('width')/((this.model.get('numBars')*(_.size(this.sentences.model.get('revisions'))/this.sentences.model.get('nRevisions')))*2 - 1);
         }
         else{
             // Consider the ymask when calculation the bar width
@@ -3054,6 +3139,10 @@ WikiVizView = Backbone.View.extend({
             this.$('#t_sections').button('disable');
             this.$('#t_legend').button('enable');
             this.$('#t_talk').button('disable');
+            
+            this.view.$("#prev").prop('disabled', true);
+            this.view.$("#showAll").prop('disabled', true);
+            this.view.$("#next").prop('disabled', true);
         
             this.$('#toAdj').button('enable');
         
@@ -3098,6 +3187,10 @@ WikiVizView = Backbone.View.extend({
             this.$('#t_sections').button('disable');
             this.$('#t_legend').button('disable');
             this.$('#t_talk').button('enable');
+            
+            this.view.$("#prev").prop('disabled', true);
+            this.view.$("#showAll").prop('disabled', true);
+            this.view.$("#next").prop('disabled', true);
         
             if (this.model.get('isTimeSpaced') === false) {
                 d3.selectAll('.month').attr('opacity', 0);
@@ -3142,6 +3235,10 @@ WikiVizView = Backbone.View.extend({
             this.$('#t_sections').button('disable');
             this.$('#toAdj').button('disable');
             this.$('#toTime').button('disable');
+            
+            this.view.$("#prev").prop('disabled', true);
+            this.view.$("#showAll").prop('disabled', true);
+            this.view.$("#next").prop('disabled', true);
 
             this.model.set('isTimeSpaced', true);
         
@@ -3162,6 +3259,8 @@ WikiVizView = Backbone.View.extend({
             this.$('#t_talk').button('disable');
             
             this.$('#t_sections').button('enable');
+            
+            this.sentences.updatePrevNext();
             
             this.model.set('isTimeSpaced', false);
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();

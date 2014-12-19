@@ -25,6 +25,27 @@ ArticleView = Backbone.View.extend({
         }
     },
     
+    // Goes to the previous 'n' revisions
+    prev: function(){
+        this.viz.sentences.model.prev();
+    },
+    
+    // Shows all of the revisions
+    showAll: function(){
+        this.viz.sentences.model.showAll();
+    },
+    
+    // Goes to the next 'n' revisions
+    next: function(){
+        this.viz.sentences.model.next(); 
+    },
+    
+    events: {
+        "click #prev":    "prev",
+        "click #showAll": "showAll",
+        "click #next":    "next"
+    },
+    
     render: function(){
         this.$el.html(this.template(this.model.toJSON()));
         this.viz = new WikiVizView({model: this.wikiviz, view: this, el: this.el});

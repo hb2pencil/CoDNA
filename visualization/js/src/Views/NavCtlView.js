@@ -122,7 +122,7 @@ NavCtlView = Backbone.View.extend({
     getPanOffset: function() {
         try{
             if(this.viz.model.get('mode') == 'ownership'){
-                return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*((this.viz.model.get('data').get('revisions').length*2 + 1)*this.viz.calcBarWidth());
+                return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*((_.size(this.viz.sentences.model.get('revisions'))*2 + 1)*this.viz.calcBarWidth());
             }
             if ((!this.viz.model.get('isTimeSpaced') && this.viz.model.get('mode') == 'art')) {
                 return ((this.sdim.x0) / (this.dim.w - 2*this.handleWidth))*(this.viz.model.get('data').get('revisions').length*this.viz.calcBarWidth());

@@ -240,7 +240,15 @@
             $history = array();
         }
         else{
-            $history = $sentenceHistory[$histId];
+            $history = &$sentenceHistory[$histId];
+        }
+        $index = count($history)-1;
+        if($index >= 0 && isset($history[$index]) && $history[$index]['raw'] == $raw && $history[$index]['revId'] != $revId){
+            // No change, so just update the values
+            $history[$index]['revId'] = $revId;
+            $history[$index]['section'] = $section;
+            $history[$index]['sentId'] = $sentId;
+            return $histId;
         }
         $history[] = array('revId' => $revId, 
                            'section' => $section,
@@ -256,13 +264,28 @@
      */
     function findSentenceInHistory($sentence){
         global $sentenceHistory;
+        $offset = 1;
+        do {
+            $found = false;
+            foreach($sentenceHistory as $key => $history){
+                if(isset($history[count($history)-$offset])){
+                    $found = true;
+                    $tuple = $history[count($history)-$offset];
+                    if($tuple['raw'] == $sentence){
+                        return $key;
+                    }
+                }
+            }
+            $offset++;
+        } while($found);
+        /*
         foreach($sentenceHistory as $key => $history){
             foreach($history as $tuple){
                 if($tuple['raw'] == $sentence){
                     return $key;
                 }
             }
-        }
+        }*/
         return -1;
     }
     
@@ -467,10 +490,11 @@
                 // No Sentence Change
                 $new_sentence = $lastRevSentences[$i];
                 $relId = findSentenceInHistory($sentence);
-                $history = $sentenceHistory[$relId][count($sentenceHistory[$relId])-1];
+                $count = count($sentenceHistory[$relId]);
+                $history = $sentenceHistory[$relId][$count-1];
                 $off = 2;
-                while($history['revId'] == $revId){
-                    $history = $sentenceHistory[$relId][count($sentenceHistory[$relId])-$off];
+                while($history['revId'] == $revId && $count-$off >= 0){
+                    $history = $sentenceHistory[$relId][$count-$off];
                     $off++;
                 }
                 foreach($sentences as $sent){
@@ -479,8 +503,11 @@
                         break;
                     }
                 }
-                $new_sentence['last'] = $storedSentences["{$history['revId']}_{$history['sentId']}"]->ID;
+                if(isset($storedSentences["{$history['revId']}_{$history['sentId']}"])){
+                    $new_sentence['last'] = $storedSentences["{$history['revId']}_{$history['sentId']}"]->ID;
+                }
                 addSentenceHistory($revId, $new_sentence['section'], count($finalSentences), $lastRevSentences[$i]['raw'], $relId);
+                
                 $finalSentences[] = $new_sentence;
                 $i++;
             }
