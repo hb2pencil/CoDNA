@@ -800,7 +800,11 @@ NavCtlView = Backbone.View.extend({
     
     // Change the apperance of the navctl based on the current mode
     changeMode: function(){
-        if(this.viz.model.get('mode') == 'art'){
+        if(this.viz.model.get('mode') == 'ownership'){
+            this.bg.select('g.navbars').selectAll('.sd').attr('opacity', 0);
+            this.bg.select('g.navbars').selectAll('circle.tcircle').attr('opacity', 0);
+        }
+        else if(this.viz.model.get('mode') == 'art'){
             this.bg.select('g.navbars').selectAll('.sd').attr('opacity', 1);
             this.bg.select('g.navbars').selectAll('circle.tcircle').attr('opacity', 0);
         }

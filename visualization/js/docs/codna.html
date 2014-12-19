@@ -1771,7 +1771,11 @@ Use a new time-spaced scale for display.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    changeMode: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
-        <span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.viz.model.get(<span class="hljs-string">'mode'</span>) == <span class="hljs-string">'art'</span>){
+        <span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.viz.model.get(<span class="hljs-string">'mode'</span>) == <span class="hljs-string">'ownership'</span>){
+            <span class="hljs-keyword">this</span>.bg.select(<span class="hljs-string">'g.navbars'</span>).selectAll(<span class="hljs-string">'.sd'</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">0</span>);
+            <span class="hljs-keyword">this</span>.bg.select(<span class="hljs-string">'g.navbars'</span>).selectAll(<span class="hljs-string">'circle.tcircle'</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">0</span>);
+        }
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.viz.model.get(<span class="hljs-string">'mode'</span>) == <span class="hljs-string">'art'</span>){
             <span class="hljs-keyword">this</span>.bg.select(<span class="hljs-string">'g.navbars'</span>).selectAll(<span class="hljs-string">'.sd'</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">1</span>);
             <span class="hljs-keyword">this</span>.bg.select(<span class="hljs-string">'g.navbars'</span>).selectAll(<span class="hljs-string">'circle.tcircle'</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">0</span>);
         }
