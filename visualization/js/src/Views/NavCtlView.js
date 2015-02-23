@@ -162,21 +162,22 @@ NavCtlView = Backbone.View.extend({
     initSentenceSpikes: function() {
         var that = this;
         var handleWidth = this.dim.h/2;
+        var maxSentences = this.viz.sentences.getMaxSentences();
 
         this.oxscale = d3.scale.linear();
         this.oxscale.domain([0, _.values(this.viz.sentences.model.get('revisions')).length]);
         this.oxscale.rangeRound([0, this.dim.w - 2*handleWidth]);
     
         this.oyscale = d3.scale.linear();
-        this.oyscale.domain([0, this.viz.sentences.getMaxSentences()]);
+        this.oyscale.domain([0, maxSentences]);
         this.oyscale.rangeRound([1, this.dim.h-1]);
     
         var spikeWidth = (this.dim.w-2*handleWidth) / _.values(this.viz.sentences.model.get('revisions')).length;
-        
+        this.bg.select('g.navbars').selectAll('rect.osd').remove();
         this.ospikes = this.bg.select('g.navbars').selectAll('rect.osd').data(_.values(this.viz.sentences.model.get('revisions')));
         this.ospikes.enter().append('rect')
             .attr('x', function(d, i) { return that.oxscale(i); })
-            .attr('y', function(d) { return that.oyscale(that.viz.sentences.getMaxSentences()/2) - that.oyscale(_.reduce(_.values(d), function(sum, s){ return sum += _.size(s);}, 0)); })
+            .attr('y', function(d) { return that.oyscale(maxSentences/2) - that.oyscale(_.reduce(_.values(d), function(sum, s){ return sum += _.size(s);}, 0)); })
             .attr('width', function(d,i) { return Math.max(1, spikeWidth-1); })
             .attr('height', function(d) { return that.oyscale(_.reduce(_.values(d), function(sum, s){ return sum += _.size(s);}, 0)); })
             .attr('class', 'osd')
