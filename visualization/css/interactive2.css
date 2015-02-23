@@ -730,7 +730,7 @@ line.google {
     stroke-width: 2px;
 }
 
-rect.sd {
+rect.sd, rect.osd {
 	/*stroke: #777;
 	stroke-width: 1px;*/
 	fill: #777;

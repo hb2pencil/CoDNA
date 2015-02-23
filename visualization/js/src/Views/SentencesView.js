@@ -276,6 +276,7 @@ SentencesView = Backbone.View.extend({
                     });
                      
         this.updateSentences();
+        this.viz.navctl.initSentenceSpikes();
     },
     
     // Updates the state of the pagination buttons

@@ -76,20 +76,28 @@ NavCtlView = Backbone.View.extend({
     // Change the apperance of the navctl based on the current mode
     changeMode: function(){
         if(this.viz.model.get('mode') == 'ownership'){
+            this.bg.select('g.navbars').selectAll('.navctlline').attr('opacity', 0);
             this.bg.select('g.navbars').selectAll('.sd').attr('opacity', 0);
             this.bg.select('g.navbars').selectAll('circle.tcircle').attr('opacity', 0);
+            this.bg.select('g.navbars').selectAll('.osd').attr('opacity', 1);
         }
         else if(this.viz.model.get('mode') == 'art'){
+            this.bg.select('g.navbars').selectAll('.navctlline').attr('opacity', 1);
             this.bg.select('g.navbars').selectAll('.sd').attr('opacity', 1);
             this.bg.select('g.navbars').selectAll('circle.tcircle').attr('opacity', 0);
+            this.bg.select('g.navbars').selectAll('.osd').attr('opacity', 0);
         }
         else if(this.viz.model.get('mode') == 'talk'){
+            this.bg.select('g.navbars').selectAll('.navctlline').attr('opacity', 1);
             this.bg.select('g.navbars').selectAll('.sd').attr('opacity', 0);
             this.bg.select('g.navbars').selectAll('.tcircle').attr('opacity', 1);
+            this.bg.select('g.navbars').selectAll('.osd').attr('opacity', 0);
         }
         else if(this.viz.model.get('mode') == 'hybrid'){
+            this.bg.select('g.navbars').selectAll('.navctlline').attr('opacity', 1);
             this.bg.select('g.navbars').selectAll('.sd').attr('opacity', 1);
             this.bg.select('g.navbars').selectAll('.tcircle').attr('opacity', 1);
+            this.bg.select('g.navbars').selectAll('.osd').attr('opacity', 0);
         }
         this.onScale();
     },
@@ -150,6 +158,31 @@ NavCtlView = Backbone.View.extend({
     
     },
     
+    // Draw Ownership Rectangles
+    initSentenceSpikes: function() {
+        var that = this;
+        var handleWidth = this.dim.h/2;
+
+        this.oxscale = d3.scale.linear();
+        this.oxscale.domain([0, _.values(this.viz.sentences.model.get('revisions')).length]);
+        this.oxscale.rangeRound([0, this.dim.w - 2*handleWidth]);
+    
+        this.oyscale = d3.scale.linear();
+        this.oyscale.domain([0, this.viz.sentences.getMaxSentences()]);
+        this.oyscale.rangeRound([1, this.dim.h-1]);
+    
+        var spikeWidth = (this.dim.w-2*handleWidth) / _.values(this.viz.sentences.model.get('revisions')).length;
+        
+        this.ospikes = this.bg.select('g.navbars').selectAll('rect.osd').data(_.values(this.viz.sentences.model.get('revisions')));
+        this.ospikes.enter().append('rect')
+            .attr('x', function(d, i) { return that.oxscale(i); })
+            .attr('y', function(d) { return that.oyscale(that.viz.sentences.getMaxSentences()/2) - that.oyscale(_.reduce(_.values(d), function(sum, s){ return sum += _.size(s);}, 0)); })
+            .attr('width', function(d,i) { return Math.max(1, spikeWidth-1); })
+            .attr('height', function(d) { return that.oyscale(_.reduce(_.values(d), function(sum, s){ return sum += _.size(s);}, 0)); })
+            .attr('class', 'osd')
+            .attr('opacity', function(){ return (that.viz.model.get('mode') == 'ownership') ? 1 : 0; });
+    },
+    
     init: function(sw, sh) {
         this.viz.$('#navctl').empty();
         // Scrollbar dimensions
@@ -170,6 +203,7 @@ NavCtlView = Backbone.View.extend({
         this.bg.append('g').attr('class', 'navbars').attr('x', handleWidth).attr('transform', 'translate(' + handleWidth + ',' + this.dim.h / 2 + ')scale(1,-1)');
     
         this.bg.select('g.navbars').append('line')
+            .attr('class', 'navctlline')
             .attr('x1', 0)
             .attr('y1', 0)
             .attr('x2', this.dim.w-2*handleWidth)
@@ -209,6 +243,7 @@ NavCtlView = Backbone.View.extend({
     
         this.spikewidth = (this.dim.w-2*handleWidth) / this.viz.model.get('data').get('revisions').length;
     
+        // Draw Revisision Rectangles
         this.spikes = this.bg.select('g.navbars').selectAll('rect.sd').data(this.viz.model.get('data').get('revisions'));
         this.spikes.enter().append('rect')
             .attr('x', function(d,i) { return that.xscale(i); })
