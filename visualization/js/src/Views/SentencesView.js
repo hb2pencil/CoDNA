@@ -25,7 +25,7 @@ SentencesView = Backbone.View.extend({
     
     // Calculates the height each sentence should be
     calcBarHeight: function(){
-        return this.viz.model.get('height')/(this.getMaxSentences() + (this.getMaxSections()/2));
+        return (this.viz.model.get('height')-2)/(this.getMaxSentences() + (this.getMaxSections()/2));
     },
     
     // Calculates where the sentence appears vertically
@@ -67,9 +67,15 @@ SentencesView = Backbone.View.extend({
         if(this.viz.model.get('mode') != 'ownership'){
             return false;
         }
+        var height = this.viz.model.get('height')-2;
         var barWidth = this.calcBarWidth();
+        var top = this.viz.$('#ownershipvis').scrollTop()
+        var beforeHeight = this.svg.attr('height');
+        this.svg.attr('height', height*this.model.get('zoomLevel'));
+        this.viz.$('#ownershipvis').scrollTop(top*(this.svg.attr('height')/beforeHeight));
+        
         this.svg.selectAll(".body")
-                .attr("transform", "translate(" + -(this.viz.navctl.getPanOffset()) + ",0) scale(" + barWidth + ", 1)");
+                .attr("transform", "translate(" + -(this.viz.navctl.getPanOffset()) + ",0) scale(" + barWidth + ", " + this.model.get('zoomLevel') + ")");
     },
     
     // Resets all of the selections so that all sentences are opaque
@@ -311,8 +317,11 @@ SentencesView = Backbone.View.extend({
     
     render: function() {
         this.updatePrevNext();
+        this.viz.$('#ownershipvis').unbind('mousewheel DOMMouseScroll');
         this.viz.$('#ownershipvis').empty();
-        this.svg = d3.select(this.viz.$('#ownershipvis')[0]).append('svg').attr('width', this.viz.model.get('width')).attr('height', this.viz.model.get('height'));
+        this.viz.$('#ownershipvis').css('overflow-y', 'auto');
+        this.viz.$('#ownershipvis').css('overflow-x', 'hidden');
+        this.svg = d3.select(this.viz.$('#ownershipvis')[0]).append('svg').attr('width', this.viz.model.get('width')).attr('height', this.viz.model.get('height')-2);
         this.x = d3.scale.linear();
         this.y = d3.scale.linear();
         
@@ -321,7 +330,7 @@ SentencesView = Backbone.View.extend({
         // Set up x and y ranges for the visualization. The x-range is designed so that x(n) gives the x-position of the nth bar's left edge.
         this.x.range([0, 1]);
         // Leave a little bit of room.
-        this.y.range([0, this.viz.model.get('height')]);
+        this.y.range([0, this.viz.model.get('height')-2]);
         // Y domain determined using largest magnitude y-value
         this.y.domain([0, this.getMaxSentences() + (this.getMaxSections()/2)]);
         
@@ -365,7 +374,24 @@ SentencesView = Backbone.View.extend({
         }
         
         this.buildSentences();
+        this.stopListening(this.viz.model, "change:numBars");
+        this.stopListening(this.model, "change:zoomLevel");
         this.listenTo(this.viz.model, "change:numBars", this.updateSentences);
+        this.listenTo(this.model, "change:zoomLevel", function(){
+            _.defer($.proxy(this.updateSentences, this));
+        });
+        this.viz.$('#ownershipvis').bind('mousewheel DOMMouseScroll', $.proxy(function(e){
+            var delta = (e.originalEvent.wheelDelta != undefined) ? e.originalEvent.wheelDelta : -e.originalEvent.detail;
+            if(delta > 0){
+                // Up
+                this.model.zoomIn();
+            }
+            else {
+                // Down
+                this.model.zoomOut();
+            }
+            e.preventDefault();
+        }, this));
     }
     
 });

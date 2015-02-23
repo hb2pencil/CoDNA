@@ -26,6 +26,16 @@ Sentences = Backbone.Model.extend({
         return _.keys(sections);
     },
     
+    // Zooms in the y-axis
+    zoomIn: function(){
+        this.set('zoomLevel', Math.min(10, this.get('zoomLevel')*1.05));
+    },
+    
+    // Zooms out the y-axis
+    zoomOut: function(){
+        this.set('zoomLevel', Math.max(1, this.get('zoomLevel')*0.95));
+    },
+    
     // Loads the previous 'limit' revisions
     prev: function(){
         this.set('limit', defaultLimit);
@@ -59,6 +69,7 @@ Sentences = Backbone.Model.extend({
         revisions: {},
         sentences: {}, // Used for storing unique sentences so that duplicates are not in revisions wasting space
         users: {}, // Used for storing unique users so that duplicates are not in revisions wasting space
+        zoomLevel: 1 // Y-Scale zoom
     }
 
 });
