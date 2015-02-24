@@ -223,11 +223,12 @@ WikiVizView = Backbone.View.extend({
                 $(elem).addClass('rowselect');
             }
         });
-    
-        // Apply selection to the main article contribution view
-        this.model.get('view').data.selectAll('.datum').filter(function (d) { return jQuery.inArray(d.user, userlist) === -1; }).selectAll('.bars rect').transition().duration(500).attr('opacity', 0.2);   
-        // Apply selection to nav "spikes"
+        
         if(this.model.get('mode') == "art" || this.model.get('mode') == "hybrid"){
+            // Apply selection to the main article contribution view
+            this.model.get('view').data.selectAll('.datum').filter(function (d) { return jQuery.inArray(d.user, userlist) === -1; })
+                                       .selectAll('.bars rect').transition().duration(500).attr('opacity', 0.2);
+            // Apply selection to nav "spikes"
             this.navctl.spikes.filter(function(d) { return jQuery.inArray(d.user, userlist) === -1; }).transition().duration(500).attr('opacity', 0.4);
         }
         
