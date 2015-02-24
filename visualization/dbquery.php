@@ -40,9 +40,10 @@
     
     ob_start("ob_gzhandler");
     if (isset($_REQUEST['article'])) {    // Client is requesting user/revision data.
-        $article = $_REQUEST['article'];
+        $article = $mysqli->real_escape_string($_REQUEST['article']);
         $set = $_REQUEST['set'];
-        $table = $set_mappings['articles'][$set];
+        $table = $mysqli->real_escape_string($set_mappings['articles'][$set]);
+        $set = $mysqli->real_escape_string($set);
         
         $wikirevs = array();      
         $stmt = $mysqli->prepare("SELECT DISTINCT t.rev_id, t.par_id, t.rev_date, t.user_id, t.comment, t.lev, t.class, a.page_title
@@ -266,6 +267,7 @@
         $users = array();
         $userColors = array();
         $revs = array();
+        $sections = array();
         while ($stmt->fetch()) {
             $revs[$rev_id] = true;
             
@@ -289,6 +291,21 @@
                     $sentences[$sentence] = $sId;
                 }
                 $section = str_replace("[edit]", "", utf8_encode($section));
+                if(!isset($sections[$section])){
+                    $maxPerc = 0.00;
+                    $maxSection = $section;
+                    foreach($sections as $sect){
+                        similar_text(strtolower($sect), strtolower($section), $perc);
+                        $maxPerc = max($maxPerc, $perc);
+                        if($maxPerc == $perc && $perc >= 95){
+                            $maxSection = $sect;
+                        }
+                    }
+                    if($maxPerc < 95){
+                        $sections[$section] = $section;
+                    }
+                    $section = $maxSection;
+                }
                 $revdata[$rev_id][$section][] = array('i' => $id,
                                                       'o' => utf8_encode($owner),
                                                       's' => $sId,
@@ -312,9 +329,10 @@
                           'sentences' => array_flip($sentences));
         echo json_encode($response);
     } else if(isset($_REQUEST['user'])){ // Client is requesting article/revision data
-        $user = $_REQUEST['user'];
+        $user = $mysqli->real_escape_string($_REQUEST['user']);
         $set = $_REQUEST['set'];
-        $table = $set_mappings['users'][$set];
+        $table = $mysqli->real_escape_string($set_mappings['users'][$set]);
+        $set = $mysqli->real_escape_string($set);
         $revdata = array();
         $articles = array();
         $talk = array();
