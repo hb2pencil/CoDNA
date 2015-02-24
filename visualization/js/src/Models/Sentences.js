@@ -27,13 +27,13 @@ Sentences = Backbone.Model.extend({
     },
     
     // Zooms in the y-axis
-    zoomIn: function(){
-        this.set('zoomLevel', Math.min(10, this.get('zoomLevel')*1.05));
+    zoomIn: function(amount){
+        this.set('zoomLevel', Math.min(10, this.get('zoomLevel')*amount));
     },
     
     // Zooms out the y-axis
-    zoomOut: function(){
-        this.set('zoomLevel', Math.max(1, this.get('zoomLevel')*0.95));
+    zoomOut: function(amount){
+        this.set('zoomLevel', Math.max(1, this.get('zoomLevel')*amount));
     },
     
     // Loads the previous 'limit' revisions

@@ -695,6 +695,8 @@ WikiVizView = Backbone.View.extend({
             this.view.$("#prev").prop('disabled', true);
             this.view.$("#showAll").prop('disabled', true);
             this.view.$("#next").prop('disabled', true);
+            this.view.$("#zoomOut").prop('disabled', true);
+            this.view.$("#zoomIn").prop('disabled', true);
         
             this.$('#toAdj').button('enable');
         
@@ -743,6 +745,8 @@ WikiVizView = Backbone.View.extend({
             this.view.$("#prev").prop('disabled', true);
             this.view.$("#showAll").prop('disabled', true);
             this.view.$("#next").prop('disabled', true);
+            this.view.$("#zoomOut").prop('disabled', true);
+            this.view.$("#zoomIn").prop('disabled', true);
         
             if (this.model.get('isTimeSpaced') === false) {
                 d3.selectAll('.month').attr('opacity', 0);
@@ -791,6 +795,8 @@ WikiVizView = Backbone.View.extend({
             this.view.$("#prev").prop('disabled', true);
             this.view.$("#showAll").prop('disabled', true);
             this.view.$("#next").prop('disabled', true);
+            this.view.$("#zoomOut").prop('disabled', true);
+            this.view.$("#zoomIn").prop('disabled', true);
 
             this.model.set('isTimeSpaced', true);
         

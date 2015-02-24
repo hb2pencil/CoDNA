@@ -239,13 +239,13 @@ Sentences = Backbone.Model.extend({
     },
     
     // Zooms in the y-axis
-    zoomIn: function(){
-        this.set('zoomLevel', Math.min(10, this.get('zoomLevel')*1.05));
+    zoomIn: function(amount){
+        this.set('zoomLevel', Math.min(10, this.get('zoomLevel')*amount));
     },
     
     // Zooms out the y-axis
-    zoomOut: function(){
-        this.set('zoomLevel', Math.max(1, this.get('zoomLevel')*0.95));
+    zoomOut: function(amount){
+        this.set('zoomLevel', Math.max(1, this.get('zoomLevel')*amount));
     },
     
     // Loads the previous 'limit' revisions
@@ -678,10 +678,22 @@ ArticleView = Backbone.View.extend({
         this.viz.sentences.model.next(); 
     },
     
+    // Zooms out the y-axis
+    zoomOut: function(){
+        this.viz.sentences.model.zoomOut(0.85);
+    },
+    
+    // Zooms in the y-axis
+    zoomIn: function(){
+        this.viz.sentences.model.zoomIn(1.15);
+    },
+    
     events: {
         "click #prev":    "prev",
         "click #showAll": "showAll",
-        "click #next":    "next"
+        "click #next":    "next",
+        "click #zoomOut": "zoomOut",
+        "click #zoomIn":  "zoomIn"
     },
     
     render: function(){
@@ -1510,6 +1522,7 @@ SentencesView = Backbone.View.extend({
         
         this.svg.selectAll(".body")
                 .attr("transform", "translate(" + -(this.viz.navctl.getPanOffset()) + ",0) scale(" + barWidth + ", " + this.model.get('zoomLevel') + ")");
+        this.updateZoom();
     },
     
     // Resets all of the selections so that all sentences are opaque
@@ -1520,6 +1533,7 @@ SentencesView = Backbone.View.extend({
     
     // Makes all sentences who are not owned by users in the userlist to be semi-transparent
     applyUserSelection: function(userlist){
+        this.svg.selectAll(".sentence, .lastSentence").filter(function(d){ return $.inArray(d.o, userlist) !== -1; }).transition().duration(500).attr('opacity', 1);
         this.svg.selectAll(".sentence, .lastSentence").filter(function(d){ return $.inArray(d.o, userlist) === -1; }).transition().duration(500).attr('opacity', 0.2);
     },
     
@@ -1745,12 +1759,31 @@ SentencesView = Backbone.View.extend({
         }
     },
     
+    // Updates the state of the zoom buttons
+    updateZoom: function(){
+        if(this.viz.model.get('mode') == 'ownership'){
+            if(this.model.get('zoomLevel') > 1.00){
+                this.viz.view.$("#zoomOut").prop('disabled', false);
+            }
+            else{
+                this.viz.view.$("#zoomOut").prop('disabled', true);
+            }
+            if(this.model.get('zoomLevel') < 10.00){
+                this.viz.view.$("#zoomIn").prop('disabled', false);
+            }
+            else{
+                this.viz.view.$("#zoomIn").prop('disabled', true);
+            }
+        }
+    },
+    
     showLoading: function(){
         this.viz.$("#ownershipvis").append("<div style='position:absolute;top:0;bottom:0;left:0;right:0;background:rgba(0,0,0,0.75);color:#FFFFFF;font-size:12px;padding:5px;'>Loading...</div>");
     },
     
     render: function() {
         this.updatePrevNext();
+        this.updateZoom();
         this.viz.$('#ownershipvis').unbind('mousewheel DOMMouseScroll');
         this.viz.$('#ownershipvis').empty();
         this.viz.$('#ownershipvis').css('overflow-y', 'auto');
@@ -1818,11 +1851,11 @@ SentencesView = Backbone.View.extend({
             var delta = (e.originalEvent.wheelDelta != undefined) ? e.originalEvent.wheelDelta : -e.originalEvent.detail;
             if(delta > 0){
                 // Up
-                this.model.zoomIn();
+                this.model.zoomIn(1.05);
             }
             else {
                 // Down
-                this.model.zoomOut();
+                this.model.zoomOut(0.95);
             }
             e.preventDefault();
         }, this));
@@ -2717,10 +2750,11 @@ WikiVizView = Backbone.View.extend({
     },
     
     // Highlight those entries that were made by users in userlist.
-    // TODO: Apply selections to the scroll bar area and to the talk page contributions!
     applyUserSelection: function(userlist) {
         // Clean up any previous selections!
-        this.clearAllSelections();
+        if(this.model.get('mode') != 'ownership'){
+            this.clearAllSelections();
+        }
     
         // Enable the deselect button if there is an active selection
         if (userlist.length > 0) {
@@ -2729,7 +2763,7 @@ WikiVizView = Backbone.View.extend({
             this.clearAllSelections();
             return;
         }
-    
+
         // Disable the legend selection mechanism
         $('#diag_legend input').attr('disabled', 'disabled');
         // Disable groups selection
@@ -2754,11 +2788,14 @@ WikiVizView = Backbone.View.extend({
                 $(elem).addClass('rowselect');
             }
         });
-    
-        // Apply selection to the main article contribution view
-        this.model.get('view').data.selectAll('.datum').filter(function (d) { return jQuery.inArray(d.user, userlist) === -1; }).selectAll('.bars rect').transition().duration(500).attr('opacity', 0.2);    
-        // Apply selection to nav "spikes"
-        this.navctl.spikes.filter(function(d) { return jQuery.inArray(d.user, userlist) === -1; }).transition().duration(500).attr('opacity', 0.4);
+        
+        if(this.model.get('mode') == "art" || this.model.get('mode') == "hybrid"){
+            // Apply selection to the main article contribution view
+            this.model.get('view').data.selectAll('.datum').filter(function (d) { return jQuery.inArray(d.user, userlist) === -1; })
+                                       .selectAll('.bars rect').transition().duration(500).attr('opacity', 0.2);
+            // Apply selection to nav "spikes"
+            this.navctl.spikes.filter(function(d) { return jQuery.inArray(d.user, userlist) === -1; }).transition().duration(500).attr('opacity', 0.4);
+        }
         
         // Apply selection to the sentence ownership view
         this.sentences.applyUserSelection(userlist);
@@ -2782,12 +2819,14 @@ WikiVizView = Backbone.View.extend({
         this.$('#d_legend_accordion input').attr('checked', 'checked');
         $('#d_select_groups_accordion input').attr('checked', 'checked');
     
-        // Update the various views to reflect reset of all selections.
-        this.model.get('view').data.selectAll('.bars rect').transition().duration(500).attr('opacity', 1);
-        this.model.get('view').data.selectAll('.datum').transition().duration(500).attr('opacity', 1);
-    
-        // Update nav control spikes
-        this.navctl.spikes.transition().duration(500).attr('opacity', 1);
+        if(this.model.get('mode') == 'art' || this.model.get('mode') == 'hybrid'){
+            // Update the various views to reflect reset of all selections.
+            this.model.get('view').data.selectAll('.bars rect').transition().duration(500).attr('opacity', 1);
+            this.model.get('view').data.selectAll('.datum').transition().duration(500).attr('opacity', 1);
+        
+            // Update nav control spikes
+            this.navctl.spikes.transition().duration(500).attr('opacity', 1);
+        }
     
         // Clear the selection for the sentence ownership visualization
         this.sentences.clearAllSelections();
@@ -3221,6 +3260,8 @@ WikiVizView = Backbone.View.extend({
             this.view.$("#prev").prop('disabled', true);
             this.view.$("#showAll").prop('disabled', true);
             this.view.$("#next").prop('disabled', true);
+            this.view.$("#zoomOut").prop('disabled', true);
+            this.view.$("#zoomIn").prop('disabled', true);
         
             this.$('#toAdj').button('enable');
         
@@ -3269,6 +3310,8 @@ WikiVizView = Backbone.View.extend({
             this.view.$("#prev").prop('disabled', true);
             this.view.$("#showAll").prop('disabled', true);
             this.view.$("#next").prop('disabled', true);
+            this.view.$("#zoomOut").prop('disabled', true);
+            this.view.$("#zoomIn").prop('disabled', true);
         
             if (this.model.get('isTimeSpaced') === false) {
                 d3.selectAll('.month').attr('opacity', 0);
@@ -3317,6 +3360,8 @@ WikiVizView = Backbone.View.extend({
             this.view.$("#prev").prop('disabled', true);
             this.view.$("#showAll").prop('disabled', true);
             this.view.$("#next").prop('disabled', true);
+            this.view.$("#zoomOut").prop('disabled', true);
+            this.view.$("#zoomIn").prop('disabled', true);
 
             this.model.set('isTimeSpaced', true);
         

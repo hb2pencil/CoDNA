@@ -76,6 +76,7 @@ SentencesView = Backbone.View.extend({
         
         this.svg.selectAll(".body")
                 .attr("transform", "translate(" + -(this.viz.navctl.getPanOffset()) + ",0) scale(" + barWidth + ", " + this.model.get('zoomLevel') + ")");
+        this.updateZoom();
     },
     
     // Resets all of the selections so that all sentences are opaque
@@ -312,12 +313,31 @@ SentencesView = Backbone.View.extend({
         }
     },
     
+    // Updates the state of the zoom buttons
+    updateZoom: function(){
+        if(this.viz.model.get('mode') == 'ownership'){
+            if(this.model.get('zoomLevel') > 1.00){
+                this.viz.view.$("#zoomOut").prop('disabled', false);
+            }
+            else{
+                this.viz.view.$("#zoomOut").prop('disabled', true);
+            }
+            if(this.model.get('zoomLevel') < 10.00){
+                this.viz.view.$("#zoomIn").prop('disabled', false);
+            }
+            else{
+                this.viz.view.$("#zoomIn").prop('disabled', true);
+            }
+        }
+    },
+    
     showLoading: function(){
         this.viz.$("#ownershipvis").append("<div style='position:absolute;top:0;bottom:0;left:0;right:0;background:rgba(0,0,0,0.75);color:#FFFFFF;font-size:12px;padding:5px;'>Loading...</div>");
     },
     
     render: function() {
         this.updatePrevNext();
+        this.updateZoom();
         this.viz.$('#ownershipvis').unbind('mousewheel DOMMouseScroll');
         this.viz.$('#ownershipvis').empty();
         this.viz.$('#ownershipvis').css('overflow-y', 'auto');
@@ -385,11 +405,11 @@ SentencesView = Backbone.View.extend({
             var delta = (e.originalEvent.wheelDelta != undefined) ? e.originalEvent.wheelDelta : -e.originalEvent.detail;
             if(delta > 0){
                 // Up
-                this.model.zoomIn();
+                this.model.zoomIn(1.05);
             }
             else {
                 // Down
-                this.model.zoomOut();
+                this.model.zoomOut(0.95);
             }
             e.preventDefault();
         }, this));

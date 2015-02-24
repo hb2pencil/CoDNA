@@ -40,10 +40,22 @@ ArticleView = Backbone.View.extend({
         this.viz.sentences.model.next(); 
     },
     
+    // Zooms out the y-axis
+    zoomOut: function(){
+        this.viz.sentences.model.zoomOut(0.85);
+    },
+    
+    // Zooms in the y-axis
+    zoomIn: function(){
+        this.viz.sentences.model.zoomIn(1.15);
+    },
+    
     events: {
         "click #prev":    "prev",
         "click #showAll": "showAll",
-        "click #next":    "next"
+        "click #next":    "next",
+        "click #zoomOut": "zoomOut",
+        "click #zoomIn":  "zoomIn"
     },
     
     render: function(){

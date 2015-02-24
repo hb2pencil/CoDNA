@@ -261,31 +261,31 @@
     /**
      * Returns the historic sentence tuple for the given text
      * @param String $sentence The text for the sentence to match
+     * @param integer $sentId The id of the sentence in the current revision.  
+     * This is used so that if the algorithim finds two identical sentences, it will 'prefer' the one which is closest to it.
      */
-    function findSentenceInHistory($sentence){
+    function findSentenceInHistory($sentence, $sentId=0){
         global $sentenceHistory;
         $offset = 1;
         do {
             $found = false;
+            $closestDiff = 9999999999;
+            $closest = -1;
             foreach($sentenceHistory as $key => $history){
                 if(isset($history[count($history)-$offset])){
                     $found = true;
                     $tuple = $history[count($history)-$offset];
-                    if($tuple['raw'] == $sentence){
-                        return $key;
+                    if($tuple['raw'] == $sentence && abs($tuple['sentId'] -$sentId) < $closestDiff){
+                        $closestDiff = abs($tuple['sentId'] - $sentId);
+                        $closest = $key;
                     }
                 }
             }
+            if($closest > -1){
+                return $closest;
+            }
             $offset++;
         } while($found);
-        /*
-        foreach($sentenceHistory as $key => $history){
-            foreach($history as $tuple){
-                if($tuple['raw'] == $sentence){
-                    return $key;
-                }
-            }
-        }*/
         return -1;
     }
     
@@ -359,7 +359,7 @@
                         
                         if(isset($lastRevSentences[$i+$kIns]) && isset($deletion[$kIns])){
                             // Changes
-                            $id = findSentenceInHistory($lastRevSentences[$i+$kIns]['raw']);
+                            $id = findSentenceInHistory($lastRevSentences[$i+$kIns]['raw'], count($finalSentences));
                             $history = $sentenceHistory[$id][count($sentenceHistory[$id])-1];
                             $off = 2;
                             while($history['revId'] == $revId){
@@ -388,7 +388,7 @@
                            $lastRevSentences[$i-1+$kIns]['section'] == $section && !isset($deletion[$kIns])){
                             // Adds After
                             $id = addSentenceHistory($revId, $section, count($finalSentences), $ins);
-                            $relId = findSentenceInHistory($lastRevSentences[$i-1+$kIns]['raw']);
+                            $relId = findSentenceInHistory($lastRevSentences[$i-1+$kIns]['raw'], count($finalSentences));
                             addRelation($relations,
                                         $owner,
                                         $lastRevSentences[$i-1+$kIns]['user'],
@@ -408,7 +408,7 @@
                            $lastRevSentences[$i+$kIns-$nIns]['section'] == $section && !isset($deletion[$kIns])){
                             // Adds Before
                             $id = addSentenceHistory($revId, $section, count($finalSentences), $ins);
-                            $relId = findSentenceInHistory($lastRevSentences[$i+$kIns-$nIns]['raw']);
+                            $relId = findSentenceInHistory($lastRevSentences[$i+$kIns-$nIns]['raw'], count($finalSentences));
                             addRelation($relations,
                                         $owner,
                                         $lastRevSentences[$i+$kIns-$nIns]['user'],
@@ -452,7 +452,7 @@
                         $words = processWords($user, $lastRevSentences[$i+$kDel], getWords(""), $wordsIns, $wordsDel);
                         $owner = determineOwner($words);
                         if(!isset($insertion[$kDel])){
-                            $relId = findSentenceInHistory($lastRevSentences[$i+$kDel]['raw']);
+                            $relId = findSentenceInHistory($lastRevSentences[$i+$kDel]['raw'], count($finalSentences));
                             $history = $sentenceHistory[$relId][count($sentenceHistory[$relId])-1];
                             $off = 2;
                             while($history['revId'] == $revId){
@@ -489,7 +489,7 @@
             else{
                 // No Sentence Change
                 $new_sentence = $lastRevSentences[$i];
-                $relId = findSentenceInHistory($sentence);
+                $relId = findSentenceInHistory($sentence, count($finalSentences));
                 $count = count($sentenceHistory[$relId]);
                 $history = $sentenceHistory[$relId][$count-1];
                 $off = 2;

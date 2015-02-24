@@ -1014,6 +1014,7 @@ button.selected:hover {
 
 button.small {
     line-height: 12px;
+    min-width: 24px;
     font-size: 14px;
     padding: 6px 3px;
     -moz-border-radius: 3px;
