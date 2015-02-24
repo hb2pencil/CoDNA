@@ -27,6 +27,7 @@
 		<?php include("js/templates.html"); ?>
 		<script type="text/javascript" src="js/vendor/jquery-1.7.2.min.js"></script>
 		<script type="text/javascript" src="js/vendor/jquery-ui-1.8.20.custom.min.js"></script>
+		<script type="text/javascript" src="js/vendor/scrollbarWidth.min.js"></script>
         
 		<script type="text/javascript" src="js/vendor/d3.v3.min.js"></script>
 		<script type="text/javascript" src="js/sorttable.js"></script>

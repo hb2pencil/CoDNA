@@ -47,7 +47,12 @@ WikiVizView = Backbone.View.extend({
         var w;
         if(this.model.get('mode') == 'ownership'){
             // When using the ownership visualization, there is no mask
-            w = this.model.get('width')/((this.model.get('numBars')*(_.size(this.sentences.model.get('revisions'))/this.sentences.model.get('nRevisions')))*2 - 1);
+            var width = this.model.get('width');
+            if(this.sentences.model.get('zoomLevel') > 1.00){
+                // Adjust for scrollbar, and give 1 pixel extra space
+                width -= $.scrollbarWidth()+1;
+            }
+            w = width/((this.model.get('numBars')*(_.size(this.sentences.model.get('revisions'))/this.sentences.model.get('nRevisions')))*2 - 1);
         }
         else{
             // Consider the ymask when calculation the bar width
