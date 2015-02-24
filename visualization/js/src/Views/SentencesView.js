@@ -86,6 +86,7 @@ SentencesView = Backbone.View.extend({
     
     // Makes all sentences who are not owned by users in the userlist to be semi-transparent
     applyUserSelection: function(userlist){
+        this.svg.selectAll(".sentence, .lastSentence").filter(function(d){ return $.inArray(d.o, userlist) !== -1; }).transition().duration(500).attr('opacity', 1);
         this.svg.selectAll(".sentence, .lastSentence").filter(function(d){ return $.inArray(d.o, userlist) === -1; }).transition().duration(500).attr('opacity', 0.2);
     },
     

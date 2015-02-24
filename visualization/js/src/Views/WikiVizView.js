@@ -185,10 +185,11 @@ WikiVizView = Backbone.View.extend({
     },
     
     // Highlight those entries that were made by users in userlist.
-    // TODO: Apply selections to the scroll bar area and to the talk page contributions!
     applyUserSelection: function(userlist) {
         // Clean up any previous selections!
-        this.clearAllSelections();
+        if(this.model.get('mode') != 'ownership'){
+            this.clearAllSelections();
+        }
     
         // Enable the deselect button if there is an active selection
         if (userlist.length > 0) {
@@ -197,7 +198,7 @@ WikiVizView = Backbone.View.extend({
             this.clearAllSelections();
             return;
         }
-    
+
         // Disable the legend selection mechanism
         $('#diag_legend input').attr('disabled', 'disabled');
         // Disable groups selection
@@ -224,9 +225,11 @@ WikiVizView = Backbone.View.extend({
         });
     
         // Apply selection to the main article contribution view
-        this.model.get('view').data.selectAll('.datum').filter(function (d) { return jQuery.inArray(d.user, userlist) === -1; }).selectAll('.bars rect').transition().duration(500).attr('opacity', 0.2);    
+        this.model.get('view').data.selectAll('.datum').filter(function (d) { return jQuery.inArray(d.user, userlist) === -1; }).selectAll('.bars rect').transition().duration(500).attr('opacity', 0.2);   
         // Apply selection to nav "spikes"
-        this.navctl.spikes.filter(function(d) { return jQuery.inArray(d.user, userlist) === -1; }).transition().duration(500).attr('opacity', 0.4);
+        if(this.model.get('mode') == "art" || this.model.get('mode') == "hybrid"){
+            this.navctl.spikes.filter(function(d) { return jQuery.inArray(d.user, userlist) === -1; }).transition().duration(500).attr('opacity', 0.4);
+        }
         
         // Apply selection to the sentence ownership view
         this.sentences.applyUserSelection(userlist);
@@ -250,12 +253,14 @@ WikiVizView = Backbone.View.extend({
         this.$('#d_legend_accordion input').attr('checked', 'checked');
         $('#d_select_groups_accordion input').attr('checked', 'checked');
     
-        // Update the various views to reflect reset of all selections.
-        this.model.get('view').data.selectAll('.bars rect').transition().duration(500).attr('opacity', 1);
-        this.model.get('view').data.selectAll('.datum').transition().duration(500).attr('opacity', 1);
-    
-        // Update nav control spikes
-        this.navctl.spikes.transition().duration(500).attr('opacity', 1);
+        if(this.model.get('mode') == 'art' || this.model.get('mode') == 'hybrid'){
+            // Update the various views to reflect reset of all selections.
+            this.model.get('view').data.selectAll('.bars rect').transition().duration(500).attr('opacity', 1);
+            this.model.get('view').data.selectAll('.datum').transition().duration(500).attr('opacity', 1);
+        
+            // Update nav control spikes
+            this.navctl.spikes.transition().duration(500).attr('opacity', 1);
+        }
     
         // Clear the selection for the sentence ownership visualization
         this.sentences.clearAllSelections();
