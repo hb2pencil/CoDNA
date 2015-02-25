@@ -298,9 +298,10 @@
      * @param array $lastRevSentences The array of sentences (split up into words) for the previous revision
      * @param array $sentences The array of sentences for the current revision.
      * @param array $storedSentences The array of sentences which are currently stored in the DB
+     * @param boolean $isVandal Whether or not this was a vandalism revision (or a undo vandalism)
      * @return array The final array of sentences split up into words
      */
-    function processSentences($revId, $user, &$relations, &$previousSentences, &$lastRevSentences, $sentences, $storedSentences){
+    function processSentences($revId, $user, &$relations, &$previousSentences, &$lastRevSentences, $sentences, $storedSentences, $isVandal=false){
         global $sentenceHistory;
         $finalSentences = array();
         $previousArray = array();
@@ -503,6 +504,7 @@
                         break;
                     }
                 }
+                
                 if(isset($storedSentences["{$history['revId']}_{$history['sentId']}"])){
                     $new_sentence['last'] = $storedSentences["{$history['revId']}_{$history['sentId']}"]->ID;
                 }
@@ -512,8 +514,10 @@
                 $i++;
             }
         }
-        $lastRevSentences = $finalSentences;
-        $previousSentences = $sentences;
+        if(!$isVandal){
+            $lastRevSentences = $finalSentences;
+            $previousSentences = $sentences;
+        }
         return $finalSentences;
     }
 ?>

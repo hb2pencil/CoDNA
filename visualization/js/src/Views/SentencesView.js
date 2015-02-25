@@ -148,11 +148,16 @@ SentencesView = Backbone.View.extend({
         var lastSentences = this.svg.selectAll(".body")
                                     .selectAll(".transition")
                                     .selectAll(".lastSentence")
-                                    .data(function(d, i){
+                                    .data($.proxy(function(d, i){
+                                        var revs = _.values(this.model.get('revisions'));
+                                        var lastRev = new Array();
+                                        if(revs[i] != undefined){
+                                            lastRev = _.pluck(_.flatten(_.values(revs[i])), 'i');
+                                        }
                                         return _.filter(_.flatten(_.values(d), true), function(v){
-                                            return (v.l != 0 && sents[v.l] != undefined); 
+                                            return (v.l != 0 && sents[v.l] != undefined && _.contains(lastRev, v.l)); 
                                         }) 
-                                    }).enter();
+                                    }, this)).enter();
                                     
         var lastSections = this.svg.selectAll(".body")
                                    .selectAll(".transition")

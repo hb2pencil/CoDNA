@@ -185,6 +185,7 @@ EOF;
             $revid = $rev->Rev_ID;
             $user = $rev->User_ID;
             $cache = "cache/".str_replace(":", "_", $talkNS).str_replace("/", "_", str_replace(" ", "_", $article))."_{$revid}";
+            $isVandal = (strstr($rev->Class, "j") !== false || strstr($rev->Class, "i") !== false);
             if(file_exists($cache)){
                 $json = json_decode(file_get_contents($cache));
             }
@@ -207,7 +208,7 @@ EOF;
             $sentences = getSentences($str);
 
             // Process the sentences
-            $finalSentences = processSentences($revid, $user, $relations, $previousSentences, $lastRevSentences, $sentences, $storedSentences);
+            $finalSentences = processSentences($revid, $user, $relations, $previousSentences, $lastRevSentences, $sentences, $storedSentences, $isVandal);
             
             if(!isset($check[$revid]) || count($finalSentences) != count($check[$revid])){
                 $sql = "INSERT INTO `ownership_sentences_jmis` (`last_id`, `article_id`, `rev_id`, `section`, `sentence_id`, `owner`, `sentence`, `talk`)
@@ -216,14 +217,16 @@ EOF;
                 $rows2 = array();
                 foreach($finalSentences as $key => $sentence){
                     if(!isset($check[$revid][$key])){
-                     $rows[] =  "('".@$mysqli->escape_string($sentence['last'])."',".
-                                 "'".$mysqli->escape_string($articleId)."',".
-                                 "'".$mysqli->escape_string($revid)."',".
-                                 "'".$mysqli->escape_string($sentence['section'])."',".
-                                 "'".$mysqli->escape_string($key)."',".
-                                 "'".$mysqli->escape_string($sentence['user'])."',".
-                                 "'".$mysqli->escape_string($sentence['raw'])."',".
-                                 "$talkCol)";
+                        $last = ($isVandal) ? null : @$sentence['last'];
+                        $last = @$sentence['last'];
+                        $rows[] =  "('".$mysqli->escape_string($last)."',".
+                                   "'".$mysqli->escape_string($articleId)."',".
+                                   "'".$mysqli->escape_string($revid)."',".
+                                   "'".$mysqli->escape_string($sentence['section'])."',".
+                                   "'".$mysqli->escape_string($key)."',".
+                                   "'".$mysqli->escape_string($sentence['user'])."',".
+                                   "'".$mysqli->escape_string($sentence['raw'])."',".
+                                   "$talkCol)";
                     }
                 }
                 $res = $mysqli->query($sql.implode(",\n", $rows));

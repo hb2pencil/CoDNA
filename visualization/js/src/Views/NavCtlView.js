@@ -5,12 +5,16 @@ NavCtlView = Backbone.View.extend({
 
     initialize: function(options){
         this.viz = options.viz;
+        this.dim = {w: this.viz.$("#navctl").width(), h: 30};
+        this.initBg();
         this.listenTo(this.viz.model, "change:mode", this.changeMode);
         $(window).resize($.proxy(function(){
             if(this.viz.$("#navctl").width() > 0){
+                this.initBg();
                 this.init(this.viz.$("#navctl").width(), this.dim.h);
             }
         }, this));
+        
     },
     
     // Adjust the slider when we switch to time-spaced mode.
@@ -158,42 +162,13 @@ NavCtlView = Backbone.View.extend({
     
     },
     
-    // Draw Ownership Rectangles
-    initSentenceSpikes: function() {
-        var that = this;
-        var handleWidth = this.dim.h/2;
-        var maxSentences = this.viz.sentences.getMaxSentences();
-
-        this.oxscale = d3.scale.linear();
-        this.oxscale.domain([0, _.values(this.viz.sentences.model.get('revisions')).length]);
-        this.oxscale.rangeRound([0, this.dim.w - 2*handleWidth]);
-    
-        this.oyscale = d3.scale.linear();
-        this.oyscale.domain([0, maxSentences]);
-        this.oyscale.rangeRound([1, this.dim.h-1]);
-    
-        var spikeWidth = (this.dim.w-2*handleWidth) / _.values(this.viz.sentences.model.get('revisions')).length;
-        this.bg.select('g.navbars').selectAll('rect.osd').remove();
-        this.ospikes = this.bg.select('g.navbars').selectAll('rect.osd').data(_.values(this.viz.sentences.model.get('revisions')));
-        this.ospikes.enter().append('rect')
-            .attr('x', function(d, i) { return that.oxscale(i); })
-            .attr('y', function(d) { return that.oyscale(maxSentences/2) - that.oyscale(_.reduce(_.values(d), function(sum, s){ return sum += _.size(s);}, 0)); })
-            .attr('width', function(d,i) { return Math.max(1, spikeWidth-1); })
-            .attr('height', function(d) { return that.oyscale(_.reduce(_.values(d), function(sum, s){ return sum += _.size(s);}, 0)); })
-            .attr('class', 'osd')
-            .attr('opacity', function(){ return (that.viz.model.get('mode') == 'ownership') ? 1 : 0; });
-    },
-    
-    init: function(sw, sh) {
+    initBg: function(){
         this.viz.$('#navctl').empty();
-        // Scrollbar dimensions
-        this.dim = {w: sw, h: sh};
-    
         this.sdim = {x0: 0, w: 100};
     
         // Create the SVG element for the scrollbar
         this.svg = d3.select(this.viz.$('#navctl')[0]).append('svg').attr('width', this.dim.w).attr('height', this.dim.h);
-        this.svg.attr("viewBox", "0 0 " + sw + " " + sh);
+        this.svg.attr("viewBox", "0 0 " + this.dim.w + " " + this.dim.h);
         // Make a background layer
         this.bg = this.svg.append('g').attr('class', 'bg');
         var handleWidth = this.dim.h/2;
@@ -229,6 +204,40 @@ NavCtlView = Backbone.View.extend({
         this.slider.append('rect').attr('class', 'chandle').attr('width', this.sdim.w-handleWidth).attr('height', this.dim.h).attr('x', this.sdim.x0 + handleWidth);
         this.slider.append('g').attr('class', 'lhandlegrp').attr('transform', 'translate(' + (this.sdim.x0) + ',0)').append('path').attr('d','M' + handleWidth + ',0 A' + handleWidth + ',' + handleWidth + ' 0 0,0 ' + handleWidth + ',' + handleWidth * 2 ).attr('class', 'lhandle').attr('width', handleWidth).attr('height', this.dim.h);
         this.slider.append('g').attr('class', 'rhandlegrp').attr('transform', 'translate(' + (this.sdim.x0 + this.sdim.w) + ',0)').append('path').attr('d','M0,0 A' + handleWidth + ',' + handleWidth + ' 0 0,1 0,' + handleWidth * 2).attr('class', 'rhandle').attr('width', handleWidth).attr('height', this.dim.h);
+    },
+    
+    // Draw Ownership Rectangles
+    initSentenceSpikes: function() {
+        var that = this;
+        var handleWidth = this.dim.h/2;
+        var maxSentences = this.viz.sentences.getMaxSentences();
+
+        this.oxscale = d3.scale.linear();
+        this.oxscale.domain([0, _.values(this.viz.sentences.model.get('revisions')).length]);
+        this.oxscale.rangeRound([0, this.dim.w - 2*handleWidth]);
+    
+        this.oyscale = d3.scale.linear();
+        this.oyscale.domain([0, maxSentences]);
+        this.oyscale.rangeRound([1, this.dim.h-1]);
+    
+        var spikeWidth = (this.dim.w-2*handleWidth) / _.values(this.viz.sentences.model.get('revisions')).length;
+        this.bg.select('g.navbars').selectAll('rect.osd').remove();
+        this.ospikes = this.bg.select('g.navbars').selectAll('rect.osd').data(_.values(this.viz.sentences.model.get('revisions')));
+        this.ospikes.enter().append('rect')
+            .attr('x', function(d, i) { return that.oxscale(i); })
+            .attr('y', function(d) { return that.oyscale(maxSentences/2) - that.oyscale(_.reduce(_.values(d), function(sum, s){ return sum += _.size(s);}, 0)); })
+            .attr('width', function(d,i) { return Math.max(1, spikeWidth-1); })
+            .attr('height', function(d) { return that.oyscale(_.reduce(_.values(d), function(sum, s){ return sum += _.size(s);}, 0)); })
+            .attr('class', 'osd')
+            .attr('opacity', function(){ return (that.viz.model.get('mode') == 'ownership') ? 1 : 0; });
+    },
+    
+    init: function(sw, sh) {
+        
+        // Scrollbar dimensions
+        this.dim = {w: sw, h: sh};
+    
+        var handleWidth = this.dim.h/2;
     
         this.xscale = d3.scale.linear();
         this.xscale.domain([0, this.viz.model.get('data').get('revisions').length]);
