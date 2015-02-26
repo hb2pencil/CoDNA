@@ -71,10 +71,11 @@
         $revdata = array();
         
         $sections = array();
-        $stmt = $mysqli->prepare("SELECT DISTINCT a.`rev_id`, s.section
-                                  FROM  `{$table}` a, `ownership_relations_jmis` r, `ownership_sentences_jmis` s
+        $stmt = $mysqli->prepare("SELECT DISTINCT a.`rev_id`, se.section_name
+                                  FROM  `{$table}` a, `ownership_relations_jmis` r, `ownership_sentences_jmis` s, `ownership_sections_jmis` se
                                   WHERE a.`article_id`=?
                                   AND a.`rev_id` = s.`rev_id`
+                                  AND s.section_id = se.section_id
                                   AND s.id = r.sent_id");
         $stmt->bind_param("s", $article);
         $stmt->execute();
@@ -250,8 +251,8 @@
         $set = $mysqli->real_escape_string($_REQUEST['set']);
         $table = $set_mappings['articles'][$set];
         $revdata = array();      
-        $stmt = $mysqli->prepare("SELECT s.id, s.rev_id, s.section, s.owner, s.sentence, s.last_id as last
-                                  FROM `ownership_sentences_jmis` s, `{$table}` t, `articles_to_sets` ss
+        $stmt = $mysqli->prepare("SELECT s.id, s.rev_id, se.section_name as section, s.owner, s.sentence, s.last_id as last
+                                  FROM `ownership_sentences_jmis` s, `ownership_sections_jmis` se, `{$table}` t, `articles_to_sets` ss
                                   WHERE s.talk = 0
                                   AND t.talk = 0
                                   AND s.article_id={$article}
@@ -260,6 +261,7 @@
                                   AND ss.set_id = {$set}
                                   AND t.article_id = ss.article_id
                                   AND ss.cutoff_date > t.rev_date
+                                  AND s.section_id = se.section_id
                                   ORDER BY id ASC");
         $stmt->execute();
         $stmt->bind_result($id, $rev_id, $section, $owner, $sentence, $last);
@@ -290,7 +292,7 @@
                     $sId = count($sentences);
                     $sentences[$sentence] = $sId;
                 }
-                $section = str_replace("[edit]", "", utf8_encode($section));
+                /*$section = str_replace("[edit]", "", utf8_encode($section));
                 if(!isset($sections[$section])){
                     $maxPerc = 0.00;
                     $maxSection = $section;
@@ -305,7 +307,7 @@
                         $sections[$section] = $section;
                     }
                     $section = $maxSection;
-                }
+                }*/
                 $revdata[$rev_id][$section][] = array('i' => $id,
                                                       'o' => utf8_encode($owner),
                                                       's' => $sId,

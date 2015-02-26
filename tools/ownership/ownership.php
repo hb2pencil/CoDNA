@@ -151,6 +151,12 @@ EOF;
         $nSentences = 0;
         echo "Initializing $talkNS{$article}...\n";
         
+        $sql0 = "DELETE FROM `ownership_sections_jmis`
+                 WHERE `section_id` IN (SELECT Section_ID 
+                                        FROM `ownership_sentences_jmis` 
+                                        WHERE `article_id` = '".$mysqli->escape_string($articleId)."'
+                                        AND `talk` = $talkCol);
+                 ";
         $sql = "DELETE FROM `ownership_sentences_jmis`
                 WHERE `article_id` = '".$mysqli->escape_string($articleId)."'
                 AND `talk` = $talkCol;";
@@ -162,6 +168,7 @@ EOF;
                  WHERE `article_id` = '".$mysqli->escape_string($articleId)."'
                  AND `talk` = $talkCol";
         
+        $mysqli->query($sql0);
         $mysqli->query($sql);
         if($doOwnership){
             $mysqli->query($sql2);
@@ -180,6 +187,7 @@ EOF;
             $check[$c->Rev_ID][$c->Sentence_ID] = $c;
         }
         $storedSentences = array();
+        $sections = array();
         foreach($revisions as $timestamp => $rev){
             $users[$rev->User_ID] = $rev->User_ID;
             $revid = $rev->Rev_ID;
@@ -211,18 +219,65 @@ EOF;
             $finalSentences = processSentences($revid, $user, $relations, $previousSentences, $lastRevSentences, $sentences, $storedSentences, $isVandal);
             
             if(!isset($check[$revid]) || count($finalSentences) != count($check[$revid])){
-                $sql = "INSERT INTO `ownership_sentences_jmis` (`last_id`, `article_id`, `rev_id`, `section`, `sentence_id`, `owner`, `sentence`, `talk`)
+                
+                $sql = "INSERT INTO `ownership_sentences_jmis` (`last_id`, `article_id`, `rev_id`, `section`, `section_id`, `sentence_id`, `owner`, `sentence`, `talk`)
                         VALUES ";
                 $rows = array();
                 $rows2 = array();
                 foreach($finalSentences as $key => $sentence){
                     if(!isset($check[$revid][$key])){
+                        $sectionId = 0;
+                        if(isset($sections[strtolower(str_replace("[edit]", "", $sentence['section']))])){
+                            // If ther is an exact match then use it 
+                            // because otherwise similar_text needs to be used
+                            $sectionId = $sections[strtolower(str_replace("[edit]", "", $sentence['section']))]->section_id;
+                        }
+                        else{
+                            // Exact match not found, so use similar_text and use the
+                            // section with the highest percent that is >= 95
+                            // TODO: For future we can potentially improve this by also
+                            //       factoring in the relative position of the section
+                            $highestPerc = 0.00;
+                            $highestSect = str_replace("[edit]", "", $sentence['section']);
+                            foreach($sections as $section){
+                                similar_text(strtolower($section->section_name), 
+                                             strtolower(str_replace("[edit]", "", $sentence['section'])), $percent);
+                                if($percent >= 95.0){
+                                    $highestPerc = max($highestPerc, $percent);
+                                    if($percent == $highestPerc){
+                                        $highestSect = $section->section_name;
+                                    }
+                                }
+                            }
+                            if(isset($sections[strtolower($highestSect)])){
+                                // Found an existing which is similar, so use it
+                                $sectionId = $sections[strtolower($highestSect)]->section_id;
+                                $sections[strtolower(str_replace("[edit]", "", $sentence['section']))] = $sections[strtolower($highestSect)];
+                            }
+                            else {
+                                // None were similar enough, so create a new one
+                                $highestSect = $mysqli->escape_string($highestSect);
+                                $sectSQL = "INSERT INTO `ownership_sections_jmis` (`section_name`)
+                                            VALUES ('$highestSect')";
+                                $mysqli->query($sectSQL);
+                                $sectSQL = "SELECT section_id, section_name
+                                            FROM `ownership_sections_jmis`
+                                            ORDER BY section_id DESC
+                                            LIMIT 1";
+                                $sectData = $mysqli->query($sectSQL);
+                                while ($sect = $sectData->fetch_object()){
+                                    $sectionId = $sect->section_id;
+                                    $sections[strtolower($highestSect)] = $sect;
+                                }
+                            }
+                        }
                         $last = ($isVandal) ? null : @$sentence['last'];
                         $last = @$sentence['last'];
                         $rows[] =  "('".$mysqli->escape_string($last)."',".
                                    "'".$mysqli->escape_string($articleId)."',".
                                    "'".$mysqli->escape_string($revid)."',".
                                    "'".$mysqli->escape_string($sentence['section'])."',".
+                                   "'".$mysqli->escape_string($sectionId)."',".
                                    "'".$mysqli->escape_string($key)."',".
                                    "'".$mysqli->escape_string($sentence['user'])."',".
                                    "'".$mysqli->escape_string($sentence['raw'])."',".
