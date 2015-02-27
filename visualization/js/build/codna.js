@@ -1731,7 +1731,7 @@ SentencesView = Backbone.View.extend({
                     d3.select(this).attr("fill", function(d) { return that.model.get("users")[d.o]; });
                  })
                  .append("title")
-                 .text(function(d) { return "Owner: " + d.o + "\n" + "\n" + that.model.get('sentences')[d.s]; });
+                 .text(function(d) { return "Owner: " + d.o + "\n" + that.model.get('sentences')[d.s]; });
                 
         lastSentences.append("polygon")
                      .attr("class", "lastSentence")
