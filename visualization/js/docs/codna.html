@@ -3827,7 +3827,7 @@ The slider “dragging” state is stored as a CSS class.</p>
             
             <div class="content"><div class='highlight'><pre>                    $(<span class="hljs-string">'#d_select_groups_accordion h3'</span>, dialog).each(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(i, el)</span> </span>{
                         $(el).find(<span class="hljs-string">'input'</span>).change(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(e)</span> </span>{
-                            <span class="hljs-keyword">var</span> that = $(<span class="hljs-keyword">this</span>);</pre></div></div>
+                                <span class="hljs-keyword">var</span> that = $(<span class="hljs-keyword">this</span>);</pre></div></div>
             
         </li>
         
@@ -3842,10 +3842,12 @@ The slider “dragging” state is stored as a CSS class.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                            <span class="hljs-keyword">if</span> ($(<span class="hljs-keyword">this</span>).is(<span class="hljs-string">':checked'</span>)) {
-                                wikiviz.get(<span class="hljs-string">'view'</span>).data.selectAll(<span class="hljs-string">'.datum'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> d.group == that.val(); }).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">1</span>);
-                                article.viz.navctl.bg.selectAll(<span class="hljs-string">'rect'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> d.group == that.val(); }).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">1</span>);
-                                article.viz.sentences.svg.selectAll(<span class="hljs-string">'.sentence, .lastSentence'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> (wikiviz.getGroupsByName(d.o) == that.val() || _.contains(wikiviz.getGroupsByName(d.o), that.val())); }).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">1</span>);</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                                <span class="hljs-keyword">if</span> ($(<span class="hljs-keyword">this</span>).is(<span class="hljs-string">':checked'</span>)) {
+                                    wikiviz.get(<span class="hljs-string">'view'</span>).data.selectAll(<span class="hljs-string">'.datum'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> d.group == that.val(); }).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">1</span>);
+                                    <span class="hljs-keyword">if</span>(wikiviz.get(<span class="hljs-string">'mode'</span>) != <span class="hljs-string">"ownership"</span>){
+                                        article.viz.navctl.bg.selectAll(<span class="hljs-string">'rect'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> d.group == that.val(); }).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">1</span>);
+                                    }
+                                    article.viz.sentences.svg.selectAll(<span class="hljs-string">'.sentence, .lastSentence'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> (wikiviz.getGroupsByName(d.o) == that.val() || _.contains(wikiviz.getGroupsByName(d.o), that.val())); }).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">1</span>);</pre></div></div>
             
         </li>
         
@@ -3860,12 +3862,14 @@ The slider “dragging” state is stored as a CSS class.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                            } <span class="hljs-keyword">else</span> {
-                                wikiviz.get(<span class="hljs-string">'view'</span>).data.selectAll(<span class="hljs-string">'.datum'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> d.group == that.val(); }).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">0.2</span>);
-                                article.viz.navctl.bg.selectAll(<span class="hljs-string">'rect'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> d.group == that.val(); }).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">0.2</span>);
-                                article.viz.sentences.svg.selectAll(<span class="hljs-string">'.sentence, .lastSentence'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> (wikiviz.getGroupsByName(d.o) == that.val() || _.contains(wikiviz.getGroupsByName(d.o), that.val())); }).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">0.2</span>);
-                            }
-                            $(<span class="hljs-string">'#t_deselect'</span>, dialog).button(<span class="hljs-string">'enable'</span>);
+            <div class="content"><div class='highlight'><pre>                                } <span class="hljs-keyword">else</span> {
+                                    wikiviz.get(<span class="hljs-string">'view'</span>).data.selectAll(<span class="hljs-string">'.datum'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> d.group == that.val(); }).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">0.2</span>);
+                                    <span class="hljs-keyword">if</span>(wikiviz.get(<span class="hljs-string">'mode'</span>) != <span class="hljs-string">"ownership"</span>){
+                                        article.viz.navctl.bg.selectAll(<span class="hljs-string">'rect'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> d.group == that.val(); }).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">0.2</span>);
+                                    }
+                                    article.viz.sentences.svg.selectAll(<span class="hljs-string">'.sentence, .lastSentence'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> (wikiviz.getGroupsByName(d.o) == that.val() || _.contains(wikiviz.getGroupsByName(d.o), that.val())); }).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">0.2</span>);
+                                }
+                                $(<span class="hljs-string">'#t_deselect'</span>, dialog).button(<span class="hljs-string">'enable'</span>);
                         });
                     });</pre></div></div>
             

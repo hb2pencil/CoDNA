@@ -55,19 +55,23 @@ ToolbarView = Backbone.View.extend({
                     // User group selection functionality.
                     $('#d_select_groups_accordion h3', dialog).each(function (i, el) {
                         $(el).find('input').change(function(e) {
-                            var that = $(this);
-                            // If the event is the checking of a checkbox
-                            if ($(this).is(':checked')) {
-                                wikiviz.get('view').data.selectAll('.datum').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 1);
-                                article.viz.navctl.bg.selectAll('rect').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 1);
-                                article.viz.sentences.svg.selectAll('.sentence, .lastSentence').filter(function(d) { return (wikiviz.getGroupsByName(d.o) == that.val() || _.contains(wikiviz.getGroupsByName(d.o), that.val())); }).transition().duration(500).attr('opacity', 1);
-                            // Checkbox was unchecked
-                            } else {
-                                wikiviz.get('view').data.selectAll('.datum').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 0.2);
-                                article.viz.navctl.bg.selectAll('rect').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 0.2);
-                                article.viz.sentences.svg.selectAll('.sentence, .lastSentence').filter(function(d) { return (wikiviz.getGroupsByName(d.o) == that.val() || _.contains(wikiviz.getGroupsByName(d.o), that.val())); }).transition().duration(500).attr('opacity', 0.2);
-                            }
-                            $('#t_deselect', dialog).button('enable');
+                                var that = $(this);
+                                // If the event is the checking of a checkbox
+                                if ($(this).is(':checked')) {
+                                    wikiviz.get('view').data.selectAll('.datum').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 1);
+                                    if(wikiviz.get('mode') != "ownership"){
+                                        article.viz.navctl.bg.selectAll('rect').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 1);
+                                    }
+                                    article.viz.sentences.svg.selectAll('.sentence, .lastSentence').filter(function(d) { return (wikiviz.getGroupsByName(d.o) == that.val() || _.contains(wikiviz.getGroupsByName(d.o), that.val())); }).transition().duration(500).attr('opacity', 1);
+                                // Checkbox was unchecked
+                                } else {
+                                    wikiviz.get('view').data.selectAll('.datum').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 0.2);
+                                    if(wikiviz.get('mode') != "ownership"){
+                                        article.viz.navctl.bg.selectAll('rect').filter(function(d) { return d.group == that.val(); }).transition().duration(500).attr('opacity', 0.2);
+                                    }
+                                    article.viz.sentences.svg.selectAll('.sentence, .lastSentence').filter(function(d) { return (wikiviz.getGroupsByName(d.o) == that.val() || _.contains(wikiviz.getGroupsByName(d.o), that.val())); }).transition().duration(500).attr('opacity', 0.2);
+                                }
+                                $('#t_deselect', dialog).button('enable');
                         });
                     });
                     // Bind functionality to the select users dialog
