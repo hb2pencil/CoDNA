@@ -165,6 +165,15 @@ header h1 {
 	height: 30px;
 }
 
+.t_button {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 #zoom {
 	font-size: 80%;
 	text-align: center;
@@ -363,7 +372,7 @@ table.new_article .ui-tabs-selected {
 .spacing_wrapper {
 	position: absolute;
 	top: 0px;
-	right: 5px;
+	right: 15px;
 	padding: 10px 10px;
 	width: 60px;
 	height: 10px;
@@ -386,6 +395,26 @@ table.new_article .ui-tabs-selected {
 	right: 5px;
 	top: 3px;
 	background-image: url("../img/icon_time.png");
+	background-repeat: no-repeat;
+	width: 24px;
+	height: 24px;
+}
+
+#zoomOut {
+    position: absolute;
+	left: 5px;
+	top: 3px;
+	background-image: url("../img/zoomOut.png");
+	background-repeat: no-repeat;
+	width: 24px;
+	height: 24px;
+}
+
+#zoomIn {
+    position: absolute;
+	right: 5px;
+	top: 3px;
+	background-image: url("../img/zoomIn.png");
 	background-repeat: no-repeat;
 	width: 24px;
 	height: 24px;
@@ -1068,6 +1097,15 @@ button:disabled {
 }
 
 /* Ownership Vis */
+
+#ownershipview {
+    position: relative;
+    height: 100%;
+}
+
+#ownershipvis {
+    top: 0;
+}
 
 g.section > .outline {
     fill: white;

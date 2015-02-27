@@ -62,6 +62,8 @@ ArticleView = Backbone.View.extend({
         this.$el.html(this.template(this.model.toJSON()));
         this.viz = new WikiVizView({model: this.wikiviz, view: this, el: this.el});
         this.viz.init(this.model.get('title'));
+        this.$('#zoomIn').button();
+        this.$('#zoomOut').button();
         return this.$el;
     }
     

@@ -369,16 +369,16 @@ SentencesView = Backbone.View.extend({
     updateZoom: function(){
         if(this.viz.model.get('mode') == 'ownership'){
             if(this.model.get('zoomLevel') > 1.00){
-                this.viz.view.$("#zoomOut").prop('disabled', false);
+                this.viz.view.$('#zoomOut').button('enable');
             }
             else{
-                this.viz.view.$("#zoomOut").prop('disabled', true);
+                this.viz.view.$('#zoomOut').button('disable');
             }
             if(this.model.get('zoomLevel') < 10.00){
-                this.viz.view.$("#zoomIn").prop('disabled', false);
+                this.viz.view.$('#zoomIn').button('enable');
             }
             else{
-                this.viz.view.$("#zoomIn").prop('disabled', true);
+                this.viz.view.$('#zoomIn').button('disable');
             }
         }
     },
