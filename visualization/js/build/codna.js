@@ -1581,7 +1581,8 @@ SentencesView = Backbone.View.extend({
                                 .selectAll(".revision")
                                 .data(_.values(this.model.get('revisions')))
                                 .enter();
-                                
+        
+        // Create Vandalism Marker Group           
         var vand_revisions = this.svg.selectAll(".header")
                                      .selectAll(".revision")
                                      .data(_.values(this.model.get('revisions')))
@@ -1601,7 +1602,8 @@ SentencesView = Backbone.View.extend({
                  .attr("xlink:href", function(d, i) { return "http://en.wikipedia.org/wiki/" + that.viz.model.get('title') + "?oldid=" + revIds[i]; })
                  .attr("target", "_blank")
                  .attr("transform", function(d, i) { return "translate(" + that.x(i*2) + ", 0)"; });
-                 
+        
+        // Add the Vandalism Marker Text elements
         vand_revisions.append("text")
                       .attr("class", $.proxy(function(d, i){
                         if(_.contains(this.model.get('vandalism'), parseInt(revIds[i])) ||
