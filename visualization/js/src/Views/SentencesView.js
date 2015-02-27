@@ -25,7 +25,7 @@ SentencesView = Backbone.View.extend({
     
     // Calculates the height each sentence should be
     calcBarHeight: function(){
-        return (this.viz.model.get('height')-2)/(this.getMaxSentences() + (this.getMaxSections()/2));
+        return (this.viz.model.get('height')-(2+12))/(this.getMaxSentences() + (this.getMaxSections()/2));
     },
     
     // Calculates where the sentence appears vertically
@@ -67,6 +67,7 @@ SentencesView = Backbone.View.extend({
         if(this.viz.model.get('mode') != 'ownership'){
             return false;
         }
+        var that = this;
         var height = this.viz.model.get('height')-2;
         var barWidth = this.calcBarWidth();
         var top = this.viz.$('#ownershipvis').scrollTop()
@@ -74,8 +75,16 @@ SentencesView = Backbone.View.extend({
         this.svg.attr('height', height*this.model.get('zoomLevel'));
         this.viz.$('#ownershipvis').scrollTop(top*(this.svg.attr('height')/beforeHeight));
         
+        // Adjust Sentence posisionts/scale
         this.svg.selectAll(".body")
-                .attr("transform", "translate(" + -(this.viz.navctl.getPanOffset()) + ",0) scale(" + barWidth + ", " + this.model.get('zoomLevel') + ")");
+                .attr("transform", "translate(" + -(this.viz.navctl.getPanOffset()) + ",12) scale(" + barWidth + ", " + this.model.get('zoomLevel') + ")");
+        
+        // Adjust Vandalism Marker positions
+        this.svg.selectAll(".header")
+                .attr("transform", "translate(" + -(this.viz.navctl.getPanOffset()) + ",0)");
+        this.svg.selectAll(".header .revision")
+                .attr("transform", function(d, i){ return "translate(" + that.x($(this).attr("data-index")*2*barWidth) + ",11) scale(" + barWidth/13 + ",1)"; });
+                
         this.updateZoom();
     },
     
@@ -98,6 +107,8 @@ SentencesView = Backbone.View.extend({
         var barHeight = this.calcBarHeight();
         
         // Create body
+        var header = this.svg.append("g")
+                             .attr("class", "header");
         var body = this.svg.append("g")
                            .attr("class", "body");
         
@@ -112,6 +123,11 @@ SentencesView = Backbone.View.extend({
                                 .selectAll(".revision")
                                 .data(_.values(this.model.get('revisions')))
                                 .enter();
+                                
+        var vand_revisions = this.svg.selectAll(".header")
+                                     .selectAll(".revision")
+                                     .data(_.values(this.model.get('revisions')))
+                                     .enter();
         
         // Clicking the revision will open the revision in a new tab
         transitions.append("a")
@@ -127,6 +143,37 @@ SentencesView = Backbone.View.extend({
                  .attr("xlink:href", function(d, i) { return "http://en.wikipedia.org/wiki/" + that.viz.model.get('title') + "?oldid=" + revIds[i]; })
                  .attr("target", "_blank")
                  .attr("transform", function(d, i) { return "translate(" + that.x(i*2) + ", 0)"; });
+                 
+        vand_revisions.append("text")
+                      .attr("class", $.proxy(function(d, i){
+                        if(_.contains(this.model.get('vandalism'), parseInt(revIds[i])) ||
+                           _.contains(this.model.get('unvandalism'), parseInt(revIds[i]))){
+                            return "revision";
+                        }
+                      }, this))
+                      .attr("transform", function(d, i) { return "translate(" + that.x(i*2) + ", 9)"; })
+                      .style("font-size", "14px")
+                      .style("cursor", "default")
+                      .attr("data-index", function(d, i){ return i; })
+                      .text($.proxy(function(d, i){
+                        if(_.contains(this.model.get('vandalism'), parseInt(revIds[i]))){
+                            return "☒";
+                        }
+                        else if(_.contains(this.model.get('unvandalism'), parseInt(revIds[i]))){
+                            return "☑"
+                        }
+                      }, this))
+                      .append("title")
+                      .text($.proxy(function(d, i){
+                        if(_.contains(this.model.get('vandalism'), parseInt(revIds[i]))){
+                            return "Vandalism";
+                        }
+                        else if(_.contains(this.model.get('unvandalism'), parseInt(revIds[i]))){
+                            return "Remove Vandalism"
+                        }
+                      }, this));
+        this.svg.selectAll(".header > :not(.revision)")
+                .remove();
         
         // Create Sections Group
         var offset = 0;
@@ -356,7 +403,7 @@ SentencesView = Backbone.View.extend({
         // Set up x and y ranges for the visualization. The x-range is designed so that x(n) gives the x-position of the nth bar's left edge.
         this.x.range([0, 1]);
         // Leave a little bit of room.
-        this.y.range([0, this.viz.model.get('height')-2]);
+        this.y.range([0, this.viz.model.get('height')-(2+12)]);
         // Y domain determined using largest magnitude y-value
         this.y.domain([0, this.getMaxSentences() + (this.getMaxSections()/2)]);
         

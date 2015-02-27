@@ -2935,7 +2935,7 @@ The slider “dragging” state is stored as a CSS class.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    calcBarHeight: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
-        <span class="hljs-keyword">return</span> (<span class="hljs-keyword">this</span>.viz.model.get(<span class="hljs-string">'height'</span>)-<span class="hljs-number">2</span>)/(<span class="hljs-keyword">this</span>.getMaxSentences() + (<span class="hljs-keyword">this</span>.getMaxSections()/<span class="hljs-number">2</span>));
+        <span class="hljs-keyword">return</span> (<span class="hljs-keyword">this</span>.viz.model.get(<span class="hljs-string">'height'</span>)-(<span class="hljs-number">2</span>+<span class="hljs-number">12</span>))/(<span class="hljs-keyword">this</span>.getMaxSentences() + (<span class="hljs-keyword">this</span>.getMaxSections()/<span class="hljs-number">2</span>));
     },</pre></div></div>
             
         </li>
@@ -3013,17 +3013,13 @@ The slider “dragging” state is stored as a CSS class.</p>
         <span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.viz.model.get(<span class="hljs-string">'mode'</span>) != <span class="hljs-string">'ownership'</span>){
             <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
         }
+        <span class="hljs-keyword">var</span> that = <span class="hljs-keyword">this</span>;
         <span class="hljs-keyword">var</span> height = <span class="hljs-keyword">this</span>.viz.model.get(<span class="hljs-string">'height'</span>)-<span class="hljs-number">2</span>;
         <span class="hljs-keyword">var</span> barWidth = <span class="hljs-keyword">this</span>.calcBarWidth();
         <span class="hljs-keyword">var</span> top = <span class="hljs-keyword">this</span>.viz.$(<span class="hljs-string">'#ownershipvis'</span>).scrollTop()
         <span class="hljs-keyword">var</span> beforeHeight = <span class="hljs-keyword">this</span>.svg.attr(<span class="hljs-string">'height'</span>);
         <span class="hljs-keyword">this</span>.svg.attr(<span class="hljs-string">'height'</span>, height*<span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'zoomLevel'</span>));
-        <span class="hljs-keyword">this</span>.viz.$(<span class="hljs-string">'#ownershipvis'</span>).scrollTop(top*(<span class="hljs-keyword">this</span>.svg.attr(<span class="hljs-string">'height'</span>)/beforeHeight));
-        
-        <span class="hljs-keyword">this</span>.svg.selectAll(<span class="hljs-string">".body"</span>)
-                .attr(<span class="hljs-string">"transform"</span>, <span class="hljs-string">"translate("</span> + -(<span class="hljs-keyword">this</span>.viz.navctl.getPanOffset()) + <span class="hljs-string">",0) scale("</span> + barWidth + <span class="hljs-string">", "</span> + <span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'zoomLevel'</span>) + <span class="hljs-string">")"</span>);
-        <span class="hljs-keyword">this</span>.updateZoom();
-    },</pre></div></div>
+        <span class="hljs-keyword">this</span>.viz.$(<span class="hljs-string">'#ownershipvis'</span>).scrollTop(top*(<span class="hljs-keyword">this</span>.svg.attr(<span class="hljs-string">'height'</span>)/beforeHeight));</pre></div></div>
             
         </li>
         
@@ -3033,6 +3029,43 @@ The slider “dragging” state is stored as a CSS class.</p>
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-122">&#182;</a>
+              </div>
+              <p>Adjust Sentence posisionts/scale</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">this</span>.svg.selectAll(<span class="hljs-string">".body"</span>)
+                .attr(<span class="hljs-string">"transform"</span>, <span class="hljs-string">"translate("</span> + -(<span class="hljs-keyword">this</span>.viz.navctl.getPanOffset()) + <span class="hljs-string">",12) scale("</span> + barWidth + <span class="hljs-string">", "</span> + <span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'zoomLevel'</span>) + <span class="hljs-string">")"</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-123">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-123">&#182;</a>
+              </div>
+              <p>Adjust Vandalism Marker positions</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">this</span>.svg.selectAll(<span class="hljs-string">".header"</span>)
+                .attr(<span class="hljs-string">"transform"</span>, <span class="hljs-string">"translate("</span> + -(<span class="hljs-keyword">this</span>.viz.navctl.getPanOffset()) + <span class="hljs-string">",0)"</span>);
+        <span class="hljs-keyword">this</span>.svg.selectAll(<span class="hljs-string">".header .revision"</span>)
+                .attr(<span class="hljs-string">"transform"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d, i)</span></span>{ <span class="hljs-keyword">return</span> <span class="hljs-string">"translate("</span> + that.x($(<span class="hljs-keyword">this</span>).attr(<span class="hljs-string">"data-index"</span>)*<span class="hljs-number">2</span>*barWidth) + <span class="hljs-string">",11) scale("</span> + barWidth/<span class="hljs-number">13</span> + <span class="hljs-string">",1)"</span>; });
+                
+        <span class="hljs-keyword">this</span>.updateZoom();
+    },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-124">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-124">&#182;</a>
               </div>
               <p>Resets all of the selections so that all sentences are opaque</p>
 
@@ -3046,11 +3079,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-123">
+        <li id="section-125">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-123">&#182;</a>
+                <a class="pilcrow" href="#section-125">&#182;</a>
               </div>
               <p>Makes all sentences who are not owned by users in the userlist to be semi-transparent</p>
 
@@ -3064,11 +3097,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-124">
+        <li id="section-126">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-124">&#182;</a>
+                <a class="pilcrow" href="#section-126">&#182;</a>
               </div>
               <p>Creates the initial svg visualization</p>
 
@@ -3082,27 +3115,29 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-125">
+        <li id="section-127">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-125">&#182;</a>
+                <a class="pilcrow" href="#section-127">&#182;</a>
               </div>
               <p>Create body</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> body = <span class="hljs-keyword">this</span>.svg.append(<span class="hljs-string">"g"</span>)
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> header = <span class="hljs-keyword">this</span>.svg.append(<span class="hljs-string">"g"</span>)
+                             .attr(<span class="hljs-string">"class"</span>, <span class="hljs-string">"header"</span>);
+        <span class="hljs-keyword">var</span> body = <span class="hljs-keyword">this</span>.svg.append(<span class="hljs-string">"g"</span>)
                            .attr(<span class="hljs-string">"class"</span>, <span class="hljs-string">"body"</span>);</pre></div></div>
             
         </li>
         
         
-        <li id="section-126">
+        <li id="section-128">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-126">&#182;</a>
+                <a class="pilcrow" href="#section-128">&#182;</a>
               </div>
               <p>Create Transitions Group</p>
 
@@ -3115,11 +3150,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-127">
+        <li id="section-129">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-127">&#182;</a>
+                <a class="pilcrow" href="#section-129">&#182;</a>
               </div>
               <p>Create Revisions Group</p>
 
@@ -3129,16 +3164,21 @@ The slider “dragging” state is stored as a CSS class.</p>
         <span class="hljs-keyword">var</span> revisions = <span class="hljs-keyword">this</span>.svg.selectAll(<span class="hljs-string">".body"</span>)
                                 .selectAll(<span class="hljs-string">".revision"</span>)
                                 .data(_.values(<span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'revisions'</span>)))
-                                .enter();</pre></div></div>
+                                .enter();
+                                
+        <span class="hljs-keyword">var</span> vand_revisions = <span class="hljs-keyword">this</span>.svg.selectAll(<span class="hljs-string">".header"</span>)
+                                     .selectAll(<span class="hljs-string">".revision"</span>)
+                                     .data(_.values(<span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'revisions'</span>)))
+                                     .enter();</pre></div></div>
             
         </li>
         
         
-        <li id="section-128">
+        <li id="section-130">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-128">&#182;</a>
+                <a class="pilcrow" href="#section-130">&#182;</a>
               </div>
               <p>Clicking the revision will open the revision in a new tab</p>
 
@@ -3153,11 +3193,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-129">
+        <li id="section-131">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-129">&#182;</a>
+                <a class="pilcrow" href="#section-131">&#182;</a>
               </div>
               <p>Clicking the revision will open the revision in a new tab</p>
 
@@ -3168,16 +3208,47 @@ The slider “dragging” state is stored as a CSS class.</p>
                  .attr(<span class="hljs-string">"data-revid"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d, i)</span> </span>{ <span class="hljs-keyword">return</span> revIds[i]; })
                  .attr(<span class="hljs-string">"xlink:href"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d, i)</span> </span>{ <span class="hljs-keyword">return</span> <span class="hljs-string">"http://en.wikipedia.org/wiki/"</span> + that.viz.model.get(<span class="hljs-string">'title'</span>) + <span class="hljs-string">"?oldid="</span> + revIds[i]; })
                  .attr(<span class="hljs-string">"target"</span>, <span class="hljs-string">"_blank"</span>)
-                 .attr(<span class="hljs-string">"transform"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d, i)</span> </span>{ <span class="hljs-keyword">return</span> <span class="hljs-string">"translate("</span> + that.x(i*<span class="hljs-number">2</span>) + <span class="hljs-string">", 0)"</span>; });</pre></div></div>
+                 .attr(<span class="hljs-string">"transform"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d, i)</span> </span>{ <span class="hljs-keyword">return</span> <span class="hljs-string">"translate("</span> + that.x(i*<span class="hljs-number">2</span>) + <span class="hljs-string">", 0)"</span>; });
+                 
+        vand_revisions.append(<span class="hljs-string">"text"</span>)
+                      .attr(<span class="hljs-string">"class"</span>, $.proxy(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d, i)</span></span>{
+                        <span class="hljs-keyword">if</span>(_.contains(<span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'vandalism'</span>), <span class="hljs-built_in">parseInt</span>(revIds[i])) ||
+                           _.contains(<span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'unvandalism'</span>), <span class="hljs-built_in">parseInt</span>(revIds[i]))){
+                            <span class="hljs-keyword">return</span> <span class="hljs-string">"revision"</span>;
+                        }
+                      }, <span class="hljs-keyword">this</span>))
+                      .attr(<span class="hljs-string">"transform"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d, i)</span> </span>{ <span class="hljs-keyword">return</span> <span class="hljs-string">"translate("</span> + that.x(i*<span class="hljs-number">2</span>) + <span class="hljs-string">", 9)"</span>; })
+                      .style(<span class="hljs-string">"font-size"</span>, <span class="hljs-string">"14px"</span>)
+                      .style(<span class="hljs-string">"cursor"</span>, <span class="hljs-string">"default"</span>)
+                      .attr(<span class="hljs-string">"data-index"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d, i)</span></span>{ <span class="hljs-keyword">return</span> i; })
+                      .text($.proxy(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d, i)</span></span>{
+                        <span class="hljs-keyword">if</span>(_.contains(<span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'vandalism'</span>), <span class="hljs-built_in">parseInt</span>(revIds[i]))){
+                            <span class="hljs-keyword">return</span> <span class="hljs-string">"☒"</span>;
+                        }
+                        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(_.contains(<span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'unvandalism'</span>), <span class="hljs-built_in">parseInt</span>(revIds[i]))){
+                            <span class="hljs-keyword">return</span> <span class="hljs-string">"☑"</span>
+                        }
+                      }, <span class="hljs-keyword">this</span>))
+                      .append(<span class="hljs-string">"title"</span>)
+                      .text($.proxy(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d, i)</span></span>{
+                        <span class="hljs-keyword">if</span>(_.contains(<span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'vandalism'</span>), <span class="hljs-built_in">parseInt</span>(revIds[i]))){
+                            <span class="hljs-keyword">return</span> <span class="hljs-string">"Vandalism"</span>;
+                        }
+                        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(_.contains(<span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'unvandalism'</span>), <span class="hljs-built_in">parseInt</span>(revIds[i]))){
+                            <span class="hljs-keyword">return</span> <span class="hljs-string">"Remove Vandalism"</span>
+                        }
+                      }, <span class="hljs-keyword">this</span>));
+        <span class="hljs-keyword">this</span>.svg.selectAll(<span class="hljs-string">".header &gt; :not(.revision)"</span>)
+                .remove();</pre></div></div>
             
         </li>
         
         
-        <li id="section-130">
+        <li id="section-132">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-130">&#182;</a>
+                <a class="pilcrow" href="#section-132">&#182;</a>
               </div>
               <p>Create Sections Group</p>
 
@@ -3240,11 +3311,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-131">
+        <li id="section-133">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-131">&#182;</a>
+                <a class="pilcrow" href="#section-133">&#182;</a>
               </div>
               <p>If i == 0, then it means this is a new revision</p>
 
@@ -3257,11 +3328,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-132">
+        <li id="section-134">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-132">&#182;</a>
+                <a class="pilcrow" href="#section-134">&#182;</a>
               </div>
               <p>Increment the offset</p>
 
@@ -3278,11 +3349,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-133">
+        <li id="section-135">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-133">&#182;</a>
+                <a class="pilcrow" href="#section-135">&#182;</a>
               </div>
               <p>Highlight Color</p>
 
@@ -3295,11 +3366,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-134">
+        <li id="section-136">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-134">&#182;</a>
+                <a class="pilcrow" href="#section-136">&#182;</a>
               </div>
               <p>Reset Color</p>
 
@@ -3313,11 +3384,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-135">
+        <li id="section-137">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-135">&#182;</a>
+                <a class="pilcrow" href="#section-137">&#182;</a>
               </div>
               <p>Create Sentences Rectangles</p>
 
@@ -3343,11 +3414,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-136">
+        <li id="section-138">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-136">&#182;</a>
+                <a class="pilcrow" href="#section-138">&#182;</a>
               </div>
               <p>Highlight Color</p>
 
@@ -3360,11 +3431,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-137">
+        <li id="section-139">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-137">&#182;</a>
+                <a class="pilcrow" href="#section-139">&#182;</a>
               </div>
               <p>Reset Color</p>
 
@@ -3398,11 +3469,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-138">
+        <li id="section-140">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-138">&#182;</a>
+                <a class="pilcrow" href="#section-140">&#182;</a>
               </div>
               <p>Highlight Color</p>
 
@@ -3418,11 +3489,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-139">
+        <li id="section-141">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-139">&#182;</a>
+                <a class="pilcrow" href="#section-141">&#182;</a>
               </div>
               <p>Reset Color</p>
 
@@ -3454,11 +3525,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-140">
+        <li id="section-142">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-140">&#182;</a>
+                <a class="pilcrow" href="#section-142">&#182;</a>
               </div>
               <p>Highlight Color</p>
 
@@ -3471,11 +3542,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-141">
+        <li id="section-143">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-141">&#182;</a>
+                <a class="pilcrow" href="#section-143">&#182;</a>
               </div>
               <p>Reset Color</p>
 
@@ -3491,11 +3562,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-142">
+        <li id="section-144">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-142">&#182;</a>
+                <a class="pilcrow" href="#section-144">&#182;</a>
               </div>
               <p>Updates the state of the pagination buttons</p>
 
@@ -3529,11 +3600,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-143">
+        <li id="section-145">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-143">&#182;</a>
+                <a class="pilcrow" href="#section-145">&#182;</a>
               </div>
               <p>Updates the state of the zoom buttons</p>
 
@@ -3577,11 +3648,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-144">
+        <li id="section-146">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-144">&#182;</a>
+                <a class="pilcrow" href="#section-146">&#182;</a>
               </div>
               <p>Set up x and y ranges for the visualization. The x-range is designed so that x(n) gives the x-position of the nth bar’s left edge.</p>
 
@@ -3592,26 +3663,26 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-145">
+        <li id="section-147">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-145">&#182;</a>
+                <a class="pilcrow" href="#section-147">&#182;</a>
               </div>
               <p>Leave a little bit of room.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">this</span>.y.range([<span class="hljs-number">0</span>, <span class="hljs-keyword">this</span>.viz.model.get(<span class="hljs-string">'height'</span>)-<span class="hljs-number">2</span>]);</pre></div></div>
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">this</span>.y.range([<span class="hljs-number">0</span>, <span class="hljs-keyword">this</span>.viz.model.get(<span class="hljs-string">'height'</span>)-(<span class="hljs-number">2</span>+<span class="hljs-number">12</span>)]);</pre></div></div>
             
         </li>
         
         
-        <li id="section-146">
+        <li id="section-148">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-146">&#182;</a>
+                <a class="pilcrow" href="#section-148">&#182;</a>
               </div>
               <p>Y domain determined using largest magnitude y-value</p>
 
@@ -3625,11 +3696,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-147">
+        <li id="section-149">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-147">&#182;</a>
+                <a class="pilcrow" href="#section-149">&#182;</a>
               </div>
               <p>Populate user list in the ‘select users’ dialog.</p>
 
@@ -3641,11 +3712,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-148">
+        <li id="section-150">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-148">&#182;</a>
+                <a class="pilcrow" href="#section-150">&#182;</a>
               </div>
               <p>Use d3 to populate the select element in the select users dialog with option elements</p>
 
@@ -3697,11 +3768,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-149">
+        <li id="section-151">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-149">&#182;</a>
+                <a class="pilcrow" href="#section-151">&#182;</a>
               </div>
               <p>Up</p>
 
@@ -3714,11 +3785,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-150">
+        <li id="section-152">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-150">&#182;</a>
+                <a class="pilcrow" href="#section-152">&#182;</a>
               </div>
               <p>Down</p>
 
@@ -3735,11 +3806,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-151">
+        <li id="section-153">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-151">&#182;</a>
+                <a class="pilcrow" href="#section-153">&#182;</a>
               </div>
               <h2 id="toolbarview">ToolbarView</h2>
 
@@ -3796,11 +3867,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-152">
+        <li id="section-154">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-152">&#182;</a>
+                <a class="pilcrow" href="#section-154">&#182;</a>
               </div>
               <p>Allow checkbox to capture click events (otherwise the accordion will do so)</p>
 
@@ -3815,11 +3886,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-153">
+        <li id="section-155">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-153">&#182;</a>
+                <a class="pilcrow" href="#section-155">&#182;</a>
               </div>
               <p>User group selection functionality.</p>
 
@@ -3832,11 +3903,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-154">
+        <li id="section-156">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-154">&#182;</a>
+                <a class="pilcrow" href="#section-156">&#182;</a>
               </div>
               <p>If the event is the checking of a checkbox</p>
 
@@ -3852,11 +3923,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-155">
+        <li id="section-157">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-155">&#182;</a>
+                <a class="pilcrow" href="#section-157">&#182;</a>
               </div>
               <p>Checkbox was unchecked</p>
 
@@ -3876,11 +3947,11 @@ The slider “dragging” state is stored as a CSS class.</p>
         </li>
         
         
-        <li id="section-156">
+        <li id="section-158">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-156">&#182;</a>
+                <a class="pilcrow" href="#section-158">&#182;</a>
               </div>
               <p>Bind functionality to the select users dialog
 Note that the “Select By Group” checkboxes make changes to the selection
@@ -3895,11 +3966,11 @@ by user list.</p>
         </li>
         
         
-        <li id="section-157">
+        <li id="section-159">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-157">&#182;</a>
+                <a class="pilcrow" href="#section-159">&#182;</a>
               </div>
               <p>Gather choices</p>
 
@@ -3913,11 +3984,11 @@ by user list.</p>
         </li>
         
         
-        <li id="section-158">
+        <li id="section-160">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-158">&#182;</a>
+                <a class="pilcrow" href="#section-160">&#182;</a>
               </div>
               <p>Use choices to generate selection in Select By User
 User names are stored in the “value” property of the options in the select element.</p>
@@ -3936,11 +4007,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-159">
+        <li id="section-161">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-159">&#182;</a>
+                <a class="pilcrow" href="#section-161">&#182;</a>
               </div>
               <p>Force visual update on stubborn browsers (Chrome !!!)</p>
 
@@ -3955,11 +4026,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-160">
+        <li id="section-162">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-160">&#182;</a>
+                <a class="pilcrow" href="#section-162">&#182;</a>
               </div>
               <p>Clicking “Apply User Selection”</p>
 
@@ -4001,11 +4072,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-161">
+        <li id="section-163">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-161">&#182;</a>
+                <a class="pilcrow" href="#section-163">&#182;</a>
               </div>
               <p>Allow checkbox to capture click events (otherwise the accordion will do so)</p>
 
@@ -4020,11 +4091,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-162">
+        <li id="section-164">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-162">&#182;</a>
+                <a class="pilcrow" href="#section-164">&#182;</a>
               </div>
               <p>User group selection functionality.</p>
 
@@ -4037,11 +4108,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-163">
+        <li id="section-165">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-163">&#182;</a>
+                <a class="pilcrow" href="#section-165">&#182;</a>
               </div>
               <p>If the event is the checking of a checkbox</p>
 
@@ -4053,11 +4124,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-164">
+        <li id="section-166">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-164">&#182;</a>
+                <a class="pilcrow" href="#section-166">&#182;</a>
               </div>
               <p>Checkbox was unchecked</p>
 
@@ -4073,11 +4144,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-165">
+        <li id="section-167">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-165">&#182;</a>
+                <a class="pilcrow" href="#section-167">&#182;</a>
               </div>
               <p>Bind functionality to the select users dialog
 Note that the “Select By Group” checkboxes make changes to the selection
@@ -4092,11 +4163,11 @@ by user list.</p>
         </li>
         
         
-        <li id="section-166">
+        <li id="section-168">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-166">&#182;</a>
+                <a class="pilcrow" href="#section-168">&#182;</a>
               </div>
               <p>Gather choices</p>
 
@@ -4110,11 +4181,11 @@ by user list.</p>
         </li>
         
         
-        <li id="section-167">
+        <li id="section-169">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-167">&#182;</a>
+                <a class="pilcrow" href="#section-169">&#182;</a>
               </div>
               <p>Use choices to generate selection in Select By User
 User names are stored in the “value” property of the options in the select element.</p>
@@ -4133,11 +4204,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-168">
+        <li id="section-170">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-168">&#182;</a>
+                <a class="pilcrow" href="#section-170">&#182;</a>
               </div>
               <p>Force visual update on stubborn browsers (Chrome !!!)</p>
 
@@ -4152,11 +4223,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-169">
+        <li id="section-171">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-169">&#182;</a>
+                <a class="pilcrow" href="#section-171">&#182;</a>
               </div>
               <p>Clicking “Apply User Selection”</p>
 
@@ -4185,11 +4256,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-170">
+        <li id="section-172">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-170">&#182;</a>
+                <a class="pilcrow" href="#section-172">&#182;</a>
               </div>
               <p>Section selection functionality.</p>
 
@@ -4206,11 +4277,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-171">
+        <li id="section-173">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-171">&#182;</a>
+                <a class="pilcrow" href="#section-173">&#182;</a>
               </div>
               <p>If the event is the checking of a checkbox</p>
 
@@ -4222,11 +4293,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-172">
+        <li id="section-174">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-172">&#182;</a>
+                <a class="pilcrow" href="#section-174">&#182;</a>
               </div>
               <p>Checkbox was unchecked</p>
 
@@ -4285,11 +4356,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-173">
+        <li id="section-175">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-173">&#182;</a>
+                <a class="pilcrow" href="#section-175">&#182;</a>
               </div>
               <p>Allow checkbox to capture click events (otherwise the accordion will do so)</p>
 
@@ -4304,11 +4375,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-174">
+        <li id="section-176">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-174">&#182;</a>
+                <a class="pilcrow" href="#section-176">&#182;</a>
               </div>
               <p>Mapping from checkbox value to visualization rectangle classes</p>
 
@@ -4328,11 +4399,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-175">
+        <li id="section-177">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-175">&#182;</a>
+                <a class="pilcrow" href="#section-177">&#182;</a>
               </div>
               <p>Legend selection functionality (by varying opacity)</p>
 
@@ -4344,11 +4415,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-176">
+        <li id="section-178">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-176">&#182;</a>
+                <a class="pilcrow" href="#section-178">&#182;</a>
               </div>
               <p>If the event is the checking of a checkbox</p>
 
@@ -4362,11 +4433,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-177">
+        <li id="section-179">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-177">&#182;</a>
+                <a class="pilcrow" href="#section-179">&#182;</a>
               </div>
               <p>Checkbox was unchecked</p>
 
@@ -4425,11 +4496,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-178">
+        <li id="section-180">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-178">&#182;</a>
+                <a class="pilcrow" href="#section-180">&#182;</a>
               </div>
               <p>Allow checkbox to capture click events (otherwise the accordion will do so)</p>
 
@@ -4444,11 +4515,11 @@ User names are stored in the “value” property of the options in the select e
         </li>
         
         
-        <li id="section-179">
+        <li id="section-181">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-179">&#182;</a>
+                <a class="pilcrow" href="#section-181">&#182;</a>
               </div>
               <p>Talk page revision selection functionality.
 TODO: Make the “callouts” fade out if all of the contained elements are faded out.</p>
@@ -4462,11 +4533,11 @@ TODO: Make the “callouts” fade out if all of the contained elements are fade
         </li>
         
         
-        <li id="section-180">
+        <li id="section-182">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-180">&#182;</a>
+                <a class="pilcrow" href="#section-182">&#182;</a>
               </div>
               <p>If the event is the checking of a checkbox</p>
 
@@ -4478,11 +4549,11 @@ TODO: Make the “callouts” fade out if all of the contained elements are fade
         </li>
         
         
-        <li id="section-181">
+        <li id="section-183">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-181">&#182;</a>
+                <a class="pilcrow" href="#section-183">&#182;</a>
               </div>
               <p>Checkbox was unchecked</p>
 
@@ -4502,11 +4573,11 @@ TODO: Make the “callouts” fade out if all of the contained elements are fade
         </li>
         
         
-        <li id="section-182">
+        <li id="section-184">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-182">&#182;</a>
+                <a class="pilcrow" href="#section-184">&#182;</a>
               </div>
               <p>Init the buttons on the toolbar.</p>
 
@@ -4601,11 +4672,11 @@ TODO: Make the “callouts” fade out if all of the contained elements are fade
         </li>
         
         
-        <li id="section-183">
+        <li id="section-185">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-183">&#182;</a>
+                <a class="pilcrow" href="#section-185">&#182;</a>
               </div>
               <h2 id="toptabsview">TopTabsView</h2>
 
@@ -4624,11 +4695,11 @@ TODO: Make the “callouts” fade out if all of the contained elements are fade
         </li>
         
         
-        <li id="section-184">
+        <li id="section-186">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-184">&#182;</a>
+                <a class="pilcrow" href="#section-186">&#182;</a>
               </div>
               <p>Orders each tab and spacing them correctly.</p>
 <p>First the tabs are sorted based on their x position,
@@ -4655,11 +4726,11 @@ then they are spaced and rerendered.</p>
         </li>
         
         
-        <li id="section-185">
+        <li id="section-187">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-185">&#182;</a>
+                <a class="pilcrow" href="#section-187">&#182;</a>
               </div>
               <p>TODO: This isn’t perfect, some rounding problems still exist</p>
 
@@ -4711,11 +4782,11 @@ then they are spaced and rerendered.</p>
         </li>
         
         
-        <li id="section-186">
+        <li id="section-188">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-186">&#182;</a>
+                <a class="pilcrow" href="#section-188">&#182;</a>
               </div>
               <p>Left margin for first tab</p>
 
@@ -4726,11 +4797,11 @@ then they are spaced and rerendered.</p>
         </li>
         
         
-        <li id="section-187">
+        <li id="section-189">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-187">&#182;</a>
+                <a class="pilcrow" href="#section-189">&#182;</a>
               </div>
               <p>Spacing between tabs</p>
 
@@ -4741,11 +4812,11 @@ then they are spaced and rerendered.</p>
         </li>
         
         
-        <li id="section-188">
+        <li id="section-190">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-188">&#182;</a>
+                <a class="pilcrow" href="#section-190">&#182;</a>
               </div>
               <h2 id="toptabview">TopTabView</h2>
 
@@ -4769,11 +4840,11 @@ then they are spaced and rerendered.</p>
         </li>
         
         
-        <li id="section-189">
+        <li id="section-191">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-189">&#182;</a>
+                <a class="pilcrow" href="#section-191">&#182;</a>
               </div>
               <p>Triggered when the tab is hovered.  Change hover color etc.</p>
 
@@ -4799,11 +4870,11 @@ then they are spaced and rerendered.</p>
         </li>
         
         
-        <li id="section-190">
+        <li id="section-192">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-190">&#182;</a>
+                <a class="pilcrow" href="#section-192">&#182;</a>
               </div>
               <p>Triggered when a tab is clicked (clicking the ‘x’ doesn’t count)</p>
 <p>If a ‘+’ tab was clicked, then a new tab is created and selected, otherwise
@@ -4845,11 +4916,11 @@ the clicked tab is selected, and the previously selected tab is unselected</p>
         </li>
         
         
-        <li id="section-191">
+        <li id="section-193">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-191">&#182;</a>
+                <a class="pilcrow" href="#section-193">&#182;</a>
               </div>
               <p>Closes this tab and removes it.  The last tab is then selected</p>
 
@@ -4880,11 +4951,11 @@ the clicked tab is selected, and the previously selected tab is unselected</p>
         </li>
         
         
-        <li id="section-192">
+        <li id="section-194">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-192">&#182;</a>
+                <a class="pilcrow" href="#section-194">&#182;</a>
               </div>
               <p>Updates the left coordinate of the tab</p>
 
@@ -4937,11 +5008,11 @@ UserInfoView = Backbone.View.extend({
         </li>
         
         
-        <li id="section-193">
+        <li id="section-195">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-193">&#182;</a>
+                <a class="pilcrow" href="#section-195">&#182;</a>
               </div>
               <h2 id="userview">UserView</h2>
 
@@ -4984,11 +5055,11 @@ UserInfoView = Backbone.View.extend({
         </li>
         
         
-        <li id="section-194">
+        <li id="section-196">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-194">&#182;</a>
+                <a class="pilcrow" href="#section-196">&#182;</a>
               </div>
               <h2 id="wikivizview">WikiVizView</h2>
 
@@ -5040,11 +5111,11 @@ UserInfoView = Backbone.View.extend({
         </li>
         
         
-        <li id="section-195">
+        <li id="section-197">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-195">&#182;</a>
+                <a class="pilcrow" href="#section-197">&#182;</a>
               </div>
               <p>Calculate bar width based on number of bars per screen</p>
 
@@ -5057,11 +5128,11 @@ UserInfoView = Backbone.View.extend({
         </li>
         
         
-        <li id="section-196">
+        <li id="section-198">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-196">&#182;</a>
+                <a class="pilcrow" href="#section-198">&#182;</a>
               </div>
               <p>When using the ownership visualization, there is no mask</p>
 
@@ -5073,11 +5144,11 @@ UserInfoView = Backbone.View.extend({
         </li>
         
         
-        <li id="section-197">
+        <li id="section-199">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-197">&#182;</a>
+                <a class="pilcrow" href="#section-199">&#182;</a>
               </div>
               <p>Adjust for scrollbar, and give 1 pixel extra space</p>
 
@@ -5092,11 +5163,11 @@ UserInfoView = Backbone.View.extend({
         </li>
         
         
-        <li id="section-198">
+        <li id="section-200">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-198">&#182;</a>
+                <a class="pilcrow" href="#section-200">&#182;</a>
               </div>
               <p>Consider the ymask when calculation the bar width</p>
 
@@ -5111,11 +5182,11 @@ UserInfoView = Backbone.View.extend({
         </li>
         
         
-        <li id="section-199">
+        <li id="section-201">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-199">&#182;</a>
+                <a class="pilcrow" href="#section-201">&#182;</a>
               </div>
               <p>Calculate talk width based on number of talk entries per screen</p>
 
@@ -5131,11 +5202,11 @@ UserInfoView = Backbone.View.extend({
         </li>
         
         
-        <li id="section-200">
+        <li id="section-202">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-200">&#182;</a>
+                <a class="pilcrow" href="#section-202">&#182;</a>
               </div>
               <p>width of one callout</p>
 
@@ -5147,11 +5218,11 @@ UserInfoView = Backbone.View.extend({
         </li>
         
         
-        <li id="section-201">
+        <li id="section-203">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-201">&#182;</a>
+                <a class="pilcrow" href="#section-203">&#182;</a>
               </div>
               <p>Get left edge of a given bar on the visualization</p>
 
@@ -5168,11 +5239,11 @@ UserInfoView = Backbone.View.extend({
         </li>
         
         
-        <li id="section-202">
+        <li id="section-204">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-202">&#182;</a>
+                <a class="pilcrow" href="#section-204">&#182;</a>
               </div>
               <p>Calculate the inner width of a callout element based in its contents.</p>
 
@@ -5184,11 +5255,11 @@ UserInfoView = Backbone.View.extend({
         </li>
         
         
-        <li id="section-203">
+        <li id="section-205">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-203">&#182;</a>
+                <a class="pilcrow" href="#section-205">&#182;</a>
               </div>
               <p>Width of icon + padding</p>
 
@@ -5205,11 +5276,11 @@ UserInfoView = Backbone.View.extend({
         </li>
         
         
-        <li id="section-204">
+        <li id="section-206">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-204">&#182;</a>
+                <a class="pilcrow" href="#section-206">&#182;</a>
               </div>
               <p>Generate an array of callout classification images based on the talk-page
 entry that is represented by that callout.</p>
@@ -5228,11 +5299,11 @@ entry that is represented by that callout.</p>
         </li>
         
         
-        <li id="section-205">
+        <li id="section-207">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-205">&#182;</a>
+                <a class="pilcrow" href="#section-207">&#182;</a>
               </div>
               <p>Update the info box using an object composed of prop=&gt;val pairs.
 UNUSED for now, but may be able to be adapted into something later.</p>
@@ -5244,11 +5315,11 @@ UNUSED for now, but may be able to be adapted into something later.</p>
         </li>
         
         
-        <li id="section-206">
+        <li id="section-208">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-206">&#182;</a>
+                <a class="pilcrow" href="#section-208">&#182;</a>
               </div>
               <p>Update the content of the info box.
 First, hide the default ‘no selection’ message.</p>
@@ -5260,11 +5331,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-207">
+        <li id="section-209">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-207">&#182;</a>
+                <a class="pilcrow" href="#section-209">&#182;</a>
               </div>
               <p>Clear any data inside the info div.</p>
 
@@ -5285,11 +5356,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-208">
+        <li id="section-210">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-208">&#182;</a>
+                <a class="pilcrow" href="#section-210">&#182;</a>
               </div>
               <p>If there is no data, display ‘no selection’ message.</p>
 
@@ -5304,11 +5375,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-209">
+        <li id="section-211">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-209">&#182;</a>
+                <a class="pilcrow" href="#section-211">&#182;</a>
               </div>
               <p>Deletes all of the month rects.</p>
 
@@ -5321,11 +5392,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-210">
+        <li id="section-212">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-210">&#182;</a>
+                <a class="pilcrow" href="#section-212">&#182;</a>
               </div>
               <p>Calls the correct update function depending on the current mode</p>
 
@@ -5347,11 +5418,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-211">
+        <li id="section-213">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-211">&#182;</a>
+                <a class="pilcrow" href="#section-213">&#182;</a>
               </div>
               <p>Redraw dots here for talk page entries after changing numDots</p>
 
@@ -5369,11 +5440,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-212">
+        <li id="section-214">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-212">&#182;</a>
+                <a class="pilcrow" href="#section-214">&#182;</a>
               </div>
               <p>Rescale x-axis based on the number of bars that should fit into a screen after changing numBars</p>
 
@@ -5394,11 +5465,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-213">
+        <li id="section-215">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-213">&#182;</a>
+                <a class="pilcrow" href="#section-215">&#182;</a>
               </div>
               <p>Hide x labels that would overlap!</p>
 
@@ -5409,11 +5480,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-214">
+        <li id="section-216">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-214">&#182;</a>
+                <a class="pilcrow" href="#section-216">&#182;</a>
               </div>
               <p>This can sometimes fail, so gracefully fail if it does</p>
 
@@ -5431,11 +5502,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-215">
+        <li id="section-217">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-215">&#182;</a>
+                <a class="pilcrow" href="#section-217">&#182;</a>
               </div>
               <p>Need to update the month rectangles so that they use the new scale!</p>
 
@@ -5447,11 +5518,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-216">
+        <li id="section-218">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-216">&#182;</a>
+                <a class="pilcrow" href="#section-218">&#182;</a>
               </div>
               <p>Highlight those entries that were made by users in userlist.</p>
 
@@ -5462,11 +5533,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-217">
+        <li id="section-219">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-217">&#182;</a>
+                <a class="pilcrow" href="#section-219">&#182;</a>
               </div>
               <p>Clean up any previous selections!</p>
 
@@ -5479,11 +5550,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-218">
+        <li id="section-220">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-218">&#182;</a>
+                <a class="pilcrow" href="#section-220">&#182;</a>
               </div>
               <p>Enable the deselect button if there is an active selection</p>
 
@@ -5499,11 +5570,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-219">
+        <li id="section-221">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-219">&#182;</a>
+                <a class="pilcrow" href="#section-221">&#182;</a>
               </div>
               <p>Disable the legend selection mechanism</p>
 
@@ -5514,11 +5585,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-220">
+        <li id="section-222">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-220">&#182;</a>
+                <a class="pilcrow" href="#section-222">&#182;</a>
               </div>
               <p>Disable groups selection</p>
 
@@ -5529,11 +5600,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-221">
+        <li id="section-223">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-221">&#182;</a>
+                <a class="pilcrow" href="#section-223">&#182;</a>
               </div>
               <p>Update info box.</p>
 
@@ -5553,11 +5624,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-222">
+        <li id="section-224">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-222">&#182;</a>
+                <a class="pilcrow" href="#section-224">&#182;</a>
               </div>
               <p>Apply selection to ‘Content Details’ table.</p>
 
@@ -5575,11 +5646,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-223">
+        <li id="section-225">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-223">&#182;</a>
+                <a class="pilcrow" href="#section-225">&#182;</a>
               </div>
               <p>Apply selection to the main article contribution view</p>
 
@@ -5591,11 +5662,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-224">
+        <li id="section-226">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-224">&#182;</a>
+                <a class="pilcrow" href="#section-226">&#182;</a>
               </div>
               <p>Apply selection to nav “spikes”</p>
 
@@ -5607,11 +5678,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-225">
+        <li id="section-227">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-225">&#182;</a>
+                <a class="pilcrow" href="#section-227">&#182;</a>
               </div>
               <p>Apply selection to the sentence ownership view</p>
 
@@ -5624,11 +5695,11 @@ First, hide the default ‘no selection’ message.</p>
         </li>
         
         
-        <li id="section-226">
+        <li id="section-228">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-226">&#182;</a>
+                <a class="pilcrow" href="#section-228">&#182;</a>
               </div>
               <p>This is the action that is taken when the user clicks on the “reset selections” button in the toolbar.
 It should reset all selection tools to their default states, and enable previously disabled selection tools as necessary.</p>
@@ -5640,11 +5711,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-227">
+        <li id="section-229">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-227">&#182;</a>
+                <a class="pilcrow" href="#section-229">&#182;</a>
               </div>
               <p>Disable the deselect button</p>
 
@@ -5655,11 +5726,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-228">
+        <li id="section-230">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-228">&#182;</a>
+                <a class="pilcrow" href="#section-230">&#182;</a>
               </div>
               <p>Update the info box (UNUSED)</p>
 
@@ -5670,11 +5741,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-229">
+        <li id="section-231">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-229">&#182;</a>
+                <a class="pilcrow" href="#section-231">&#182;</a>
               </div>
               <p>Clear all selections made in the table view.</p>
 
@@ -5685,11 +5756,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-230">
+        <li id="section-232">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-230">&#182;</a>
+                <a class="pilcrow" href="#section-232">&#182;</a>
               </div>
               <p>Pre-check all edit category and user group selection boxes.</p>
 
@@ -5703,11 +5774,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-231">
+        <li id="section-233">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-231">&#182;</a>
+                <a class="pilcrow" href="#section-233">&#182;</a>
               </div>
               <p>Update the various views to reflect reset of all selections.</p>
 
@@ -5719,11 +5790,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-232">
+        <li id="section-234">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-232">&#182;</a>
+                <a class="pilcrow" href="#section-234">&#182;</a>
               </div>
               <p>Update nav control spikes</p>
 
@@ -5735,11 +5806,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-233">
+        <li id="section-235">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-233">&#182;</a>
+                <a class="pilcrow" href="#section-235">&#182;</a>
               </div>
               <p>Clear the selection for the sentence ownership visualization</p>
 
@@ -5750,11 +5821,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-234">
+        <li id="section-236">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-234">&#182;</a>
+                <a class="pilcrow" href="#section-236">&#182;</a>
               </div>
               <p>Re-enable any previously disabled selection controls</p>
 
@@ -5767,11 +5838,11 @@ It should reset all selection tools to their default states, and enable previous
         </li>
         
         
-        <li id="section-235">
+        <li id="section-237">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-235">&#182;</a>
+                <a class="pilcrow" href="#section-237">&#182;</a>
               </div>
               <p>Switch visualization to time-spaced mode, or update time-spaced visualization
 This is currently called by the slider element on a switch mode event.</p>
@@ -5784,11 +5855,11 @@ This is currently called by the slider element on a switch mode event.</p>
         </li>
         
         
-        <li id="section-236">
+        <li id="section-238">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-236">&#182;</a>
+                <a class="pilcrow" href="#section-238">&#182;</a>
               </div>
               <p>Re-position all article revision elements using the x axis time scale.</p>
 
@@ -5801,11 +5872,11 @@ This is currently called by the slider element on a switch mode event.</p>
         </li>
         
         
-        <li id="section-237">
+        <li id="section-239">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-237">&#182;</a>
+                <a class="pilcrow" href="#section-239">&#182;</a>
               </div>
               <p>Re-position talk page entry callouts using the x-axis time scale.</p>
 
@@ -5817,11 +5888,11 @@ This is currently called by the slider element on a switch mode event.</p>
         </li>
         
         
-        <li id="section-238">
+        <li id="section-240">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-238">&#182;</a>
+                <a class="pilcrow" href="#section-240">&#182;</a>
               </div>
               <p>Update the month view.</p>
 
@@ -5834,11 +5905,11 @@ This is currently called by the slider element on a switch mode event.</p>
         </li>
         
         
-        <li id="section-239">
+        <li id="section-241">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-239">&#182;</a>
+                <a class="pilcrow" href="#section-241">&#182;</a>
               </div>
               <p>Show the month view if we are in TS talk page mode.
 This is because the month view is hidden in adj-talk page mode, but we want it for TS anyway.</p>
@@ -5853,11 +5924,11 @@ This is because the month view is hidden in adj-talk page mode, but we want it f
         </li>
         
         
-        <li id="section-240">
+        <li id="section-242">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-240">&#182;</a>
+                <a class="pilcrow" href="#section-242">&#182;</a>
               </div>
               <p>Switch visualization to adacent-spacing mode
 Currently called by the slider element when a mode change event occurs.</p>
@@ -5870,11 +5941,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-241">
+        <li id="section-243">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-241">&#182;</a>
+                <a class="pilcrow" href="#section-243">&#182;</a>
               </div>
               <p>Hide the month view if we are in adjacent spacing talk-page mode.
 (The month view does not make any sense in this mode)</p>
@@ -5888,11 +5959,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-242">
+        <li id="section-244">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-242">&#182;</a>
+                <a class="pilcrow" href="#section-244">&#182;</a>
               </div>
               <p>Re-position all article and talk-page contributions using adjacent-spacing parameters / axes.</p>
 
@@ -5908,11 +5979,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-243">
+        <li id="section-245">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-243">&#182;</a>
+                <a class="pilcrow" href="#section-245">&#182;</a>
               </div>
               <p>Update the month view.</p>
 
@@ -5926,11 +5997,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-244">
+        <li id="section-246">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-244">&#182;</a>
+                <a class="pilcrow" href="#section-246">&#182;</a>
               </div>
               <p>Function to map revision data to rectangle groups that represent the data as a stacked bar graph.</p>
 
@@ -5943,11 +6014,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-245">
+        <li id="section-247">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-245">&#182;</a>
+                <a class="pilcrow" href="#section-247">&#182;</a>
               </div>
               <p>For brevity</p>
 
@@ -5959,11 +6030,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-246">
+        <li id="section-248">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-246">&#182;</a>
+                <a class="pilcrow" href="#section-248">&#182;</a>
               </div>
               <p>Make array to store partial sums of weighted attributes for each data element</p>
 
@@ -5974,11 +6045,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-247">
+        <li id="section-249">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-247">&#182;</a>
+                <a class="pilcrow" href="#section-249">&#182;</a>
               </div>
               <p>Zero-out array</p>
 
@@ -5989,11 +6060,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-248">
+        <li id="section-250">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-248">&#182;</a>
+                <a class="pilcrow" href="#section-250">&#182;</a>
               </div>
               <p>Build up the stacked bars. The sums array stores the sum of the last few stacked values’ heights so that we can stack them properly</p>
 
@@ -6007,11 +6078,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-249">
+        <li id="section-251">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-249">&#182;</a>
+                <a class="pilcrow" href="#section-251">&#182;</a>
               </div>
               <p>Collect the sums of what we’ve seen so far so as to stack the bars properly</p>
 
@@ -6023,11 +6094,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-250">
+        <li id="section-252">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-250">&#182;</a>
+                <a class="pilcrow" href="#section-252">&#182;</a>
               </div>
               <p>The negatives are done the same way, but we have to change the role of the ‘y’ attribute.</p>
 <p>Zero-out array</p>
@@ -6039,11 +6110,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-251">
+        <li id="section-253">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-251">&#182;</a>
+                <a class="pilcrow" href="#section-253">&#182;</a>
               </div>
               <p>Build up the stacked bars. The sums array stores the sum of the last few stacked values’ heights so that we can stack them properly</p>
 
@@ -6056,11 +6127,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-252">
+        <li id="section-254">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-252">&#182;</a>
+                <a class="pilcrow" href="#section-254">&#182;</a>
               </div>
               <p>Collect the sums of what we’ve seen so far so as to stack the bars properly</p>
 
@@ -6073,11 +6144,11 @@ Currently called by the slider element when a mode change event occurs.</p>
         </li>
         
         
-        <li id="section-253">
+        <li id="section-255">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-253">&#182;</a>
+                <a class="pilcrow" href="#section-255">&#182;</a>
               </div>
               <p>Create or Update month background rects.
 These are the shaded rectangles in the background of the visualization that indicate periods of 1 month.
@@ -6096,11 +6167,11 @@ We need to build these to the correct scale so that they line up with the correc
         </li>
         
         
-        <li id="section-254">
+        <li id="section-256">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-254">&#182;</a>
+                <a class="pilcrow" href="#section-256">&#182;</a>
               </div>
               <p>Min. additional width of month box required to display text.</p>
 
@@ -6111,11 +6182,11 @@ We need to build these to the correct scale so that they line up with the correc
         </li>
         
         
-        <li id="section-255">
+        <li id="section-257">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-255">&#182;</a>
+                <a class="pilcrow" href="#section-257">&#182;</a>
               </div>
               <p>Helper.view.body.select(‘.bg’).selectAll(‘.month’).data([]).exit().remove();</p>
 
@@ -6127,11 +6198,11 @@ We need to build these to the correct scale so that they line up with the correc
         </li>
         
         
-        <li id="section-256">
+        <li id="section-258">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-256">&#182;</a>
+                <a class="pilcrow" href="#section-258">&#182;</a>
               </div>
               <p>If the visualization is not time spaced, we need to go through our data, find month boundaries, and
 build a list of the left and right offsets of the month rects on the visualization</p>
@@ -6155,11 +6226,11 @@ build a list of the left and right offsets of the month rects on the visualizati
         </li>
         
         
-        <li id="section-257">
+        <li id="section-259">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-257">&#182;</a>
+                <a class="pilcrow" href="#section-259">&#182;</a>
               </div>
               <p>We need to build width and offset positions for the various month groups
 We do this by scanning through our bar graph data and appending to the month data as we go.</p>
@@ -6218,11 +6289,11 @@ We do this by scanning through our bar graph data and appending to the month dat
         </li>
         
         
-        <li id="section-258">
+        <li id="section-260">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-258">&#182;</a>
+                <a class="pilcrow" href="#section-260">&#182;</a>
               </div>
               <p>If we ARE in time-separated mode, we need to loop through all the months between the first and last edits
 and add them all.
@@ -6302,11 +6373,11 @@ We use the timeX scale to find the left and right boundaries.</p>
         </li>
         
         
-        <li id="section-259">
+        <li id="section-261">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-259">&#182;</a>
+                <a class="pilcrow" href="#section-261">&#182;</a>
               </div>
               <p>Render Google Trend Data</p>
 
@@ -6327,11 +6398,11 @@ We use the timeX scale to find the left and right boundaries.</p>
         </li>
         
         
-        <li id="section-260">
+        <li id="section-262">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-260">&#182;</a>
+                <a class="pilcrow" href="#section-262">&#182;</a>
               </div>
               <p>Render Quality Data</p>
 
@@ -6378,11 +6449,11 @@ We use the timeX scale to find the left and right boundaries.</p>
         </li>
         
         
-        <li id="section-261">
+        <li id="section-263">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-261">&#182;</a>
+                <a class="pilcrow" href="#section-263">&#182;</a>
               </div>
               <p>Render Google Events Data</p>
 
@@ -6433,11 +6504,11 @@ We use the timeX scale to find the left and right boundaries.</p>
         </li>
         
         
-        <li id="section-262">
+        <li id="section-264">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-262">&#182;</a>
+                <a class="pilcrow" href="#section-264">&#182;</a>
               </div>
               <p>Append the callouts that correspond to the talk-page entries for our article to the given element.
 Note that the argument ‘parent’ should be a d3 selection.</p>
@@ -6450,11 +6521,11 @@ Note that the argument ‘parent’ should be a d3 selection.</p>
         </li>
         
         
-        <li id="section-263">
+        <li id="section-265">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-263">&#182;</a>
+                <a class="pilcrow" href="#section-265">&#182;</a>
               </div>
               <p>Padding around content</p>
 
@@ -6468,11 +6539,11 @@ Note that the argument ‘parent’ should be a d3 selection.</p>
         </li>
         
         
-        <li id="section-264">
+        <li id="section-266">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-264">&#182;</a>
+                <a class="pilcrow" href="#section-266">&#182;</a>
               </div>
               <p>Corner radius in px</p>
 
@@ -6483,11 +6554,11 @@ Note that the argument ‘parent’ should be a d3 selection.</p>
         </li>
         
         
-        <li id="section-265">
+        <li id="section-267">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-265">&#182;</a>
+                <a class="pilcrow" href="#section-267">&#182;</a>
               </div>
               <p>Max circle radius</p>
 
@@ -6499,11 +6570,11 @@ Note that the argument ‘parent’ should be a d3 selection.</p>
         </li>
         
         
-        <li id="section-266">
+        <li id="section-268">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-266">&#182;</a>
+                <a class="pilcrow" href="#section-268">&#182;</a>
               </div>
               <p>Append circle to our element. Cap the circle size and re-style the circle if it has reached the cap.</p>
 
@@ -6518,11 +6589,11 @@ Note that the argument ‘parent’ should be a d3 selection.</p>
         </li>
         
         
-        <li id="section-267">
+        <li id="section-269">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-267">&#182;</a>
+                <a class="pilcrow" href="#section-269">&#182;</a>
               </div>
               <p>Generate the tooltip for this element.</p>
 
@@ -6535,11 +6606,11 @@ Note that the argument ‘parent’ should be a d3 selection.</p>
         </li>
         
         
-        <li id="section-268">
+        <li id="section-270">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-268">&#182;</a>
+                <a class="pilcrow" href="#section-270">&#182;</a>
               </div>
               <p>Generate the path that defines the shape of the callout.</p>
 
@@ -6552,11 +6623,11 @@ Note that the argument ‘parent’ should be a d3 selection.</p>
         </li>
         
         
-        <li id="section-269">
+        <li id="section-271">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-269">&#182;</a>
+                <a class="pilcrow" href="#section-271">&#182;</a>
               </div>
               <p>Coords of left bottom of callout “box” rel. to “origin”</p>
 
@@ -6568,11 +6639,11 @@ Note that the argument ‘parent’ should be a d3 selection.</p>
         </li>
         
         
-        <li id="section-270">
+        <li id="section-272">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-270">&#182;</a>
+                <a class="pilcrow" href="#section-272">&#182;</a>
               </div>
               <p>Corner radius</p>
 
@@ -6585,11 +6656,11 @@ Note that the argument ‘parent’ should be a d3 selection.</p>
         </li>
         
         
-        <li id="section-271">
+        <li id="section-273">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-271">&#182;</a>
+                <a class="pilcrow" href="#section-273">&#182;</a>
               </div>
               <p>Last number here is the width of the wide-end of the callout triangle</p>
 
@@ -6602,11 +6673,11 @@ Note that the argument ‘parent’ should be a d3 selection.</p>
         </li>
         
         
-        <li id="section-272">
+        <li id="section-274">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-272">&#182;</a>
+                <a class="pilcrow" href="#section-274">&#182;</a>
               </div>
               <p>Generate the x-offset for each callout incrementally.
 This is used in adjacent spacing of callouts.</p>
@@ -6618,11 +6689,11 @@ This is used in adjacent spacing of callouts.</p>
         </li>
         
         
-        <li id="section-273">
+        <li id="section-275">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-273">&#182;</a>
+                <a class="pilcrow" href="#section-275">&#182;</a>
               </div>
               <p>Create image groups based on talk-page classifications and append these image groups to their respective callouts.</p>
 
@@ -6637,11 +6708,11 @@ This is used in adjacent spacing of callouts.</p>
         </li>
         
         
-        <li id="section-274">
+        <li id="section-276">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-274">&#182;</a>
+                <a class="pilcrow" href="#section-276">&#182;</a>
               </div>
               <p>Append to each callout an x-axis label corresponding to its ID.</p>
 
@@ -6654,11 +6725,11 @@ This is used in adjacent spacing of callouts.</p>
         </li>
         
         
-        <li id="section-275">
+        <li id="section-277">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-275">&#182;</a>
+                <a class="pilcrow" href="#section-277">&#182;</a>
               </div>
               <p>Updates the view based on whether or not the view is set to time spaced or adjacent spaced</p>
 
@@ -6681,11 +6752,11 @@ This is used in adjacent spacing of callouts.</p>
         </li>
         
         
-        <li id="section-276">
+        <li id="section-278">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-276">&#182;</a>
+                <a class="pilcrow" href="#section-278">&#182;</a>
               </div>
               <p>Updates the view based on the type of mode it is in</p>
 
@@ -6846,11 +6917,11 @@ This is used in adjacent spacing of callouts.</p>
         </li>
         
         
-        <li id="section-277">
+        <li id="section-279">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-277">&#182;</a>
+                <a class="pilcrow" href="#section-279">&#182;</a>
               </div>
               <p>Init visualization with a given article.</p>
 
@@ -6871,11 +6942,11 @@ This is used in adjacent spacing of callouts.</p>
         </li>
         
         
-        <li id="section-278">
+        <li id="section-280">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-278">&#182;</a>
+                <a class="pilcrow" href="#section-280">&#182;</a>
               </div>
               <p>TODO: Move this code to a more appropriate place?</p>
 
@@ -6884,11 +6955,11 @@ This is used in adjacent spacing of callouts.</p>
         </li>
         
         
-        <li id="section-279">
+        <li id="section-281">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-279">&#182;</a>
+                <a class="pilcrow" href="#section-281">&#182;</a>
               </div>
               <p>Program the ‘to adjacent spacing’ and ‘to time spacing’ mode buttons with
 appropriate functionality.</p>
@@ -6925,11 +6996,11 @@ appropriate functionality.</p>
         </li>
         
         
-        <li id="section-280">
+        <li id="section-282">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-280">&#182;</a>
+                <a class="pilcrow" href="#section-282">&#182;</a>
               </div>
               <p>In the default configuration, we are already in adjacent spacing mode, so we can disable the adjacent spacing button.</p>
 
@@ -6941,11 +7012,11 @@ appropriate functionality.</p>
         </li>
         
         
-        <li id="section-281">
+        <li id="section-283">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-281">&#182;</a>
+                <a class="pilcrow" href="#section-283">&#182;</a>
               </div>
               <p>Initialize the visualization. Create SVG and elements correspondng to data.</p>
 
@@ -6958,11 +7029,11 @@ appropriate functionality.</p>
         </li>
         
         
-        <li id="section-282">
+        <li id="section-284">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-282">&#182;</a>
+                <a class="pilcrow" href="#section-284">&#182;</a>
               </div>
               <p>Entry doesn’t exist, don’t go any further otherwise things will break</p>
 
@@ -6981,11 +7052,11 @@ appropriate functionality.</p>
         </li>
         
         
-        <li id="section-283">
+        <li id="section-285">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-283">&#182;</a>
+                <a class="pilcrow" href="#section-285">&#182;</a>
               </div>
               <p>For brevity</p>
 <p>Width of mask over which y label is written</p>
@@ -7000,11 +7071,11 @@ appropriate functionality.</p>
         </li>
         
         
-        <li id="section-284">
+        <li id="section-286">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-284">&#182;</a>
+                <a class="pilcrow" href="#section-286">&#182;</a>
               </div>
               <p>Re-arrange coordinate system by setting x=0 to the center of the SVG and flipping the y-axis values.
 Also, set y=0 offset by maskWidth to the left to simplify math regarding the position of the y-axis title and masking rect.</p>
@@ -7016,11 +7087,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-285">
+        <li id="section-287">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-285">&#182;</a>
+                <a class="pilcrow" href="#section-287">&#182;</a>
               </div>
               <p>Init the x and y scale objects.</p>
 
@@ -7032,11 +7103,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-286">
+        <li id="section-288">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-286">&#182;</a>
+                <a class="pilcrow" href="#section-288">&#182;</a>
               </div>
               <p>For adjancent talk pages.</p>
 
@@ -7048,11 +7119,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-287">
+        <li id="section-289">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-287">&#182;</a>
+                <a class="pilcrow" href="#section-289">&#182;</a>
               </div>
               <p>Must take into account the mask width here!</p>
 
@@ -7063,11 +7134,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-288">
+        <li id="section-290">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-288">&#182;</a>
+                <a class="pilcrow" href="#section-290">&#182;</a>
               </div>
               <p>Set up x and y ranges for the visualization. The x-range is designed so that x(n) gives the x-position of the nth bar’s left edge.</p>
 
@@ -7078,11 +7149,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-289">
+        <li id="section-291">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-289">&#182;</a>
+                <a class="pilcrow" href="#section-291">&#182;</a>
               </div>
               <p>Leave a little bit of room.</p>
 
@@ -7093,11 +7164,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-290">
+        <li id="section-292">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-290">&#182;</a>
+                <a class="pilcrow" href="#section-292">&#182;</a>
               </div>
               <p>Y domain determined using largest magnitude y-value</p>
 
@@ -7108,11 +7179,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-291">
+        <li id="section-293">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-291">&#182;</a>
+                <a class="pilcrow" href="#section-293">&#182;</a>
               </div>
               <p>Group to contain horizontal rules for the visualization</p>
 
@@ -7123,11 +7194,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-292">
+        <li id="section-294">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-292">&#182;</a>
+                <a class="pilcrow" href="#section-294">&#182;</a>
               </div>
               <p>Positive and negative horizontal rules groups.</p>
 
@@ -7139,11 +7210,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-293">
+        <li id="section-295">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-293">&#182;</a>
+                <a class="pilcrow" href="#section-295">&#182;</a>
               </div>
               <p>Generate actual rules</p>
 
@@ -7155,11 +7226,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-294">
+        <li id="section-296">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-294">&#182;</a>
+                <a class="pilcrow" href="#section-296">&#182;</a>
               </div>
               <p>Append lines to rules (i.e. visual representation of rules)</p>
 
@@ -7170,11 +7241,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-295">
+        <li id="section-297">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-295">&#182;</a>
+                <a class="pilcrow" href="#section-297">&#182;</a>
               </div>
               <p>Append visualization body group. This group contains the actual visualization. By transforming this group, we transform all the bars and annotations of the visualization.</p>
 
@@ -7187,11 +7258,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-296">
+        <li id="section-298">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-296">&#182;</a>
+                <a class="pilcrow" href="#section-298">&#182;</a>
               </div>
               <p>Append x-axis</p>
 
@@ -7204,11 +7275,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-297">
+        <li id="section-299">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-297">&#182;</a>
+                <a class="pilcrow" href="#section-299">&#182;</a>
               </div>
               <p>Y-label and mask group</p>
 
@@ -7219,11 +7290,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-298">
+        <li id="section-300">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-298">&#182;</a>
+                <a class="pilcrow" href="#section-300">&#182;</a>
               </div>
               <p>Append mask for y-label</p>
 
@@ -7234,11 +7305,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-299">
+        <li id="section-301">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-299">&#182;</a>
+                <a class="pilcrow" href="#section-301">&#182;</a>
               </div>
               <p>Append y-label string</p>
 
@@ -7255,11 +7326,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-300">
+        <li id="section-302">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-300">&#182;</a>
+                <a class="pilcrow" href="#section-302">&#182;</a>
               </div>
               <p>Set up layers for the body</p>
 
@@ -7279,11 +7350,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-301">
+        <li id="section-303">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-301">&#182;</a>
+                <a class="pilcrow" href="#section-303">&#182;</a>
               </div>
               <p>Create a group for the article revision datum elements.</p>
 
@@ -7304,11 +7375,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-302">
+        <li id="section-304">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-302">&#182;</a>
+                <a class="pilcrow" href="#section-304">&#182;</a>
               </div>
               <p>Group for talk page data entries</p>
 
@@ -7323,11 +7394,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-303">
+        <li id="section-305">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-303">&#182;</a>
+                <a class="pilcrow" href="#section-305">&#182;</a>
               </div>
               <p>Init the timeX scale with the min and max dates</p>
 
@@ -7340,11 +7411,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-304">
+        <li id="section-306">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-304">&#182;</a>
+                <a class="pilcrow" href="#section-306">&#182;</a>
               </div>
               <p>Apply default range to scale</p>
 
@@ -7355,11 +7426,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-305">
+        <li id="section-307">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-305">&#182;</a>
+                <a class="pilcrow" href="#section-307">&#182;</a>
               </div>
               <p>Remove “loading” message</p>
 
@@ -7370,11 +7441,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-306">
+        <li id="section-308">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-306">&#182;</a>
+                <a class="pilcrow" href="#section-308">&#182;</a>
               </div>
               <p>Init the navigation control</p>
 
@@ -7389,11 +7460,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-307">
+        <li id="section-309">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-307">&#182;</a>
+                <a class="pilcrow" href="#section-309">&#182;</a>
               </div>
               <p>Populate user list in the ‘select users’ dialog.</p>
 
@@ -7418,11 +7489,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-308">
+        <li id="section-310">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-308">&#182;</a>
+                <a class="pilcrow" href="#section-310">&#182;</a>
               </div>
               <p>Sort by contribution magnitude, descending</p>
 
@@ -7434,11 +7505,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-309">
+        <li id="section-311">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-309">&#182;</a>
+                <a class="pilcrow" href="#section-311">&#182;</a>
               </div>
               <p>Use d3 to populate the select element in the select users dialog with option elements</p>
 
@@ -7460,11 +7531,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-310">
+        <li id="section-312">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-310">&#182;</a>
+                <a class="pilcrow" href="#section-312">&#182;</a>
               </div>
               <p>Clicking on one of the option elements should deselect all checkboxes</p>
 
@@ -7482,11 +7553,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-311">
+        <li id="section-313">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-311">&#182;</a>
+                <a class="pilcrow" href="#section-313">&#182;</a>
               </div>
               <p>Use d3 to populate the “Content Details” dialog</p>
 
@@ -7497,11 +7568,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-312">
+        <li id="section-314">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-312">&#182;</a>
+                <a class="pilcrow" href="#section-314">&#182;</a>
               </div>
               <p>Need to specify CSS classes for sorttable</p>
 
@@ -7527,11 +7598,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-313">
+        <li id="section-315">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-313">&#182;</a>
+                <a class="pilcrow" href="#section-315">&#182;</a>
               </div>
               <p>Merge article and talk page revision data for the table.</p>
 
@@ -7604,11 +7675,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-314">
+        <li id="section-316">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-314">&#182;</a>
+                <a class="pilcrow" href="#section-316">&#182;</a>
               </div>
               <p>Get the sorttable library to make this table sortable!</p>
 
@@ -7619,11 +7690,11 @@ Also, set y=0 offset by maskWidth to the left to simplify math regarding the pos
         </li>
         
         
-        <li id="section-315">
+        <li id="section-317">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-315">&#182;</a>
+                <a class="pilcrow" href="#section-317">&#182;</a>
               </div>
               <p>In our default mode hide the talk page entries</p>
 
@@ -7648,11 +7719,11 @@ subview = <span class="hljs-function"><span class="hljs-keyword">function</span>
         </li>
         
         
-        <li id="section-316">
+        <li id="section-318">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-316">&#182;</a>
+                <a class="pilcrow" href="#section-318">&#182;</a>
               </div>
               <p>From <a href="http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format">http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format</a>
 Sort of like Python’s new string formatting method. Handy when one wants to do some large string substitutions.</p>
@@ -7672,11 +7743,11 @@ Sort of like Python’s new string formatting method. Handy when one wants to do
         </li>
         
         
-        <li id="section-317">
+        <li id="section-319">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-317">&#182;</a>
+                <a class="pilcrow" href="#section-319">&#182;</a>
               </div>
               <h2 id="helper">Helper</h2>
 
@@ -7691,11 +7762,11 @@ Helper.numberFormat = <span class="hljs-function"><span class="hljs-keyword">fun
         </li>
         
         
-        <li id="section-318">
+        <li id="section-320">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-318">&#182;</a>
+                <a class="pilcrow" href="#section-320">&#182;</a>
               </div>
               <p>Takes in a javascript date object and pretty-prints it to a string which is returned.</p>
 
@@ -7713,11 +7784,11 @@ Helper.numberFormat = <span class="hljs-function"><span class="hljs-keyword">fun
         </li>
         
         
-        <li id="section-319">
+        <li id="section-321">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-319">&#182;</a>
+                <a class="pilcrow" href="#section-321">&#182;</a>
               </div>
               <p>Thanks to <a href="http://stackoverflow.com/questions/5250244/jquery-date-formatting">http://stackoverflow.com/questions/5250244/jquery-date-formatting</a>
 for the quick fix for hours, minutes and seconds</p>
@@ -7734,11 +7805,11 @@ for the quick fix for hours, minutes and seconds</p>
         </li>
         
         
-        <li id="section-320">
+        <li id="section-322">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-320">&#182;</a>
+                <a class="pilcrow" href="#section-322">&#182;</a>
               </div>
               <p>Build a sorting key for the sorttable library to sort the date field used in the table view.</p>
 
@@ -7753,11 +7824,11 @@ for the quick fix for hours, minutes and seconds</p>
         </li>
         
         
-        <li id="section-321">
+        <li id="section-323">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-321">&#182;</a>
+                <a class="pilcrow" href="#section-323">&#182;</a>
               </div>
               <p>Take two lists, interpret as sets, and return true if subset_l is a subset of superset_l</p>
 
@@ -7779,11 +7850,11 @@ for the quick fix for hours, minutes and seconds</p>
         </li>
         
         
-        <li id="section-322">
+        <li id="section-324">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-322">&#182;</a>
+                <a class="pilcrow" href="#section-324">&#182;</a>
               </div>
               <p>Generate a string describing a given article revisions’ edit categories</p>
 
@@ -7796,11 +7867,11 @@ for the quick fix for hours, minutes and seconds</p>
         </li>
         
         
-        <li id="section-323">
+        <li id="section-325">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-323">&#182;</a>
+                <a class="pilcrow" href="#section-325">&#182;</a>
               </div>
               <p>Generate a string describing a given talk page revision entry’s revision categories.</p>
 
@@ -7818,11 +7889,11 @@ for the quick fix for hours, minutes and seconds</p>
         </li>
         
         
-        <li id="section-324">
+        <li id="section-326">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-324">&#182;</a>
+                <a class="pilcrow" href="#section-326">&#182;</a>
               </div>
               <p>Return absolute max (disregarding sign) of func(arr[i])</p>
 
@@ -7840,11 +7911,11 @@ for the quick fix for hours, minutes and seconds</p>
         </li>
         
         
-        <li id="section-325">
+        <li id="section-327">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-325">&#182;</a>
+                <a class="pilcrow" href="#section-327">&#182;</a>
               </div>
               <h2 id="router-js">router.js</h2>
 
@@ -7876,11 +7947,11 @@ PageRouter = Backbone.Router.extend({
         </li>
         
         
-        <li id="section-326">
+        <li id="section-328">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-326">&#182;</a>
+                <a class="pilcrow" href="#section-328">&#182;</a>
               </div>
               <p>Initiate the router</p>
 
@@ -7891,11 +7962,11 @@ PageRouter = Backbone.Router.extend({
         </li>
         
         
-        <li id="section-327">
+        <li id="section-329">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-327">&#182;</a>
+                <a class="pilcrow" href="#section-329">&#182;</a>
               </div>
               <p>Start Backbone history a necessary step for bookmarkable URL’s</p>
 

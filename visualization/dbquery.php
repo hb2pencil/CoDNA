@@ -250,7 +250,34 @@
         $article = $mysqli->real_escape_string($_REQUEST['sentences']);
         $set = $mysqli->real_escape_string($_REQUEST['set']);
         $table = $set_mappings['articles'][$set];
-        $revdata = array();      
+        $revdata = array();  
+        $vandalism = array();
+        $unvandalism = array();
+        $stmt = $mysqli->prepare("(SELECT t.rev_id, 'vandalism' as type
+                                   FROM `{$table}` t, `articles_to_sets` ss
+                                   WHERE ss.article_id={$article}
+                                   AND ss.article_id = t.article_id
+                                   AND ss.set_id ={$set}
+                                   AND t.talk=0
+                                   AND t.class LIKE '%i%')
+                                  UNION
+                                  (SELECT t.rev_id, 'unvandalism' as type
+                                   FROM `{$table}` t, `articles_to_sets` ss
+                                   WHERE ss.article_id={$article}
+                                   AND ss.article_id = t.article_id
+                                   AND ss.set_id ={$set}
+                                   AND t.talk=0
+                                   AND t.class LIKE '%j%')");
+        $stmt->execute();
+        $stmt->bind_result($rev_id, $type);
+        while($stmt->fetch()){
+            if($type == "vandalism"){
+                $vandalism[] = $rev_id;
+            }
+            else if($type == "unvandalism"){
+                $unvandalism[] = $rev_id;
+            }
+        }
         $stmt = $mysqli->prepare("SELECT s.id, s.rev_id, se.section_name as section, s.owner, s.sentence, s.last_id as last
                                   FROM `ownership_sentences_jmis` s, `ownership_sections_jmis` se, `{$table}` t, `articles_to_sets` ss
                                   WHERE s.talk = 0
@@ -292,22 +319,6 @@
                     $sId = count($sentences);
                     $sentences[$sentence] = $sId;
                 }
-                /*$section = str_replace("[edit]", "", utf8_encode($section));
-                if(!isset($sections[$section])){
-                    $maxPerc = 0.00;
-                    $maxSection = $section;
-                    foreach($sections as $sect){
-                        similar_text(strtolower($sect), strtolower($section), $perc);
-                        $maxPerc = max($maxPerc, $perc);
-                        if($maxPerc == $perc && $perc >= 95){
-                            $maxSection = $sect;
-                        }
-                    }
-                    if($maxPerc < 95){
-                        $sections[$section] = $section;
-                    }
-                    $section = $maxSection;
-                }*/
                 $revdata[$rev_id][$section][] = array('i' => $id,
                                                       'o' => utf8_encode($owner),
                                                       's' => $sId,
@@ -327,6 +338,8 @@
         $userColors["Public Domain"] = "#C41AA2";
         $response = array('nRevisions' => count($revs),
                           'revisions' => $revdata,
+                          'vandalism' => $vandalism,
+                          'unvandalism' => $unvandalism,
                           'users' => $userColors,
                           'sentences' => array_flip($sentences));
         echo json_encode($response);

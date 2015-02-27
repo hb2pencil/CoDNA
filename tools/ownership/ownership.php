@@ -151,16 +151,13 @@ EOF;
         $nSentences = 0;
         echo "Initializing $talkNS{$article}...\n";
         
-        $sql0 = "DELETE FROM `ownership_sections_jmis`
-                 WHERE `section_id` IN (SELECT Section_ID 
-                                        FROM `ownership_sentences_jmis` 
-                                        WHERE `article_id` = '".$mysqli->escape_string($articleId)."'
-                                        AND `talk` = $talkCol);
-                 ";
+        $sql0 = "DELETE FROM `ownership_sections_jmis` se INNER JOIN `ownership_sentences_jmis` s ON se.section_id = s.section_id
+                 WHERE s.article_id = '".$mysqli->escape_string($articleId)."'
+                 AND `talk` = $talkCol";
         $sql = "DELETE FROM `ownership_sentences_jmis`
                 WHERE `article_id` = '".$mysqli->escape_string($articleId)."'
                 AND `talk` = $talkCol;";
-        $sql2 = "DELETE FROM `ownership_results_jmis`
+        $sql2 = "DELETE FROM `ownership_results_jmis` 
                  WHERE `article_id` = '".$mysqli->escape_string($articleId)."'
                  AND `talk` = $talkCol
                  AND `factor` = $memoryFactor;";
