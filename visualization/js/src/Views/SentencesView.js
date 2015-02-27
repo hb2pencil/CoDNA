@@ -91,7 +91,8 @@ SentencesView = Backbone.View.extend({
     // Resets all of the selections so that all sentences are opaque
     clearAllSelections: function(){
         this.svg.selectAll(".sentence, .lastSentence, .section, .lastSection").transition().duration(500).attr('opacity', 1);
-        $("#section_filter input", this.viz.view.subviews.toolbar.subviews.diag_sections.dialog).prop("checked", false);
+        $("#section_filter input", this.viz.view.subviews.toolbar.subviews.diag_sections.dialog).prop("checked", true);
+        $("#userselect2 input", this.viz.view.subviews.toolbar.subviews.diag_select.dialog).prop("checked", true);
     },
     
     // Makes all sentences who are not owned by users in the userlist to be semi-transparent
@@ -422,7 +423,7 @@ SentencesView = Backbone.View.extend({
                 .style('height', '16px')
                 .style('padding', '2px 3px 2px 16px')
                 .html(function(d, i){
-                    var ret = '<input style="float:left;margin-right:16px;" type="checkbox" name="userselect2[]" value="' + d.key + '" />';
+                    var ret = '<input style="float:left;margin-right:16px;" type="checkbox" name="userselect2[]" value="' + d.key + '" checked />';
                     ret += '<div class="l_colour" style="background: ' + d.value + ';height:16px;width:16px;margin-right:16px;"></div>';
                     ret += '<span>' + d.key + '</span>';
                     return ret;
@@ -440,7 +441,7 @@ SentencesView = Backbone.View.extend({
                 .style('height', '16px')
                 .style('padding', '2px 3px 2px 16px')
                 .html(function(d, i){
-                    var ret = '<input style="float:left;margin-right:16px;" type="checkbox" name="section_filter[]" value="' + d + '" />';
+                    var ret = '<input style="float:left;margin-right:16px;" type="checkbox" name="section_filter[]" value="' + d + '" checked />';
                     ret += '<span>' + d + '</span>';
                     return ret;
                 });

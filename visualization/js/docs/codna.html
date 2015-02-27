@@ -1584,6 +1584,8 @@ ArticleInfoView = Backbone.View.extend({
         <span class="hljs-keyword">this</span>.$el.html(<span class="hljs-keyword">this</span>.template(<span class="hljs-keyword">this</span>.model.toJSON()));
         <span class="hljs-keyword">this</span>.viz = <span class="hljs-keyword">new</span> WikiVizView({model: <span class="hljs-keyword">this</span>.wikiviz, view: <span class="hljs-keyword">this</span>, el: <span class="hljs-keyword">this</span>.el});
         <span class="hljs-keyword">this</span>.viz.init(<span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'title'</span>));
+        <span class="hljs-keyword">this</span>.$(<span class="hljs-string">'#zoomIn'</span>).button();
+        <span class="hljs-keyword">this</span>.$(<span class="hljs-string">'#zoomOut'</span>).button();
         <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.$el;
     }
     
@@ -3073,7 +3075,8 @@ The slider “dragging” state is stored as a CSS class.</p>
             
             <div class="content"><div class='highlight'><pre>    clearAllSelections: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
         <span class="hljs-keyword">this</span>.svg.selectAll(<span class="hljs-string">".sentence, .lastSentence, .section, .lastSection"</span>).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">1</span>);
-        $(<span class="hljs-string">"#section_filter input"</span>, <span class="hljs-keyword">this</span>.viz.view.subviews.toolbar.subviews.diag_sections.dialog).prop(<span class="hljs-string">"checked"</span>, <span class="hljs-literal">false</span>);
+        $(<span class="hljs-string">"#section_filter input"</span>, <span class="hljs-keyword">this</span>.viz.view.subviews.toolbar.subviews.diag_sections.dialog).prop(<span class="hljs-string">"checked"</span>, <span class="hljs-literal">true</span>);
+        $(<span class="hljs-string">"#userselect2 input"</span>, <span class="hljs-keyword">this</span>.viz.view.subviews.toolbar.subviews.diag_select.dialog).prop(<span class="hljs-string">"checked"</span>, <span class="hljs-literal">true</span>);
     },</pre></div></div>
             
         </li>
@@ -3613,16 +3616,16 @@ The slider “dragging” state is stored as a CSS class.</p>
             <div class="content"><div class='highlight'><pre>    updateZoom: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
         <span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.viz.model.get(<span class="hljs-string">'mode'</span>) == <span class="hljs-string">'ownership'</span>){
             <span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'zoomLevel'</span>) &gt; <span class="hljs-number">1.00</span>){
-                <span class="hljs-keyword">this</span>.viz.view.$(<span class="hljs-string">"#zoomOut"</span>).prop(<span class="hljs-string">'disabled'</span>, <span class="hljs-literal">false</span>);
+                <span class="hljs-keyword">this</span>.viz.view.$(<span class="hljs-string">'#zoomOut'</span>).button(<span class="hljs-string">'enable'</span>);
             }
             <span class="hljs-keyword">else</span>{
-                <span class="hljs-keyword">this</span>.viz.view.$(<span class="hljs-string">"#zoomOut"</span>).prop(<span class="hljs-string">'disabled'</span>, <span class="hljs-literal">true</span>);
+                <span class="hljs-keyword">this</span>.viz.view.$(<span class="hljs-string">'#zoomOut'</span>).button(<span class="hljs-string">'disable'</span>);
             }
             <span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'zoomLevel'</span>) &lt; <span class="hljs-number">10.00</span>){
-                <span class="hljs-keyword">this</span>.viz.view.$(<span class="hljs-string">"#zoomIn"</span>).prop(<span class="hljs-string">'disabled'</span>, <span class="hljs-literal">false</span>);
+                <span class="hljs-keyword">this</span>.viz.view.$(<span class="hljs-string">'#zoomIn'</span>).button(<span class="hljs-string">'enable'</span>);
             }
             <span class="hljs-keyword">else</span>{
-                <span class="hljs-keyword">this</span>.viz.view.$(<span class="hljs-string">"#zoomIn"</span>).prop(<span class="hljs-string">'disabled'</span>, <span class="hljs-literal">true</span>);
+                <span class="hljs-keyword">this</span>.viz.view.$(<span class="hljs-string">'#zoomIn'</span>).button(<span class="hljs-string">'disable'</span>);
             }
         }
     },
@@ -3730,7 +3733,7 @@ The slider “dragging” state is stored as a CSS class.</p>
                 .style(<span class="hljs-string">'height'</span>, <span class="hljs-string">'16px'</span>)
                 .style(<span class="hljs-string">'padding'</span>, <span class="hljs-string">'2px 3px 2px 16px'</span>)
                 .html(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d, i)</span></span>{
-                    <span class="hljs-keyword">var</span> ret = <span class="hljs-string">'&lt;input style="float:left;margin-right:16px;" type="checkbox" name="userselect2[]" value="'</span> + d.key + <span class="hljs-string">'" /&gt;'</span>;
+                    <span class="hljs-keyword">var</span> ret = <span class="hljs-string">'&lt;input style="float:left;margin-right:16px;" type="checkbox" name="userselect2[]" value="'</span> + d.key + <span class="hljs-string">'" checked /&gt;'</span>;
                     ret += <span class="hljs-string">'&lt;div class="l_colour" style="background: '</span> + d.value + <span class="hljs-string">';height:16px;width:16px;margin-right:16px;"&gt;&lt;/div&gt;'</span>;
                     ret += <span class="hljs-string">'&lt;span&gt;'</span> + d.key + <span class="hljs-string">'&lt;/span&gt;'</span>;
                     <span class="hljs-keyword">return</span> ret;
@@ -3748,7 +3751,7 @@ The slider “dragging” state is stored as a CSS class.</p>
                 .style(<span class="hljs-string">'height'</span>, <span class="hljs-string">'16px'</span>)
                 .style(<span class="hljs-string">'padding'</span>, <span class="hljs-string">'2px 3px 2px 16px'</span>)
                 .html(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d, i)</span></span>{
-                    <span class="hljs-keyword">var</span> ret = <span class="hljs-string">'&lt;input style="float:left;margin-right:16px;" type="checkbox" name="section_filter[]" value="'</span> + d + <span class="hljs-string">'" /&gt;'</span>;
+                    <span class="hljs-keyword">var</span> ret = <span class="hljs-string">'&lt;input style="float:left;margin-right:16px;" type="checkbox" name="section_filter[]" value="'</span> + d + <span class="hljs-string">'" checked /&gt;'</span>;
                     ret += <span class="hljs-string">'&lt;span&gt;'</span> + d + <span class="hljs-string">'&lt;/span&gt;'</span>;
                     <span class="hljs-keyword">return</span> ret;
                 });
@@ -3856,6 +3859,8 @@ The slider “dragging” state is stored as a CSS class.</p>
                 },
                 onCreate: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(dialog)</span></span>{
                     $(<span class="hljs-string">'#select_apply'</span>, dialog).button();
+                    $(<span class="hljs-string">'#select_all'</span>, dialog).button();
+                    $(<span class="hljs-string">'#unselect_all'</span>, dialog).button();
                     $(<span class="hljs-string">'#d_select_tabs'</span>, dialog).tabs();
                     $(<span class="hljs-string">'#d_select_groups_accordion'</span>, dialog).accordion({
                         collapsible: <span class="hljs-literal">true</span>,
@@ -4045,6 +4050,18 @@ User names are stored in the “value” property of the options in the select e
                         <span class="hljs-keyword">var</span> users = <span class="hljs-built_in">Array</span>();
                         $(<span class="hljs-string">'#userselect:visible option:selected, #userselect2:visible input:checked'</span>, dialog).each(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{ users.push($(<span class="hljs-keyword">this</span>).val()); });
                         article.viz.applyUserSelection(users);
+                    });
+                    $(<span class="hljs-string">'#select_all'</span>, dialog).click(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+                        $(<span class="hljs-string">'#userselect2 input'</span>, dialog).each(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(i, e)</span></span>{
+                            $(e).prop(<span class="hljs-string">'checked'</span>, <span class="hljs-literal">true</span>);
+                        });
+                        $(<span class="hljs-string">'#userselect2'</span>, dialog).trigger(<span class="hljs-string">'click'</span>);
+                    });
+                    $(<span class="hljs-string">'#unselect_all'</span>, dialog).click(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+                        $(<span class="hljs-string">'#userselect2 input'</span>, dialog).each(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(i, e)</span></span>{
+                            $(e).prop(<span class="hljs-string">'checked'</span>, <span class="hljs-literal">false</span>);
+                        });
+                        $(<span class="hljs-string">'#userselect2'</span>, dialog).trigger(<span class="hljs-string">'click'</span>);
                     });
                 }
             });
@@ -4266,13 +4283,11 @@ User names are stored in the “value” property of the options in the select e
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                    $(<span class="hljs-string">"#section_filter"</span>, dialog).click(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(e)</span> </span>{
-                        <span class="hljs-keyword">if</span>($(<span class="hljs-string">"input:checked"</span>, $(<span class="hljs-keyword">this</span>)).length == <span class="hljs-number">0</span>){
-                            article.viz.sentences.svg.selectAll(<span class="hljs-string">'.section, .lastSection'</span>).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">1</span>);
-                        }
-                        <span class="hljs-keyword">else</span>{
-                            $(<span class="hljs-string">"input"</span>, $(<span class="hljs-keyword">this</span>)).each(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(el)</span></span>{
-                                <span class="hljs-keyword">var</span> that = $(<span class="hljs-keyword">this</span>);</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                    $(<span class="hljs-string">'#select_all'</span>, dialog).button();
+                    $(<span class="hljs-string">'#unselect_all'</span>, dialog).button();
+                    $(<span class="hljs-string">"#section_filter"</span>, dialog).click(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(e)</span> </span>{
+                        $(<span class="hljs-string">"input"</span>, $(<span class="hljs-keyword">this</span>)).each(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(el)</span></span>{
+                            <span class="hljs-keyword">var</span> that = $(<span class="hljs-keyword">this</span>);</pre></div></div>
             
         </li>
         
@@ -4287,8 +4302,8 @@ User names are stored in the “value” property of the options in the select e
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                                <span class="hljs-keyword">if</span> ($(<span class="hljs-keyword">this</span>).is(<span class="hljs-string">':checked'</span>)) {
-                                    article.viz.sentences.svg.selectAll(<span class="hljs-string">'.section, .lastSection'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> (d.key == that.val() || d.s == that.val()); }).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">1</span>);</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                            <span class="hljs-keyword">if</span> ($(<span class="hljs-keyword">this</span>).is(<span class="hljs-string">':checked'</span>)) {
+                                article.viz.sentences.svg.selectAll(<span class="hljs-string">'.section, .lastSection'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> (d.key == that.val() || d.s == that.val()); }).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">1</span>);</pre></div></div>
             
         </li>
         
@@ -4303,12 +4318,23 @@ User names are stored in the “value” property of the options in the select e
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                                } <span class="hljs-keyword">else</span> {
-                                    article.viz.sentences.svg.selectAll(<span class="hljs-string">'.section, .lastSection'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> (d.key == that.val() || d.s == that.val()); }).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">0.2</span>);
-                                }
-                                $(<span class="hljs-string">'#t_deselect'</span>, article.viz.$el).button(<span class="hljs-string">'enable'</span>);
-                            });
-                        }
+            <div class="content"><div class='highlight'><pre>                            } <span class="hljs-keyword">else</span> {
+                                article.viz.sentences.svg.selectAll(<span class="hljs-string">'.section, .lastSection'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> (d.key == that.val() || d.s == that.val()); }).transition().duration(<span class="hljs-number">500</span>).attr(<span class="hljs-string">'opacity'</span>, <span class="hljs-number">0.2</span>);
+                            }
+                            $(<span class="hljs-string">'#t_deselect'</span>, article.viz.$el).button(<span class="hljs-string">'enable'</span>);
+                        });
+                    });
+                    $(<span class="hljs-string">'#select_all'</span>, dialog).click(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+                        $(<span class="hljs-string">'#section_filter input'</span>, dialog).each(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(i, e)</span></span>{
+                            $(e).prop(<span class="hljs-string">'checked'</span>, <span class="hljs-literal">true</span>);
+                        });
+                        $(<span class="hljs-string">'#section_filter'</span>, dialog).trigger(<span class="hljs-string">'click'</span>);
+                    });
+                    $(<span class="hljs-string">'#unselect_all'</span>, dialog).click(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+                        $(<span class="hljs-string">'#section_filter input'</span>, dialog).each(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(i, e)</span></span>{
+                            $(e).prop(<span class="hljs-string">'checked'</span>, <span class="hljs-literal">false</span>);
+                        });
+                        $(<span class="hljs-string">'#section_filter'</span>, dialog).trigger(<span class="hljs-string">'click'</span>);
                     });
                 }
             });
@@ -5560,12 +5586,7 @@ First, hide the default ‘no selection’ message.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> (userlist.length &gt; <span class="hljs-number">0</span>) {
-            <span class="hljs-keyword">this</span>.$(<span class="hljs-string">'#t_deselect'</span>).button(<span class="hljs-string">'enable'</span>);
-        } <span class="hljs-keyword">else</span> {
-            <span class="hljs-keyword">this</span>.clearAllSelections();
-            <span class="hljs-keyword">return</span>;
-        }</pre></div></div>
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">this</span>.$(<span class="hljs-string">'#t_deselect'</span>).button(<span class="hljs-string">'enable'</span>);</pre></div></div>
             
         </li>
         
@@ -6807,6 +6828,7 @@ This is used in adjacent spacing of callouts.</p>
             $(<span class="hljs-string">'#userselect'</span>, <span class="hljs-keyword">this</span>.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $(<span class="hljs-string">'#userselect2'</span>, <span class="hljs-keyword">this</span>.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $(<span class="hljs-string">'.select_apply_div'</span>, <span class="hljs-keyword">this</span>.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $(<span class="hljs-string">'.select_all_div'</span>, <span class="hljs-keyword">this</span>.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $(<span class="hljs-string">'.talkrow'</span>, dialog).addClass(<span class="hljs-string">'invisible'</span>);
             $(<span class="hljs-string">'.defaultrow'</span>, dialog).removeClass(<span class="hljs-string">'invisible'</span>);
         
@@ -6854,6 +6876,7 @@ This is used in adjacent spacing of callouts.</p>
             $(<span class="hljs-string">'#userselect'</span>, <span class="hljs-keyword">this</span>.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $(<span class="hljs-string">'#userselect2'</span>, <span class="hljs-keyword">this</span>.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $(<span class="hljs-string">'.select_apply_div'</span>, <span class="hljs-keyword">this</span>.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $(<span class="hljs-string">'.select_all_div'</span>, <span class="hljs-keyword">this</span>.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $(<span class="hljs-string">'.talkrow'</span>, dialog).removeClass(<span class="hljs-string">'invisible'</span>);
             $(<span class="hljs-string">'.defaultrow'</span>, dialog).addClass(<span class="hljs-string">'invisible'</span>);
         
@@ -6889,6 +6912,7 @@ This is used in adjacent spacing of callouts.</p>
             $(<span class="hljs-string">'#userselect'</span>, <span class="hljs-keyword">this</span>.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $(<span class="hljs-string">'#userselect2'</span>, <span class="hljs-keyword">this</span>.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $(<span class="hljs-string">'.select_apply_div'</span>, <span class="hljs-keyword">this</span>.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $(<span class="hljs-string">'.select_all_div'</span>, <span class="hljs-keyword">this</span>.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $(<span class="hljs-string">'.talkrow'</span>, dialog).removeClass(<span class="hljs-string">'invisible'</span>);
             $(<span class="hljs-string">'.defaultrow'</span>, dialog).removeClass(<span class="hljs-string">'invisible'</span>);
         
@@ -6907,6 +6931,7 @@ This is used in adjacent spacing of callouts.</p>
             $(<span class="hljs-string">'#userselect'</span>, <span class="hljs-keyword">this</span>.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $(<span class="hljs-string">'#userselect2'</span>, <span class="hljs-keyword">this</span>.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $(<span class="hljs-string">'.select_apply_div'</span>, <span class="hljs-keyword">this</span>.view.subviews.toolbar.subviews.diag_select.dialog).hide();
+            $(<span class="hljs-string">'.select_all_div'</span>, <span class="hljs-keyword">this</span>.view.subviews.toolbar.subviews.diag_select.dialog).show();
             <span class="hljs-keyword">this</span>.sentences.updateSentences();
         }
         <span class="hljs-keyword">if</span>(!options.silent){

@@ -197,12 +197,7 @@ WikiVizView = Backbone.View.extend({
         }
     
         // Enable the deselect button if there is an active selection
-        if (userlist.length > 0) {
-            this.$('#t_deselect').button('enable');
-        } else {
-            this.clearAllSelections();
-            return;
-        }
+        this.$('#t_deselect').button('enable');
 
         // Disable the legend selection mechanism
         $('#diag_legend input').attr('disabled', 'disabled');
@@ -729,6 +724,7 @@ WikiVizView = Backbone.View.extend({
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.select_apply_div', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $('.select_all_div', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.talkrow', dialog).addClass('invisible');
             $('.defaultrow', dialog).removeClass('invisible');
         
@@ -776,6 +772,7 @@ WikiVizView = Backbone.View.extend({
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.select_apply_div', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $('.select_all_div', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.talkrow', dialog).removeClass('invisible');
             $('.defaultrow', dialog).addClass('invisible');
         
@@ -811,6 +808,7 @@ WikiVizView = Backbone.View.extend({
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.select_apply_div', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $('.select_all_div', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.talkrow', dialog).removeClass('invisible');
             $('.defaultrow', dialog).removeClass('invisible');
         
@@ -829,6 +827,7 @@ WikiVizView = Backbone.View.extend({
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('.select_apply_div', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
+            $('.select_all_div', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             this.sentences.updateSentences();
         }
         if(!options.silent){

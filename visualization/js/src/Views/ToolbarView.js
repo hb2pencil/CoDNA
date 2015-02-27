@@ -39,6 +39,8 @@ ToolbarView = Backbone.View.extend({
                 },
                 onCreate: function(dialog){
                     $('#select_apply', dialog).button();
+                    $('#select_all', dialog).button();
+                    $('#unselect_all', dialog).button();
                     $('#d_select_tabs', dialog).tabs();
                     $('#d_select_groups_accordion', dialog).accordion({
                         collapsible: true,
@@ -111,6 +113,18 @@ ToolbarView = Backbone.View.extend({
                         var users = Array();
                         $('#userselect:visible option:selected, #userselect2:visible input:checked', dialog).each(function() { users.push($(this).val()); });
                         article.viz.applyUserSelection(users);
+                    });
+                    $('#select_all', dialog).click(function() {
+                        $('#userselect2 input', dialog).each(function(i, e){
+                            $(e).prop('checked', true);
+                        });
+                        $('#userselect2', dialog).trigger('click');
+                    });
+                    $('#unselect_all', dialog).click(function() {
+                        $('#userselect2 input', dialog).each(function(i, e){
+                            $(e).prop('checked', false);
+                        });
+                        $('#userselect2', dialog).trigger('click');
                     });
                 }
             });
@@ -202,23 +216,32 @@ ToolbarView = Backbone.View.extend({
                 },
                 onCreate: function(dialog){
                     // Section selection functionality.
+                    $('#select_all', dialog).button();
+                    $('#unselect_all', dialog).button();
                     $("#section_filter", dialog).click(function(e) {
-                        if($("input:checked", $(this)).length == 0){
-                            article.viz.sentences.svg.selectAll('.section, .lastSection').transition().duration(500).attr('opacity', 1);
-                        }
-                        else{
-                            $("input", $(this)).each(function(el){
-                                var that = $(this);
-                                // If the event is the checking of a checkbox
-                                if ($(this).is(':checked')) {
-                                    article.viz.sentences.svg.selectAll('.section, .lastSection').filter(function(d) { return (d.key == that.val() || d.s == that.val()); }).transition().duration(500).attr('opacity', 1);
-                                // Checkbox was unchecked
-                                } else {
-                                    article.viz.sentences.svg.selectAll('.section, .lastSection').filter(function(d) { return (d.key == that.val() || d.s == that.val()); }).transition().duration(500).attr('opacity', 0.2);
-                                }
-                                $('#t_deselect', article.viz.$el).button('enable');
-                            });
-                        }
+                        $("input", $(this)).each(function(el){
+                            var that = $(this);
+                            // If the event is the checking of a checkbox
+                            if ($(this).is(':checked')) {
+                                article.viz.sentences.svg.selectAll('.section, .lastSection').filter(function(d) { return (d.key == that.val() || d.s == that.val()); }).transition().duration(500).attr('opacity', 1);
+                            // Checkbox was unchecked
+                            } else {
+                                article.viz.sentences.svg.selectAll('.section, .lastSection').filter(function(d) { return (d.key == that.val() || d.s == that.val()); }).transition().duration(500).attr('opacity', 0.2);
+                            }
+                            $('#t_deselect', article.viz.$el).button('enable');
+                        });
+                    });
+                    $('#select_all', dialog).click(function() {
+                        $('#section_filter input', dialog).each(function(i, e){
+                            $(e).prop('checked', true);
+                        });
+                        $('#section_filter', dialog).trigger('click');
+                    });
+                    $('#unselect_all', dialog).click(function() {
+                        $('#section_filter input', dialog).each(function(i, e){
+                            $(e).prop('checked', false);
+                        });
+                        $('#section_filter', dialog).trigger('click');
                     });
                 }
             });

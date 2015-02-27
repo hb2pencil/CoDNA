@@ -434,7 +434,7 @@ table.new_article .ui-tabs-selected {
 	width: 100%;
 }
 
-.select_apply_div {
+.select_apply_div, .select_all_div {
 	clear: both;
 	float: right;
 	padding: 10px 0px;

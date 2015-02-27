@@ -700,6 +700,8 @@ ArticleView = Backbone.View.extend({
         this.$el.html(this.template(this.model.toJSON()));
         this.viz = new WikiVizView({model: this.wikiviz, view: this, el: this.el});
         this.viz.init(this.model.get('title'));
+        this.$('#zoomIn').button();
+        this.$('#zoomOut').button();
         return this.$el;
     }
     
@@ -1546,7 +1548,8 @@ SentencesView = Backbone.View.extend({
     // Resets all of the selections so that all sentences are opaque
     clearAllSelections: function(){
         this.svg.selectAll(".sentence, .lastSentence, .section, .lastSection").transition().duration(500).attr('opacity', 1);
-        $("#section_filter input", this.viz.view.subviews.toolbar.subviews.diag_sections.dialog).prop("checked", false);
+        $("#section_filter input", this.viz.view.subviews.toolbar.subviews.diag_sections.dialog).prop("checked", true);
+        $("#userselect2 input", this.viz.view.subviews.toolbar.subviews.diag_select.dialog).prop("checked", true);
     },
     
     // Makes all sentences who are not owned by users in the userlist to be semi-transparent
@@ -1824,16 +1827,16 @@ SentencesView = Backbone.View.extend({
     updateZoom: function(){
         if(this.viz.model.get('mode') == 'ownership'){
             if(this.model.get('zoomLevel') > 1.00){
-                this.viz.view.$("#zoomOut").prop('disabled', false);
+                this.viz.view.$('#zoomOut').button('enable');
             }
             else{
-                this.viz.view.$("#zoomOut").prop('disabled', true);
+                this.viz.view.$('#zoomOut').button('disable');
             }
             if(this.model.get('zoomLevel') < 10.00){
-                this.viz.view.$("#zoomIn").prop('disabled', false);
+                this.viz.view.$('#zoomIn').button('enable');
             }
             else{
-                this.viz.view.$("#zoomIn").prop('disabled', true);
+                this.viz.view.$('#zoomIn').button('disable');
             }
         }
     },
@@ -1877,7 +1880,7 @@ SentencesView = Backbone.View.extend({
                 .style('height', '16px')
                 .style('padding', '2px 3px 2px 16px')
                 .html(function(d, i){
-                    var ret = '<input style="float:left;margin-right:16px;" type="checkbox" name="userselect2[]" value="' + d.key + '" />';
+                    var ret = '<input style="float:left;margin-right:16px;" type="checkbox" name="userselect2[]" value="' + d.key + '" checked />';
                     ret += '<div class="l_colour" style="background: ' + d.value + ';height:16px;width:16px;margin-right:16px;"></div>';
                     ret += '<span>' + d.key + '</span>';
                     return ret;
@@ -1895,7 +1898,7 @@ SentencesView = Backbone.View.extend({
                 .style('height', '16px')
                 .style('padding', '2px 3px 2px 16px')
                 .html(function(d, i){
-                    var ret = '<input style="float:left;margin-right:16px;" type="checkbox" name="section_filter[]" value="' + d + '" />';
+                    var ret = '<input style="float:left;margin-right:16px;" type="checkbox" name="section_filter[]" value="' + d + '" checked />';
                     ret += '<span>' + d + '</span>';
                     return ret;
                 });
@@ -1965,6 +1968,8 @@ ToolbarView = Backbone.View.extend({
                 },
                 onCreate: function(dialog){
                     $('#select_apply', dialog).button();
+                    $('#select_all', dialog).button();
+                    $('#unselect_all', dialog).button();
                     $('#d_select_tabs', dialog).tabs();
                     $('#d_select_groups_accordion', dialog).accordion({
                         collapsible: true,
@@ -2037,6 +2042,18 @@ ToolbarView = Backbone.View.extend({
                         var users = Array();
                         $('#userselect:visible option:selected, #userselect2:visible input:checked', dialog).each(function() { users.push($(this).val()); });
                         article.viz.applyUserSelection(users);
+                    });
+                    $('#select_all', dialog).click(function() {
+                        $('#userselect2 input', dialog).each(function(i, e){
+                            $(e).prop('checked', true);
+                        });
+                        $('#userselect2', dialog).trigger('click');
+                    });
+                    $('#unselect_all', dialog).click(function() {
+                        $('#userselect2 input', dialog).each(function(i, e){
+                            $(e).prop('checked', false);
+                        });
+                        $('#userselect2', dialog).trigger('click');
                     });
                 }
             });
@@ -2128,23 +2145,32 @@ ToolbarView = Backbone.View.extend({
                 },
                 onCreate: function(dialog){
                     // Section selection functionality.
+                    $('#select_all', dialog).button();
+                    $('#unselect_all', dialog).button();
                     $("#section_filter", dialog).click(function(e) {
-                        if($("input:checked", $(this)).length == 0){
-                            article.viz.sentences.svg.selectAll('.section, .lastSection').transition().duration(500).attr('opacity', 1);
-                        }
-                        else{
-                            $("input", $(this)).each(function(el){
-                                var that = $(this);
-                                // If the event is the checking of a checkbox
-                                if ($(this).is(':checked')) {
-                                    article.viz.sentences.svg.selectAll('.section, .lastSection').filter(function(d) { return (d.key == that.val() || d.s == that.val()); }).transition().duration(500).attr('opacity', 1);
-                                // Checkbox was unchecked
-                                } else {
-                                    article.viz.sentences.svg.selectAll('.section, .lastSection').filter(function(d) { return (d.key == that.val() || d.s == that.val()); }).transition().duration(500).attr('opacity', 0.2);
-                                }
-                                $('#t_deselect', article.viz.$el).button('enable');
-                            });
-                        }
+                        $("input", $(this)).each(function(el){
+                            var that = $(this);
+                            // If the event is the checking of a checkbox
+                            if ($(this).is(':checked')) {
+                                article.viz.sentences.svg.selectAll('.section, .lastSection').filter(function(d) { return (d.key == that.val() || d.s == that.val()); }).transition().duration(500).attr('opacity', 1);
+                            // Checkbox was unchecked
+                            } else {
+                                article.viz.sentences.svg.selectAll('.section, .lastSection').filter(function(d) { return (d.key == that.val() || d.s == that.val()); }).transition().duration(500).attr('opacity', 0.2);
+                            }
+                            $('#t_deselect', article.viz.$el).button('enable');
+                        });
+                    });
+                    $('#select_all', dialog).click(function() {
+                        $('#section_filter input', dialog).each(function(i, e){
+                            $(e).prop('checked', true);
+                        });
+                        $('#section_filter', dialog).trigger('click');
+                    });
+                    $('#unselect_all', dialog).click(function() {
+                        $('#section_filter input', dialog).each(function(i, e){
+                            $(e).prop('checked', false);
+                        });
+                        $('#section_filter', dialog).trigger('click');
                     });
                 }
             });
@@ -2827,12 +2853,7 @@ WikiVizView = Backbone.View.extend({
         }
     
         // Enable the deselect button if there is an active selection
-        if (userlist.length > 0) {
-            this.$('#t_deselect').button('enable');
-        } else {
-            this.clearAllSelections();
-            return;
-        }
+        this.$('#t_deselect').button('enable');
 
         // Disable the legend selection mechanism
         $('#diag_legend input').attr('disabled', 'disabled');
@@ -3359,6 +3380,7 @@ WikiVizView = Backbone.View.extend({
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.select_apply_div', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $('.select_all_div', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.talkrow', dialog).addClass('invisible');
             $('.defaultrow', dialog).removeClass('invisible');
         
@@ -3406,6 +3428,7 @@ WikiVizView = Backbone.View.extend({
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.select_apply_div', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $('.select_all_div', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.talkrow', dialog).removeClass('invisible');
             $('.defaultrow', dialog).addClass('invisible');
         
@@ -3441,6 +3464,7 @@ WikiVizView = Backbone.View.extend({
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.select_apply_div', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
+            $('.select_all_div', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('.talkrow', dialog).removeClass('invisible');
             $('.defaultrow', dialog).removeClass('invisible');
         
@@ -3459,6 +3483,7 @@ WikiVizView = Backbone.View.extend({
             $('#userselect', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
             $('#userselect2', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             $('.select_apply_div', this.view.subviews.toolbar.subviews.diag_select.dialog).hide();
+            $('.select_all_div', this.view.subviews.toolbar.subviews.diag_select.dialog).show();
             this.sentences.updateSentences();
         }
         if(!options.silent){
