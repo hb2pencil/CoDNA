@@ -69,6 +69,8 @@ Sentences = Backbone.Model.extend({
         revisions: {},
         sentences: {}, // Used for storing unique sentences so that duplicates are not in revisions wasting space
         users: {}, // Used for storing unique users so that duplicates are not in revisions wasting space
+        revUsers: {}, // The users who edited each revision
+        dates: {}, // Dates when the revisions occured
         zoomLevel: 1 // Y-Scale zoom
     }
 

@@ -613,6 +613,8 @@ It will be ordered based on the time of creation</p>
         revisions: {},
         sentences: {}, <span class="hljs-comment">// Used for storing unique sentences so that duplicates are not in revisions wasting space</span>
         users: {}, <span class="hljs-comment">// Used for storing unique users so that duplicates are not in revisions wasting space</span>
+        revUsers: {}, <span class="hljs-comment">// The users who edited each revision</span>
+        dates: {}, <span class="hljs-comment">// Dates when the revisions occured</span>
         zoomLevel: <span class="hljs-number">1</span> <span class="hljs-comment">// Y-Scale zoom</span>
     }
 
@@ -3164,6 +3166,8 @@ The slider “dragging” state is stored as a CSS class.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> revIds = _.keys(<span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'revisions'</span>));
+        <span class="hljs-keyword">var</span> dates = <span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'dates'</span>);
+        <span class="hljs-keyword">var</span> revUsers = <span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'revUsers'</span>);
         <span class="hljs-keyword">var</span> revisions = <span class="hljs-keyword">this</span>.svg.selectAll(<span class="hljs-string">".body"</span>)
                                 .selectAll(<span class="hljs-string">".revision"</span>)
                                 .data(_.values(<span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'revisions'</span>)))
@@ -3261,10 +3265,10 @@ The slider “dragging” state is stored as a CSS class.</p>
                       .append(<span class="hljs-string">"title"</span>)
                       .text($.proxy(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d, i)</span></span>{
                         <span class="hljs-keyword">if</span>(_.contains(<span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'vandalism'</span>), <span class="hljs-built_in">parseInt</span>(revIds[i]))){
-                            <span class="hljs-keyword">return</span> <span class="hljs-string">"Vandalism"</span>;
+                            <span class="hljs-keyword">return</span> <span class="hljs-string">"Vandalism: "</span> + revUsers[revIds[i]];
                         }
                         <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(_.contains(<span class="hljs-keyword">this</span>.model.get(<span class="hljs-string">'unvandalism'</span>), <span class="hljs-built_in">parseInt</span>(revIds[i]))){
-                            <span class="hljs-keyword">return</span> <span class="hljs-string">"Remove Vandalism"</span>
+                            <span class="hljs-keyword">return</span> <span class="hljs-string">"Remove Vandalism: "</span> + revUsers[revIds[i]]; 
                         }
                       }, <span class="hljs-keyword">this</span>));
         <span class="hljs-keyword">this</span>.svg.selectAll(<span class="hljs-string">".header &gt; :not(.revision)"</span>)
@@ -3473,7 +3477,7 @@ The slider “dragging” state is stored as a CSS class.</p>
             <div class="content"><div class='highlight'><pre>                    d3.select(<span class="hljs-keyword">this</span>).attr(<span class="hljs-string">"fill"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> that.model.get(<span class="hljs-string">"users"</span>)[d.o]; });
                  })
                  .append(<span class="hljs-string">"title"</span>)
-                 .text(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> <span class="hljs-string">"Owner: "</span> + d.o + <span class="hljs-string">"\n"</span> + that.model.get(<span class="hljs-string">'sentences'</span>)[d.s]; });
+                 .text(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(d)</span> </span>{ <span class="hljs-keyword">return</span> <span class="hljs-string">"Owner: "</span> + d.o + <span class="hljs-string">"\n"</span> + <span class="hljs-string">"Date: "</span> + dates[d.r] + <span class="hljs-string">"\n"</span> + that.model.get(<span class="hljs-string">'sentences'</span>)[d.s]; });
                 
         lastSentences.append(<span class="hljs-string">"polygon"</span>)
                      .attr(<span class="hljs-string">"class"</span>, <span class="hljs-string">"lastSentence"</span>)

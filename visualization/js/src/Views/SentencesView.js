@@ -120,6 +120,8 @@ SentencesView = Backbone.View.extend({
         
         // Create Revisions Group
         var revIds = _.keys(this.model.get('revisions'));
+        var dates = this.model.get('dates');
+        var revUsers = this.model.get('revUsers');
         var revisions = this.svg.selectAll(".body")
                                 .selectAll(".revision")
                                 .data(_.values(this.model.get('revisions')))
@@ -169,10 +171,10 @@ SentencesView = Backbone.View.extend({
                       .append("title")
                       .text($.proxy(function(d, i){
                         if(_.contains(this.model.get('vandalism'), parseInt(revIds[i]))){
-                            return "Vandalism";
+                            return "Vandalism: " + revUsers[revIds[i]];
                         }
                         else if(_.contains(this.model.get('unvandalism'), parseInt(revIds[i]))){
-                            return "Remove Vandalism"
+                            return "Remove Vandalism: " + revUsers[revIds[i]]; 
                         }
                       }, this));
         this.svg.selectAll(".header > :not(.revision)")
@@ -279,7 +281,7 @@ SentencesView = Backbone.View.extend({
                     d3.select(this).attr("fill", function(d) { return that.model.get("users")[d.o]; });
                  })
                  .append("title")
-                 .text(function(d) { return "Owner: " + d.o + "\n" + that.model.get('sentences')[d.s]; });
+                 .text(function(d) { return "Owner: " + d.o + "\n" + "Date: " + dates[d.r] + "\n" + that.model.get('sentences')[d.s]; });
                 
         lastSentences.append("polygon")
                      .attr("class", "lastSentence")

@@ -278,7 +278,7 @@
                 $unvandalism[] = $rev_id;
             }
         }
-        $stmt = $mysqli->prepare("SELECT s.id, s.rev_id, se.section_name as section, s.owner, s.sentence, s.last_id as last
+        $stmt = $mysqli->prepare("SELECT s.id, s.rev_id, t.rev_date, se.section_name as section, s.owner, s.sentence, s.last_id as last, t.user_id
                                   FROM `ownership_sentences_jmis` s, `ownership_sections_jmis` se, `{$table}` t, `articles_to_sets` ss
                                   WHERE s.talk = 0
                                   AND t.talk = 0
@@ -291,8 +291,10 @@
                                   AND s.section_id = se.section_id
                                   ORDER BY id ASC");
         $stmt->execute();
-        $stmt->bind_result($id, $rev_id, $section, $owner, $sentence, $last);
+        $stmt->bind_result($id, $rev_id, $timestamp, $section, $owner, $sentence, $last, $rev_user);
         $sentences = array(); // Sentence Hash for compression
+        $dates = array();
+        $revUsers = array();
         $users = array();
         $userColors = array();
         $revs = array();
@@ -322,8 +324,11 @@
                 $revdata[$rev_id][$section][] = array('i' => $id,
                                                       'o' => utf8_encode($owner),
                                                       's' => $sId,
-                                                      'l' => $last);
+                                                      'l' => $last,
+                                                      'r' => $rev_id);
             }
+            $revUsers[$rev_id] = utf8_encode($rev_user);
+            $dates[$rev_id] = $timestamp;
         }
         asort($users);
         $users = array_keys(array_reverse($users));
@@ -338,6 +343,8 @@
         $userColors["Public Domain"] = "#C41AA2";
         $response = array('nRevisions' => count($revs),
                           'revisions' => $revdata,
+                          'dates' => $dates,
+                          'revUsers' => $revUsers,
                           'vandalism' => $vandalism,
                           'unvandalism' => $unvandalism,
                           'users' => $userColors,
