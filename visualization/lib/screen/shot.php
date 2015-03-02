@@ -2,7 +2,7 @@
 error_reporting(E_ALL);
     ini_set('display_errors', '1');
 
-$cache_life = 60*60*24*30; //caching time, in seconds
+$cache_life = 60*60*24*7; //caching time, in seconds
 $download = false;
 if (!isset($_REQUEST['url'])) {
     exit();
