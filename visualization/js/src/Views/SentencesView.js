@@ -422,11 +422,7 @@ SentencesView = Backbone.View.extend({
                 .data(d3.entries(users))
                 .enter()
                 .append('div')
-                .style('height', '16px')
                 .style('padding', '2px 3px 2px 16px')
-                .style('text-overflow', 'ellipsis')
-                .style('overflow', 'hidden')
-                .style('white-space', 'nowrap')
                 .html(function(d, i){
                     var ret = '<input style="float:left;margin-right:16px;" type="checkbox" name="userselect2[]" value="' + d.key + '" checked />';
                     ret += '<div class="l_colour" style="background: ' + d.value + ';height:16px;width:16px;margin-right:16px;"></div>';
@@ -443,11 +439,7 @@ SentencesView = Backbone.View.extend({
                 .data(sections)
                 .enter()
                 .append('div')
-                .style('height', '16px')
                 .style('padding', '2px 3px 2px 16px')
-                .style('text-overflow', 'ellipsis')
-                .style('overflow', 'hidden')
-                .style('white-space', 'nowrap')
                 .html(function(d, i){
                     var ret = '<input style="float:left;margin-right:16px;" type="checkbox" name="section_filter[]" value="' + d + '" checked />';
                     ret += '<span>' + d + '</span>';
