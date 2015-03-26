@@ -151,9 +151,14 @@ WikiVizData = Backbone.Model.extend({
                 rev['class'] = classifications.findWhere({manual: 'Miscellaneous'}).get('id');
             }
             
+            var alreadyDone = {};
             classifications.each(function(c){
                 if(strcontains(c.get('id'), rev['class'])){
-                    wclass[c.get('id')] += Math.abs(c.get('weight'));
+                    if(alreadyDone[c.get('codna')] == undefined){
+                        // This is to avoid creating multiple boxes with the same color
+                        alreadyDone[c.get('codna')] = c.get('id');
+                        wclass[c.get('id')] += Math.abs(c.get('weight'));
+                    }
                 }
             });
                    

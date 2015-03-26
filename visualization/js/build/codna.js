@@ -566,9 +566,14 @@ WikiVizData = Backbone.Model.extend({
                 rev['class'] = classifications.findWhere({manual: 'Miscellaneous'}).get('id');
             }
             
+            var alreadyDone = {};
             classifications.each(function(c){
                 if(strcontains(c.get('id'), rev['class'])){
-                    wclass[c.get('id')] += Math.abs(c.get('weight'));
+                    if(alreadyDone[c.get('codna')] == undefined){
+                        // This is to avoid creating multiple boxes with the same color
+                        alreadyDone[c.get('codna')] = c.get('id');
+                        wclass[c.get('id')] += Math.abs(c.get('weight'));
+                    }
                 }
             });
                    
@@ -1630,10 +1635,10 @@ SentencesView = Backbone.View.extend({
                       .append("title")
                       .text($.proxy(function(d, i){
                         if(_.contains(this.model.get('vandalism'), parseInt(revIds[i]))){
-                            return "Vandalism: " + revUsers[revIds[i]];
+                            return "Vandalism by " + revUsers[revIds[i]];
                         }
                         else if(_.contains(this.model.get('unvandalism'), parseInt(revIds[i]))){
-                            return "Remove Vandalism: " + revUsers[revIds[i]]; 
+                            return "Remove Vandalism by " + revUsers[revIds[i]]; 
                         }
                       }, this));
         this.svg.selectAll(".header > :not(.revision)")
@@ -3878,7 +3883,7 @@ Helper.isSubset = function(subset_l, superset_l) {
 
 // Generate a string describing a given article revisions' edit categories
 Helper.toClassString = function(rc){
-    return rc.split(';').map(function(c) { return classifications.findWhere({id: c.trim()}).get('codna'); }).join(', ');
+    return _.uniq(rc.split(';').map(function(c) { return classifications.findWhere({id: c.trim()}).get('codna'); })).join(', ');
 };
 
 // Generate a string describing a given talk page revision entry's revision categories.

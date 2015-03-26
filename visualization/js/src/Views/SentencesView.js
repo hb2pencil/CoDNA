@@ -171,10 +171,10 @@ SentencesView = Backbone.View.extend({
                       .append("title")
                       .text($.proxy(function(d, i){
                         if(_.contains(this.model.get('vandalism'), parseInt(revIds[i]))){
-                            return "Vandalism: " + revUsers[revIds[i]];
+                            return "Vandalism by " + revUsers[revIds[i]];
                         }
                         else if(_.contains(this.model.get('unvandalism'), parseInt(revIds[i]))){
-                            return "Remove Vandalism: " + revUsers[revIds[i]]; 
+                            return "Remove Vandalism by " + revUsers[revIds[i]]; 
                         }
                       }, this));
         this.svg.selectAll(".header > :not(.revision)")

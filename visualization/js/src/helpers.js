@@ -62,7 +62,7 @@ Helper.isSubset = function(subset_l, superset_l) {
 
 // Generate a string describing a given article revisions' edit categories
 Helper.toClassString = function(rc){
-    return rc.split(';').map(function(c) { return classifications.findWhere({id: c.trim()}).get('codna'); }).join(', ');
+    return _.uniq(rc.split(';').map(function(c) { return classifications.findWhere({id: c.trim()}).get('codna'); })).join(', ');
 };
 
 // Generate a string describing a given talk page revision entry's revision categories.
