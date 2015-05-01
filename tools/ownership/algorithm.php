@@ -64,7 +64,8 @@
         $str = str_replace("<h5>", "=====SECTION=====", str_replace("</h5>", "=====!SECTION=====", $str));
         $str = str_replace("<h6>", "======SECTION======", str_replace("</h6>", "======!SECTION======", $str));
         $str = str_replace(".<", ". <", $str);
-        //$str = strip_tags($str);
+        // Get rid of html comments
+        $str = preg_replace('/<!--(.*)-->/Uis', '', $str);
 
         $sections = getSections($str);
         $re = '/# Split sentences on whitespace between them.
@@ -264,9 +265,10 @@
      * @param integer $sentId The id of the sentence in the current revision.  
      * This is used so that if the algorithim finds two identical sentences, it will 'prefer' the one which is closest to it.
      */
-    function findSentenceInHistory($sentence, $sentId=0){
+    function findSentenceInHistory($sentence, $sentId=0, $revId=-1){
         global $sentenceHistory;
         $offset = 1;
+        $mostRecent = -1;
         do {
             $found = false;
             $closestDiff = 9999999999;
@@ -275,8 +277,17 @@
                 if(isset($history[count($history)-$offset])){
                     $found = true;
                     $tuple = $history[count($history)-$offset];
-                    if($tuple['raw'] == $sentence && abs($tuple['sentId'] - $sentId) < $closestDiff){
+                    if($tuple['raw'] == $sentence && 
+                       $mostRecent < $tuple['revId'] &&
+                       $tuple['revId'] != $revId){
+                        $closestDiff = 9999999999; 
+                    }
+                    if($tuple['raw'] == $sentence && 
+                       $mostRecent <= $tuple['revId'] &&
+                       $tuple['revId'] != $revId &&
+                       abs($tuple['sentId'] - $sentId) < $closestDiff){
                         $closestDiff = abs($tuple['sentId'] - $sentId);
+                        $mostRecent = $tuple['revId'];
                         $closest = $key;
                     }
                 }
@@ -326,6 +337,10 @@
         $nInserts = 0;
         $nDeletes = 0;
         $i = 0;
+        if($revId == 14668308){
+            //print_r($diff);
+            //exit;
+        }
         foreach($diff as $sentence){
             if(is_array($sentence)){
                 $insertion = $sentence['i'];
@@ -333,15 +348,77 @@
                 if(count($insertion) > 0){
                     // Insertion
                     $nIns = 0;
+                    $delOffset = 0;
                     foreach($insertion as $kIns => $ins){
                         $section = $sectionCache[$ins][0];
                         unset($sectionCache[$ins][0]);
                         $sectionCache[$ins] = array_values($sectionCache[$ins]);
                         $wordsIns = 0;
                         $wordsDel = 0;
-                        if(isset($deletion[$kIns])){
+                        $delBefore = $delOffset;
+                        $changed = false;
+                        
+                        // Need to figure out what the change is relative to
+                        // Compare the inserted sentence to the deleted sentences
+                        // by splitting the sentences into thrids.
+                        // If one of the thrids matches Exactly to a part of the other
+                        // sentence, then it is considered a match.
+                        $strippedIns = trim(strip_tags($ins));
+                        $insThirds = array();
+                        $insLen = strlen($strippedIns);
+                        if($insLen >= 12){
+                            $insThirds = array(substr($strippedIns, 
+                                                      0, 
+                                                      floor($insLen/3)),
+                                               substr($strippedIns, 
+                                                      floor($insLen/3), 
+                                                      floor($insLen/3) + ($insLen % 3)),
+                                               substr($strippedIns, 
+                                                      floor($insLen/3) + floor($insLen/3) + ($insLen % 3), 
+                                                      floor($insLen/3)));
+                        }
+                        
+                        foreach($deletion as $kDel => $d){
+                            if($kDel < $delBefore){
+                                continue;
+                            }
+                            $strippedDel = trim(strip_tags($d));
+                            $delThirds = array();
+                            $delLen = strlen($strippedDel);
+                            if(strlen($strippedDel) >= 12){
+                                $delThirds = array(substr($strippedDel, 
+                                                          0, 
+                                                          floor($delLen/3)),
+                                                   substr($strippedDel, 
+                                                          floor($delLen/3), 
+                                                          floor($delLen/3) + ($delLen % 3)),
+                                                   substr($strippedDel, 
+                                                          floor($delLen/3) + floor($delLen/3) + ($delLen % 3), 
+                                                          floor($delLen/3)));
+                            }
+                            if($strippedIns == $strippedDel || 
+                               ($strippedIns != "" && $strippedDel != "" &&
+                                (strstr($strippedIns, $strippedDel) !== false ||
+                                 strstr($strippedDel, $strippedIns) !== false ||
+                                 strstr($strippedDel, @$insThirds[0]) !== false ||
+                                 strstr($strippedDel, @$insThirds[1]) !== false ||
+                                 strstr($strippedDel, @$insThirds[2]) !== false ||
+                                 strstr($strippedIns, @$delThirds[0]) !== false ||
+                                 strstr($strippedIns, @$delThirds[1]) !== false ||
+                                 strstr($strippedIns, @$delThirds[2]) !== false))){
+                                 $changed = true;
+                                break;
+                            }
+                            $delOffset++;
+                            if($kDel == count($deletion)-1){
+                                // No match
+                                $delOffset = $delBefore;
+                            }
+                        }
+                        
+                        if($changed){
                             // Changed sentence
-                            $words = processWords($user, @$lastRevSentences[$i+$kIns], getWords($ins), $wordsIns, $wordsDel);
+                            $words = processWords($user, @$lastRevSentences[$i+$delOffset], getWords($ins), $wordsIns, $wordsDel);
                         }
                         else{
                             // New sentence
@@ -358,9 +435,9 @@
                         $adds_before = false;
                         $adds_new = false;
                         
-                        if(isset($lastRevSentences[$i+$kIns]) && isset($deletion[$kIns])){
+                        if(isset($lastRevSentences[$i+$delOffset]) && $changed){
                             // Changes
-                            $id = findSentenceInHistory($lastRevSentences[$i+$kIns]['raw'], count($finalSentences) + $nDeletes - $nInserts);
+                            $id = findSentenceInHistory($lastRevSentences[$i+$delOffset]['raw'], count($finalSentences) + $nDeletes - $nInserts, $revId);
                             $history = $sentenceHistory[$id][count($sentenceHistory[$id])-1];
                             $off = 2;
                             while($history['revId'] == $revId){
@@ -372,7 +449,7 @@
                             $relId = $id;
                             addRelation($relations,
                                         $user,
-                                        $lastRevSentences[$i+$kIns]['user'],
+                                        $lastRevSentences[$i+$delOffset]['user'],
                                         $owner,
                                         "changes",
                                         $revId,
@@ -389,7 +466,7 @@
                            $lastRevSentences[$i-1+$kIns]['section'] == $section && !isset($deletion[$kIns])){
                             // Adds After
                             $id = addSentenceHistory($revId, $section, count($finalSentences), $ins);
-                            $relId = findSentenceInHistory($lastRevSentences[$i-1+$kIns]['raw'], count($finalSentences) + $nDeletes - $nInserts);
+                            $relId = findSentenceInHistory($lastRevSentences[$i-1+$kIns]['raw'], count($finalSentences) + $nDeletes - $nInserts, $revId);
                             addRelation($relations,
                                         $owner,
                                         $lastRevSentences[$i-1+$kIns]['user'],
@@ -410,7 +487,7 @@
                            $lastRevSentences[$i+$kIns-$nIns]['section'] == $section && !isset($deletion[$kIns])){
                             // Adds Before
                             $id = addSentenceHistory($revId, $section, count($finalSentences), $ins);
-                            $relId = findSentenceInHistory($lastRevSentences[$i+$kIns-$nIns]['raw'], count($finalSentences) + $nDeletes - $nInserts);
+                            $relId = findSentenceInHistory($lastRevSentences[$i+$kIns-$nIns]['raw'], count($finalSentences) + $nDeletes - $nInserts, $revId);
                             addRelation($relations,
                                         $owner,
                                         $lastRevSentences[$i+$kIns-$nIns]['user'],
@@ -456,7 +533,7 @@
                         $words = processWords($user, $lastRevSentences[$i+$kDel], getWords(""), $wordsIns, $wordsDel);
                         $owner = determineOwner($words);
                         if(!isset($insertion[$kDel])){
-                            $relId = findSentenceInHistory($lastRevSentences[$i+$kDel]['raw'], count($finalSentences) + $nDeletes - $nInserts);
+                            $relId = findSentenceInHistory($lastRevSentences[$i+$kDel]['raw'], count($finalSentences) + $nDeletes - $nInserts, $revId);
                             $history = $sentenceHistory[$relId][count($sentenceHistory[$relId])-1];
                             $off = 2;
                             while($history['revId'] == $revId){
@@ -493,11 +570,15 @@
             else{
                 // No Sentence Change
                 $new_sentence = $lastRevSentences[$i];
-                $relId = findSentenceInHistory($sentence, count($finalSentences) + $nDeletes - $nInserts);
+                $relId = findSentenceInHistory($sentence, count($finalSentences) + $nDeletes - $nInserts, $revId);
                 $count = count($sentenceHistory[$relId]);
                 $history = $sentenceHistory[$relId][$count-1];
                 $off = 2;
-                while($history['revId'] == $revId && $count-$off >= 0){
+                /*if($revId == 14658299 && strstr($sentence, "File:Murinsel.jpg") !== false){
+                    echo $sentence."\n";
+                    print_r($sentenceHistory[$relId]);
+                }*/
+                while(($history['revId'] == $revId || $history['raw'] != $sentence) && $count-$off >= 0){
                     $history = @$sentenceHistory[$relId][$count-$off];
                     $off++;
                 }
