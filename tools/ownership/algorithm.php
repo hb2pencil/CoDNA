@@ -337,10 +337,6 @@
         $nInserts = 0;
         $nDeletes = 0;
         $i = 0;
-        if($revId == 14668308){
-            //print_r($diff);
-            //exit;
-        }
         foreach($diff as $sentence){
             if(is_array($sentence)){
                 $insertion = $sentence['i'];
@@ -574,10 +570,6 @@
                 $count = count($sentenceHistory[$relId]);
                 $history = $sentenceHistory[$relId][$count-1];
                 $off = 2;
-                /*if($revId == 14658299 && strstr($sentence, "File:Murinsel.jpg") !== false){
-                    echo $sentence."\n";
-                    print_r($sentenceHistory[$relId]);
-                }*/
                 while(($history['revId'] == $revId || $history['raw'] != $sentence) && $count-$off >= 0){
                     $history = @$sentenceHistory[$relId][$count-$off];
                     $off++;
